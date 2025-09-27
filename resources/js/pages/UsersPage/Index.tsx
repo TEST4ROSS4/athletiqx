@@ -1,7 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
 import { type BreadcrumbItem, User } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';  
+import { route } from 'ziggy-js';
+
  
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -18,9 +19,11 @@ export default function Index({ users }: { users: User[] }) {
             <div className='p-3'>
                 <div className="p-3">
                     <h1 className="text-2xl font-bold mb-4">CRUD App</h1>
-                    <button className="mb-4 px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                    
+                    <Link href={route('users.create')} className="mb-4 px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
                         Add User
-                    </button>
+                    </Link>
+
                     <div className="overflow-x-auto mt-4">
                         <table className="w-full text-sm text-left text-gray-700">
                             <thead className="text-xs uppercase bg-gray-50 text-gray-700">
@@ -34,7 +37,7 @@ export default function Index({ users }: { users: User[] }) {
                             <tbody>
                             
                             {users.map(({id, name, email}) =>    
-                            <tr className="odd:bg-white even:bg-gray-50 border-b border-gray-200">
+                            <tr key={id} className="odd:bg-white even:bg-gray-50 border-b border-gray-200">
                                 <td className="px-6 py-2 font-medium text-gray-900">{id}</td>
                                 <td className="px-6 py-2 text-gray-700">{name}</td>
                                 <td className="px-6 py-2 text-gray-700">{email}</td>

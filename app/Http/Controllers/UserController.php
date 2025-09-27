@@ -6,6 +6,7 @@ use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -24,7 +25,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render("UsersPage/Add");
     }
 
     /**
@@ -32,7 +33,20 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            "name"=> "required",
+            "email"=> "required",
+            "password"=> "required",
+        ]);    
+
+        User::create(
+            $request->only(["name","email"])
+            +
+            ["password" => Hash::make($request->password)]
+        );
+
+        return to_route("users.index");
+
     }
 
     /**
