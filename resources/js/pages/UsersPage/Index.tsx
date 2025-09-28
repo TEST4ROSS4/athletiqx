@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, User } from '@/types';
-import { Head, Link } from '@inertiajs/react';  
+import { Head, Link, router } from '@inertiajs/react';  
 import { route } from 'ziggy-js';
 
  
@@ -13,6 +13,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ users }: { users: User[] }) {
+
+    function handleDelete(id: number){
+        if(confirm("Are you sure you want to delete this?")){
+            router.delete(route('users.destroy', id));
+        }
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
@@ -48,7 +55,7 @@ export default function Index({ users }: { users: User[] }) {
                                     <Link href={route('users.show', id)} className="cursor-pointer px-3 py-2 text-xs font-medium text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300">
                                         View
                                     </Link>
-                                    <button className="cursor-pointer px-3 py-2 text-xs font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300">
+                                    <button onClick={() => handleDelete(id)} className="cursor-pointer px-3 py-2 text-xs font-medium text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300">
                                         Delete
                                     </button>
                                 </td>
