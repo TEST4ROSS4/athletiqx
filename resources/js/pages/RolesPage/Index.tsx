@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, Role } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
+import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,12 +25,12 @@ export default function Index({ roles }: { roles: Role[] }) {
                 <div className="p-3">
                     <h1 className="mb-4 text-2xl font-bold">CRUD App</h1>
 
-                    <Link
+                    {can('roles.create') && <Link
                         href={route('roles.create')}
                         className="mb-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
                     >
                         Add Role
-                    </Link>
+                    </Link>}
 
                     <div className="mt-4 overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-700">
@@ -74,24 +75,24 @@ export default function Index({ roles }: { roles: Role[] }) {
                                             )}
                                         </td>
                                         <td className="space-x-1 px-6 py-2">
-                                            <Link
+                                            {can('roles.edit') && <Link
                                                 href={route('roles.edit', id)}
                                                 className="cursor-pointer rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
                                             >
                                                 Edit
-                                            </Link>
-                                            <Link
+                                            </Link>}
+                                            {can('roles.view') && <Link
                                                 href={route('roles.show', id)}
                                                 className="cursor-pointer rounded-lg bg-green-700 px-3 py-2 text-xs font-medium text-white hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none"
                                             >
                                                 View
-                                            </Link>
-                                            <button
+                                            </Link>}
+                                            {can('roles.delete') && <button
                                                 onClick={() => handleDelete(id)}
                                                 className="cursor-pointer rounded-lg bg-red-700 px-3 py-2 text-xs font-medium text-white hover:bg-red-800 focus:ring-4 focus:ring-red-300 focus:outline-none"
                                             >
                                                 Delete
-                                            </button>
+                                            </button>}
                                         </td>
                                     </tr>
                                 ))}

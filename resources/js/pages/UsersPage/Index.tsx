@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
+import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,12 +25,12 @@ export default function Index({ users }: { users: User[] }) {
                 <div className="p-3">
                     <h1 className="mb-4 text-2xl font-bold">CRUD App</h1>
 
-                    <Link
+                    {can('users.create') && <Link
                         href={route('users.create')}
                         className="mb-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
                     >
                         Add User
-                    </Link>
+                    </Link>}
 
                     <div className="mt-4 overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-700">
@@ -80,24 +81,24 @@ export default function Index({ users }: { users: User[] }) {
                                             )}
                                         </td>
                                         <td className="space-x-1 px-6 py-2">
-                                            <Link
+                                            {can('users.edit') && <Link
                                                 href={route('users.edit', id)}
                                                 className="cursor-pointer rounded-lg bg-blue-700 px-3 py-2 text-xs font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
                                             >
                                                 Edit
-                                            </Link>
-                                            <Link
+                                            </Link>}
+                                            {can('users.view') && <Link
                                                 href={route('users.show', id)}
                                                 className="cursor-pointer rounded-lg bg-green-700 px-3 py-2 text-xs font-medium text-white hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none"
                                             >
                                                 View
-                                            </Link>
-                                            <button
+                                            </Link>}
+                                            {can('users.delete') && <button
                                                 onClick={() => handleDelete(id)}
                                                 className="cursor-pointer rounded-lg bg-red-700 px-3 py-2 text-xs font-medium text-white hover:bg-red-800 focus:ring-4 focus:ring-red-300 focus:outline-none"
                                             >
                                                 Delete
-                                            </button>
+                                            </button>}
                                         </td>
                                     </tr>
                                 ))}
