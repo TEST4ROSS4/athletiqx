@@ -13,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function show({ user }: { user: User }) {
+export default function Show({ user }: { user: User }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

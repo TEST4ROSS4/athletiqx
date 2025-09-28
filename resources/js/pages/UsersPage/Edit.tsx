@@ -13,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function edit({ user }: { user: User }) {
+export default function Edit({ user }: { user: User }) {
 
     const {data, setData, errors, put} = useForm({
         name: user.name || "",
