@@ -16,7 +16,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render("UsersPage/Index", [
-            "users"=> User::all()
+            "users" => User::all()
         ]);
     }
 
@@ -34,19 +34,18 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "name"=> "required",
-            "email"=> "required",
-            "password"=> "required",
-        ]);    
+            "name" => "required",
+            "email" => "required",
+            "password" => "required",
+        ]);
 
         User::create(
-            $request->only(["name","email"])
-            +
-            ["password" => Hash::make($request->password)]
+            $request->only(["name", "email"])
+                +
+                ["password" => Hash::make($request->password)]
         );
 
         return to_route("users.index");
-
     }
 
     /**
@@ -54,7 +53,9 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return Inertia::render("UsersPage/View", [
+            "user" => User::find($id)
+            ]);
     }
 
     /**
@@ -62,7 +63,11 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $user = User::find($id);
+
+        return Inertia::render("UsersPage/Edit", [
+            "user" => $user
+        ]);
     }
 
     /**
@@ -70,7 +75,22 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            "name" => "required",
+            "email" => "required",
+        ]);
+
+        $user = User::find($id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return to_route("users.index");
     }
 
     /**

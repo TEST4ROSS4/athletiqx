@@ -8,27 +8,27 @@ import { route } from 'ziggy-js';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Add User',
+        title: 'Edit User',
         href: '/users',
     },
 ];
 
-export default function create() {
+export default function edit({ user }: { user: User }) {
 
-    const {data, setData, errors, post} = useForm({
-        name: "",
-        email: "",
+    const {data, setData, errors, put} = useForm({
+        name: user.name || "",
+        email: user.email || "",
         password: "",
     });
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        post(route('users.store'));
+        put(route('users.update', user.id));
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Add User" />
+            <Head title="Edit User" />
             <div className='p-3'>
                 <div className="p-3">
                     <h1 className="text-2xl font-bold mb-4">CRUD App</h1>
