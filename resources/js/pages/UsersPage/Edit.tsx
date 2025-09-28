@@ -13,13 +13,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Edit({ user }: { user: User }) {
+export default function Edit({ user, roles, userRole }: { user: User; roles: string[]; userRole: string[]; }) {
 
     const {data, setData, errors, put} = useForm({
         name: user.name || "",
         email: user.email || "",
         password: "",
+        roles: userRole || []
     });
+
+    function handleCheckboxSelect(roleName: string, checked: boolean) {
+        if (checked) {
+            setData('roles', [...data.roles, roleName]);
+        } else {
+            setData(
+                'roles',
+                data.roles.filter((name) => name !== roleName),
+            );
+        }
+    }
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -85,6 +97,43 @@ export default function Edit({ user }: { user: User }) {
                            />
                             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                        </div>
+
+                       <div className="grid gap-2">
+                            <label
+                                htmlFor="roles"
+                                className="text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                            >
+                                Roles:
+                            </label>
+                            {roles.map((role) => (
+                                <label
+                                    key={`role-${role}`}
+                                    className="flex items-center space-x-2"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        value={role}
+                                        id={role}
+                                        checked={data.roles.includes(role)}
+                                        onChange={(e) =>
+                                            handleCheckboxSelect(
+                                                role,
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="form-checkbox h-5 w-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="text-gray-800 capitalize">
+                                        {role}
+                                    </span>
+                                </label>
+                            ))}
+                            {errors.roles && (
+                                <p className="mt-1 text-sm text-red-500">
+                                    {errors.roles}
+                                </p>
+                            )}
+                        </div>
                    
                        <button
                            type="submit"

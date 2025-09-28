@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,7 +17,7 @@ class UserController extends Controller
     public function index()
     {
         return Inertia::render("UsersPage/Index", [
-            "users" => User::all()
+            "users" => User::with("roles")->get()
         ]);
     }
 
@@ -25,7 +26,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render("UsersPage/Add");
+        return Inertia::render("UsersPage/Add", [
+            "roles" => Role::pluck("name"),
+        ]);
     }
 
     /**
@@ -39,11 +42,13 @@ class UserController extends Controller
             "password" => "required",
         ]);
 
-        User::create(
+        $user = User::create(
             $request->only(["name", "email"])
                 +
                 ["password" => Hash::make($request->password)]
         );
+
+        $user->syncRoles($request->roles);
 
         return to_route("users.index");
     }
@@ -66,7 +71,9 @@ class UserController extends Controller
         $user = User::find($id);
 
         return Inertia::render("UsersPage/Edit", [
-            "user" => $user
+            "user" => $user,
+            "userRole" => $user->roles()->pluck("name"),
+            "roles" => Role::pluck("name"),
         ]);
     }
 
@@ -75,6 +82,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        
         $request->validate([
             "name" => "required",
             "email" => "required",
@@ -89,6 +97,8 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        $user->syncRoles($request->roles);
 
         return to_route("users.index");
     }
