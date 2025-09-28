@@ -51,7 +51,12 @@ class RoleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $role = Role::find($id);
+
+        return Inertia::render("RolesPage/View", [
+            "role"=> $role,
+            "permissions" => $role->permissions()->pluck("name")
+            ]);
     }
 
     /**
@@ -59,7 +64,12 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $role = Role::find($id);
+        return Inertia::render("RolesPage/Edit", [
+            "role"=> $role,
+            "rolePermissions" => $role->permissions()->pluck("name"),
+            "permissions"=> Permission::pluck("name")
+        ]);
     }
 
     /**
@@ -67,7 +77,19 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            "name"=> "required",
+            "permissions" => "required",
+            ]);
+
+            $role = Role::find($id);
+
+            $role->name = $request->name;
+            $role->save();
+
+            $role->syncPermissions($request->permissions);
+
+            return to_route("roles.index");
     }
 
     /**
@@ -75,6 +97,8 @@ class RoleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Role::destroy($id);
+
+        return to_route("roles.index");
     }
 }
