@@ -14,17 +14,26 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            //USERS
             "users.create",
             "users.view",
             "users.edit",
             "users.delete",
+
+            // ROLES
             "roles.create",
             "roles.view",
             "roles.edit",
-            "roles.delete"
+            "roles.delete",
+
+            //COURSES
+            "courses.create",
+            "courses.view",
+            "courses.edit",
+            "courses.delete",
         ];
         foreach ($permissions as $key => $value) {
-            Permission::create(["name" => $value]);
+            Permission::firstOrCreate(["name" => $value]);
         }
     }
 }

@@ -4,6 +4,9 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CourseController;
+
+
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -39,6 +42,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('permission:roles.edit');
     Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update')->middleware('permission:roles.edit');
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy')->middleware('permission:roles.delete');
+
+    Route::resource('courses', CourseController::class);
+
 });
 
 require __DIR__ . '/settings.php';
