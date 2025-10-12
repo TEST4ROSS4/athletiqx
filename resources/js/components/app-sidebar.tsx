@@ -14,7 +14,7 @@ import { can } from '@/lib/can';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, UserCog, Users, LibraryBig } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, UserCog, Users, LibraryBig, School } from 'lucide-react';
 import AppLogo from './app-logo';
 
 // const mainNavItems: NavItem[] = [
@@ -71,6 +71,12 @@ export function AppSidebar() {
             title: 'Courses',
             href: '/courses',
             icon: LibraryBig,
+        },
+
+        can('schools.view') && {
+            title: 'Schools',
+            href: '/schools',
+            icon: School,
         },
     ];
 
