@@ -6,7 +6,7 @@ use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -16,8 +16,17 @@ class UserController extends Controller
      */
     public function index()
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $query = User::with('roles');
+
+        if ($user && !$user->hasRole('super_admin')) {
+            $query->where('school_id', $user->school_id);
+        }
+
         return Inertia::render("UsersPage/Index", [
-            "users" => User::with("roles")->get()
+            "users" => $query->get(),
         ]);
     }
 
@@ -36,17 +45,25 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+
         $request->validate([
-            "name" => "required",
-            "email" => "required",
-            "password" => "required",
+            "name" => "required|string|max:255",
+            "email" => "required|email|unique:users,email",
+            "password" => "required|string|min:6",
+            "roles" => "array",
+            "school_id" => "nullable|exists:schools,id",
         ]);
 
-        $user = User::create(
-            $request->only(["name", "email"])
-                +
-                ["password" => Hash::make($request->password)]
-        );
+        $user = User::create([
+            "name" => $request->name,
+            "email" => $request->email,
+            "password" => Hash::make($request->password),
+            "school_id" => $authUser->hasRole('super_admin')
+                ? $request->school_id
+                : $authUser->school_id,
+        ]);
 
         $user->syncRoles($request->roles);
 
@@ -58,9 +75,13 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
+        $user = User::with('roles')->findOrFail($id);
+
+        $this->authorizeSchoolAccess($user);
+
         return Inertia::render("UsersPage/View", [
-            "user" => User::find($id)
-            ]);
+            "user" => $user,
+        ]);
     }
 
     /**
@@ -68,7 +89,9 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        $user = User::find($id);
+        $user = User::findOrFail($id);
+
+        $this->authorizeSchoolAccess($user);
 
         return Inertia::render("UsersPage/Edit", [
             "user" => $user,
@@ -82,18 +105,30 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+
         $request->validate([
-            "name" => "required",
-            "email" => "required",
+            "name" => "required|string|max:255",
+            "email" => "required|email|unique:users,email," . $id,
+            "password" => "nullable|string|min:6",
+            "roles" => "array",
+            "school_id" => "nullable|exists:schools,id",
         ]);
 
-        $user = User::find($id);
+        $user = User::findOrFail($id);
+
+        $this->authorizeSchoolAccess($user);
+
         $user->name = $request->name;
         $user->email = $request->email;
 
-        if($request->password) {
+        if ($request->password) {
             $user->password = Hash::make($request->password);
+        }
+
+        if ($authUser->hasRole('super_admin') && $request->school_id) {
+            $user->school_id = $request->school_id;
         }
 
         $user->save();
@@ -108,8 +143,28 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        User::destroy($id);
+        $user = User::findOrFail($id);
+
+        $this->authorizeSchoolAccess($user);
+
+        $user->delete();
 
         return to_route("users.index");
+    }
+
+    /**
+     * Restrict access to users outside current school.
+     */
+    protected function authorizeSchoolAccess(User $user)
+    {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+
+        if (
+            !$authUser->hasRole('super_admin') &&
+            $user->school_id !== $authUser->school_id
+        ) {
+            abort(403, 'Unauthorized access to user.');
+        }
     }
 }

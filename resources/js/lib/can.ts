@@ -3,9 +3,11 @@ import { usePage } from '@inertiajs/react';
 export function can(permission: string): boolean {
   const { auth } = usePage().props as {
     auth?: {
-      permissions?: string[];
+      user?: {
+        permissions?: string[];
+      };
     };
   };
 
-  return auth?.permissions?.includes(permission) ?? false;
+  return auth?.user?.permissions?.includes(permission) ?? false;
 }

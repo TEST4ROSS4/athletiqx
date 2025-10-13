@@ -4,15 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class SchoolController extends Controller
 {
     /**
+     * Ensure only super admins can access this controller.
+     */
+    protected function authorizeSuperAdmin(): void
+    {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+
+        if (!$authUser->hasRole('super_admin')) {
+            abort(403, 'Only super admins can access the School module.');
+        }
+    }
+
+    /**
      * Display a listing of the schools.
      */
     public function index()
     {
+        $this->authorizeSuperAdmin();
+
         $schools = School::orderBy('created_at', 'desc')->get();
 
         return Inertia::render('SchoolsPage/Index', [
@@ -25,6 +41,8 @@ class SchoolController extends Controller
      */
     public function create()
     {
+        $this->authorizeSuperAdmin();
+
         return Inertia::render('SchoolsPage/Add');
     }
 
@@ -33,6 +51,8 @@ class SchoolController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeSuperAdmin();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:schools,name',
             'code' => 'required|string|max:50|unique:schools,code',
@@ -50,6 +70,8 @@ class SchoolController extends Controller
      */
     public function show(School $school)
     {
+        $this->authorizeSuperAdmin();
+
         return Inertia::render('SchoolsPage/View', [
             'school' => $school,
         ]);
@@ -60,6 +82,8 @@ class SchoolController extends Controller
      */
     public function edit(School $school)
     {
+        $this->authorizeSuperAdmin();
+
         return Inertia::render('SchoolsPage/Edit', [
             'school' => $school,
         ]);
@@ -70,6 +94,8 @@ class SchoolController extends Controller
      */
     public function update(Request $request, School $school)
     {
+        $this->authorizeSuperAdmin();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:schools,name,' . $school->id,
             'code' => 'required|string|max:50|unique:schools,code,' . $school->id,
@@ -87,6 +113,8 @@ class SchoolController extends Controller
      */
     public function destroy(School $school)
     {
+        $this->authorizeSuperAdmin();
+
         $school->delete();
 
         return redirect()->route('schools.index')->with('success', 'School deleted successfully.');

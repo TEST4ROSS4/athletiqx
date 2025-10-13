@@ -11,22 +11,41 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@fit.com'],
+        // 🎓 Create or find the school-admin role
+        $role = Role::firstOrCreate(['name' => 'school-admin']);
+
+        // 🛡️ Define permissions for school admins
+        $permissions = [
+            'users.view',
+            'users.create',
+            'users.edit',
+            'users.delete',
+            'roles.view',
+            'roles.create',
+            'roles.edit',
+            'roles.delete',
+            'courses.view',
+            'courses.create',
+            'courses.edit',
+            'courses.delete',
+            // Add more as needed
+        ];
+
+        foreach ($permissions as $name) {
+            $permission = Permission::firstOrCreate(['name' => $name]);
+            $role->givePermissionTo($permission);
+        }
+
+        // 👤 Optionally create a school admin user (if needed)
+        $user = User::firstOrCreate(
+            ['email' => 'admin@school.edu'],
             [
-                'name' => 'Admin',
-                'password' => bcrypt('admin'), // Change this as needed
+                'name' => 'School Admin',
+                'password' => bcrypt('securepassword'),
+                'school_id' => 1, // or dynamically assign
             ]
         );
 
-        // Create admin role
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-
-        // Assign all existing permissions to admin role
-        $adminRole->syncPermissions(Permission::all());
-
-        // Assign role to user
-        $admin->assignRole($adminRole);
+        $user->assignRole($role);
     }
 }
