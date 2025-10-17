@@ -39,8 +39,8 @@ class PermissionSeeder extends Seeder
             "schools.delete",
 
         ];
-        foreach ($permissions as $key => $value) {
-            Permission::firstOrCreate(["name" => $value]);
+        foreach ($permissions as $name) {
+            Permission::firstOrCreate(['name' => $name]);
         }
     }
 }

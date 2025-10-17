@@ -5,47 +5,46 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // 🎓 Create or find the school-admin role
-        $role = Role::firstOrCreate(['name' => 'school-admin']);
+        // 🎓 Create or find the Admin role
+        $role = Role::firstOrCreate(['name' => 'Admin']);
 
-        // 🛡️ Define permissions for school admins
+        // 🛡️ Assign only school-level permissions (already created in PermissionSeeder)
         $permissions = [
             'users.view',
             'users.create',
             'users.edit',
             'users.delete',
+
             'roles.view',
             'roles.create',
             'roles.edit',
             'roles.delete',
+
             'courses.view',
             'courses.create',
             'courses.edit',
             'courses.delete',
-            // Add more as needed
         ];
 
-        foreach ($permissions as $name) {
-            $permission = Permission::firstOrCreate(['name' => $name]);
-            $role->givePermissionTo($permission);
-        }
+        // ✅ Assign permissions to the role
+        $role->syncPermissions($permissions);
 
-        // 👤 Optionally create a school admin user (if needed)
+        // 👤 Create or find the school admin user
         $user = User::firstOrCreate(
-            ['email' => 'admin@school.edu'],
+            ['email' => 'admin@fit.edu'],
             [
                 'name' => 'School Admin',
-                'password' => bcrypt('securepassword'),
-                'school_id' => 1, // or dynamically assign
+                'password' => bcrypt('admin'),
+                'school_id' => 1, 
             ]
         );
 
+        // ✅ Assign the role to the user
         $user->assignRole($role);
     }
 }

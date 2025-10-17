@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->string('code')->unique();
             $table->timestamps();
 
-            $table->foreignId('school_id')->constrained()->onDelete('cascade');
+  
         });
     }
 
