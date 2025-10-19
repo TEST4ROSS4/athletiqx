@@ -12,7 +12,7 @@ return new class extends Migration {
         });
 
         Schema::table('courses', function (Blueprint $table) {
-            $table->foreignId('school_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('school_id')->constrained()->onDelete('cascade');
         });
     }
 
