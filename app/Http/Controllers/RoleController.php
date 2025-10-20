@@ -15,9 +15,15 @@ class RoleController extends Controller
      */
     public function index()
     {
+        $roles = Role::with('permissions')
+            ->whereDoesntHave('permissions', function ($query) {
+                $query->whereIn('module', ['super']);
+            })
+            ->get();
+
         return Inertia::render("RolesPage/Index", [
-            "roles"=> Role::with("permissions") -> get()
-            ]);
+            "roles" => $roles
+        ]);
     }
 
     /**
@@ -25,8 +31,10 @@ class RoleController extends Controller
      */
     public function create()
     {
+        $permissions = Permission::whereNotIn('module', ['super', 'school-admin'])->get();
+
         return Inertia::render("RolesPage/Add", [
-            "permissions"=> Permission::pluck("name")
+            "permissions" => $permissions
         ]);
     }
 
@@ -36,14 +44,17 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "name"=> "required",
-            "permissions" => "required",
-            ]);
+            "name" => "required",
+            "permissions" => "required|array",
+        ]);
 
-            $role = Role::create(['name' => $request->name]);
-            $role->syncPermissions($request->permissions);
+        $role = Role::create(['name' => $request->name]);
+        $allowed = Permission::whereNotIn('module', ['super', 'school-admin'])->pluck('name')->toArray();
+        $filtered = array_intersect($request->permissions, $allowed);
 
-            return to_route("roles.index");
+        $role->syncPermissions($filtered);
+
+        return to_route("roles.index");
     }
 
     /**
@@ -54,9 +65,9 @@ class RoleController extends Controller
         $role = Role::find($id);
 
         return Inertia::render("RolesPage/View", [
-            "role"=> $role,
+            "role" => $role,
             "permissions" => $role->permissions()->pluck("name")
-            ]);
+        ]);
     }
 
     /**
@@ -65,10 +76,12 @@ class RoleController extends Controller
     public function edit(string $id)
     {
         $role = Role::find($id);
+        $permissions = Permission::whereNotIn('module', ['super', 'school-admin'])->get();
+
         return Inertia::render("RolesPage/Edit", [
-            "role"=> $role,
+            "role" => $role,
             "rolePermissions" => $role->permissions()->pluck("name"),
-            "permissions"=> Permission::pluck("name")
+            "permissions" => $permissions
         ]);
     }
 
@@ -78,18 +91,20 @@ class RoleController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            "name"=> "required",
-            "permissions" => "required",
-            ]);
+            "name" => "required",
+            "permissions" => "required|array",
+        ]);
 
-            $role = Role::find($id);
+        $role = Role::find($id);
+        $role->name = $request->name;
+        $role->save();
 
-            $role->name = $request->name;
-            $role->save();
+        $allowed = Permission::whereNotIn('module', ['super', 'school-admin'])->pluck('name')->toArray();
+        $filtered = array_intersect($request->permissions, $allowed);
 
-            $role->syncPermissions($request->permissions);
+        $role->syncPermissions($filtered);
 
-            return to_route("roles.index");
+        return to_route("roles.index");
     }
 
     /**

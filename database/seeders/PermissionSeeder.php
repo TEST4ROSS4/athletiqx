@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 
@@ -14,33 +13,42 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            //USERS
-            "users.create",
-            "users.view",
-            "users.edit",
-            "users.delete",
+            // USERS
+            ['name' => 'users.create', 'module' => 'school'],
+            ['name' => 'users.view', 'module' => 'school'],
+            ['name' => 'users.edit', 'module' => 'school'],
+            ['name' => 'users.delete', 'module' => 'school'],
 
+            // COURSES
+            ['name' => 'courses.create', 'module' => 'school'],
+            ['name' => 'courses.view', 'module' => 'school'],
+            ['name' => 'courses.edit', 'module' => 'school'],
+            ['name' => 'courses.delete', 'module' => 'school'],
+
+           
+            // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
+            
             // ROLES
-            "roles.create",
-            "roles.view",
-            "roles.edit",
-            "roles.delete",
+            ['name' => 'roles.create', 'module' => 'school-admin'],
+            ['name' => 'roles.view', 'module' => 'school-admin'],
+            ['name' => 'roles.edit', 'module' => 'school-admin'],
+            ['name' => 'roles.delete', 'module' => 'school-admin'],
 
-            //COURSES
-            "courses.create",
-            "courses.view",
-            "courses.edit",
-            "courses.delete",
 
-            // SCHOOLS
-            "schools.create",
-            "schools.view",
-            "schools.edit",
-            "schools.delete",
+            // -------------------------------------- SUPER ADMIN ONLY --------------------------------------
 
+            // SCHOOLS 
+            ['name' => 'schools.create', 'module' => 'super'],
+            ['name' => 'schools.view', 'module' => 'super'],
+            ['name' => 'schools.edit', 'module' => 'super'],
+            ['name' => 'schools.delete', 'module' => 'super'],
         ];
-        foreach ($permissions as $name) {
-            Permission::firstOrCreate(['name' => $name]);
+
+        foreach ($permissions as $item) {
+            Permission::updateOrCreate(
+                ['name' => $item['name']],
+                ['guard_name' => 'web', 'module' => $item['module']]
+            );
         }
     }
 }
