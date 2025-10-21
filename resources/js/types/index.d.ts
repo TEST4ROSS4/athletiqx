@@ -30,6 +30,8 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+
+
 export interface User {
     id: number;
     name: string;
@@ -39,26 +41,48 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
     roles: Role[];
+    school?: School; // ✅ Added this to fix school.name error
+    [key: string]: unknown;
 }
 
 // ------------------------- ADDED TYPES ---------------------------
 export interface Role {
-  id: number;
-  name: string;
-  permissions: Permission[];
-  created_at: string;
-  updated_at: string;
-  [key: string]: unknown; // optional catch-all for flexibility
+    id: number;
+    name: string;
+    permissions: Permission[];
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
 }
 
 export interface RolePermission {
-  id: number;
-  name: string;
-  permission?: string[];
-  guard_name?: string;
-  created_at?: string;
-  updated_at?: string;
-  [key: string]: unknown;
+    id: number;
+    name: string;
+    permission?: string[];
+    guard_name?: string;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+// ✅ Optional: Permission type if used
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name?: string;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface School {
+    id: number;
+    name: string;
+    address?: string;
+    code?: string;
+    active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
 }

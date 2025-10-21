@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -27,15 +26,22 @@ class SuperAdminSeeder extends Seeder
         // ✅ Assign the role to the user
         $user->assignRole($role);
 
-        // ✅ Define School module permissions
+        // ✅ Define all permissions for super_admin
         $permissions = [
+            // School module
             'schools.view',
             'schools.create',
             'schools.edit',
             'schools.delete',
+
+            // School Admin module
+            'school-admins.view',
+            'school-admins.create',
+            'school-admins.edit',
+            'school-admins.delete',
         ];
 
+        // ✅ Assign permissions to the role
         $role->syncPermissions($permissions);
-
     }
 }

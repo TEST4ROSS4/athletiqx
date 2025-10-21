@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SchoolAdminController;
 
 
 
@@ -60,6 +61,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('schools/{school}/edit', [SchoolController::class, 'edit'])->name('schools.edit')->middleware('permission:schools.edit');
     Route::put('schools/{school}', [SchoolController::class, 'update'])->name('schools.update')->middleware('permission:schools.edit');
     Route::delete('schools/{school}', [SchoolController::class, 'destroy'])->name('schools.destroy')->middleware('permission:schools.delete');
+
+    Route::get('school-admins', [SchoolAdminController::class, 'index'])->name('school-admins.index')->middleware('permission:school-admins.view');
+    Route::get('school-admins/create', [SchoolAdminController::class, 'create'])->name('school-admins.create')->middleware('permission:school-admins.create');
+    Route::post('school-admins', [SchoolAdminController::class, 'store'])->name('school-admins.store')->middleware('permission:school-admins.create');
+    Route::get('school-admins/{user}', [SchoolAdminController::class, 'show'])->name('school-admins.show')->middleware('permission:school-admins.view');
+    Route::get('school-admins/{user}/edit', [SchoolAdminController::class, 'edit'])->name('school-admins.edit')->middleware('permission:school-admins.edit');
+    Route::put('school-admins/{user}', [SchoolAdminController::class, 'update'])->name('school-admins.update')->middleware('permission:school-admins.edit');
+    Route::delete('school-admins/{user}', [SchoolAdminController::class, 'destroy'])->name('school-admins.destroy')->middleware('permission:school-admins.delete');
 });
 
 require __DIR__ . '/settings.php';

@@ -25,9 +25,9 @@ class PermissionSeeder extends Seeder
             ['name' => 'courses.edit', 'module' => 'school'],
             ['name' => 'courses.delete', 'module' => 'school'],
 
-           
+
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
-            
+
             // ROLES
             ['name' => 'roles.create', 'module' => 'school-admin'],
             ['name' => 'roles.view', 'module' => 'school-admin'],
@@ -42,6 +42,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'schools.view', 'module' => 'super'],
             ['name' => 'schools.edit', 'module' => 'super'],
             ['name' => 'schools.delete', 'module' => 'super'],
+
+            // SCHOOL ADMINS
+            ['name' => 'school-admins.create', 'module' => 'super'],
+            ['name' => 'school-admins.view', 'module' => 'super'],
+            ['name' => 'school-admins.edit', 'module' => 'super'],
+            ['name' => 'school-admins.delete', 'module' => 'super'],
         ];
 
         foreach ($permissions as $item) {

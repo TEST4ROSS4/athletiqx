@@ -7,15 +7,23 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * App\Models\User
  *
+ * @property-read \Illuminate\Support\Collection $roles
  * @method bool hasRole(string|int|array|\Spatie\Permission\Models\Role|\Illuminate\Support\Collection|\BackedEnum $roles, string|null $guard = null)
- * @method void assignRole(string|array|\Spatie\Permission\Models\Role $role)
+ * @method \Spatie\Permission\Models\Role assignRole(string|array|\Spatie\Permission\Models\Role $role)
  * @method void syncRoles(array|\Spatie\Permission\Models\Role $roles)
  * @method bool hasPermissionTo(string|\Spatie\Permission\Models\Permission $permission, string|null $guardName = null)
+ * @method \Illuminate\Support\Collection getRoleNames()
+ * @method \Illuminate\Database\Eloquent\Builder role(string|array|\Spatie\Permission\Models\Role $roles, string|null $guard = null)
  */
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
@@ -77,5 +85,21 @@ class User extends Authenticatable
     public function taughtCourses()
     {
         return $this->belongsToMany(Course::class, 'course_professor');
+    }
+
+    /**
+     * Helper: Check if user has the 'Admin' role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('Admin');
+    }
+
+    /**
+     * Scope: Query users with the 'Admin' role.
+     */
+    public function scopeAdmin(Builder $query): Builder
+    {
+        return $query->role('Admin');
     }
 }
