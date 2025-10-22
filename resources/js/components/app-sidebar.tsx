@@ -19,11 +19,11 @@ import {
     Folder,
     LayoutGrid,
     LibraryBig,
-    UserCheck,
     School,
+    UserCheck,
     UserCog,
     Users,
-    
+    Group,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -83,6 +83,12 @@ export function AppSidebar() {
             href: '/courses',
             icon: LibraryBig,
         },
+        can('sections.view') && {
+            title: 'Sections',
+            href: '/sections',
+            icon: Group,
+        },
+
         isSuperAdmin &&
             can('schools.view') && {
                 title: 'Schools',
@@ -93,7 +99,7 @@ export function AppSidebar() {
             can('school-admins.view') && {
                 title: 'School Admin',
                 href: '/school-admins',
-                icon: UserCog, 
+                icon: UserCog,
             },
     ].filter(Boolean) as NavItem[];
 

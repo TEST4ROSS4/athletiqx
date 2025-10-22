@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SchoolAdminController;
 
 
@@ -69,6 +70,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('school-admins/{user}/edit', [SchoolAdminController::class, 'edit'])->name('school-admins.edit')->middleware('permission:school-admins.edit');
     Route::put('school-admins/{user}', [SchoolAdminController::class, 'update'])->name('school-admins.update')->middleware('permission:school-admins.edit');
     Route::delete('school-admins/{user}', [SchoolAdminController::class, 'destroy'])->name('school-admins.destroy')->middleware('permission:school-admins.delete');
+
+    Route::get('sections', [SectionController::class, 'index'])->name('sections.index')->middleware('permission:sections.view');
+    Route::get('sections/create', [SectionController::class, 'create'])->name('sections.create')->middleware('permission:sections.create');
+    Route::post('sections', [SectionController::class, 'store'])->name('sections.store')->middleware('permission:sections.create');
+    Route::get('sections/{section}', [SectionController::class, 'show'])->name('sections.show')->middleware('permission:sections.view');
+    Route::get('sections/{section}/edit', [SectionController::class, 'edit'])->name('sections.edit')->middleware('permission:sections.edit');
+    Route::put('sections/{section}', [SectionController::class, 'update'])->name('sections.update')->middleware('permission:sections.edit');
+    Route::delete('sections/{section}', [SectionController::class, 'destroy'])->name('sections.destroy')->middleware('permission:sections.delete');
 });
 
 require __DIR__ . '/settings.php';

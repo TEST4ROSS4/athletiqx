@@ -8,16 +8,32 @@ class Section extends Model
 {
     protected $fillable = [
         'code',
-        'semester',
-        'school_year',
         'program',
-        'status',
+        'school_id',
     ];
-    public function courses()
+
+    public function school()
     {
-        return $this->belongsToMany(Course::class, 'course_section');
+        return $this->belongsTo(School::class);
     }
 
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'course_section')
+                    ->withPivot('term')
+                    ->withTimestamps();
+    }
 
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'student_section')
+                    ->withPivot(['grade', 'attendance', 'status', 'enrolled_at'])
+                    ->withTimestamps();
+    }
 
+    public function professors()
+    {
+        return $this->belongsToMany(User::class, 'professor_section')
+                    ->withTimestamps();
+    }
 }

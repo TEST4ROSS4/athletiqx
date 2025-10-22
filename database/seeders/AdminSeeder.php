@@ -29,6 +29,11 @@ class AdminSeeder extends Seeder
             'courses.create',
             'courses.edit',
             'courses.delete',
+
+            'sections.view',
+            'sections.create',
+            'sections.edit',
+            'sections.delete',
         ];
 
         // ✅ Assign permissions to the role
@@ -40,7 +45,7 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'School Admin',
                 'password' => bcrypt('admin'),
-                'school_id' => 1, 
+                'school_id' => 1,
             ]
         );
 

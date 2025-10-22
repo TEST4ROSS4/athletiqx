@@ -25,7 +25,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'courses.edit', 'module' => 'school'],
             ['name' => 'courses.delete', 'module' => 'school'],
 
-
+            // SECTIONS
+            ['name' => 'sections.create', 'module' => 'school'],
+            ['name' => 'sections.view', 'module' => 'school'],
+            ['name' => 'sections.edit', 'module' => 'school'],
+            ['name' => 'sections.delete', 'module' => 'school'],
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES
