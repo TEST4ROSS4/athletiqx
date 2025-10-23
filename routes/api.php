@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Auth\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
 Route::get('/users', [MobileAuthController::class, 'getAllUsers']);
+Route::middleware('auth:sanctum')->get('/my-courses', [MobileCourseController::class, 'getCoursesBySchool']);
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
     // Optional: Check if user has the correct role before allowing logout
@@ -18,6 +20,13 @@ Route::post('/mobile-logout', function (Request $request) {
     $user->currentAccessToken()->delete();
     return response()->json(['message' => 'Logged out successfully']);
 })->middleware('auth:sanctum');
+// routes/api.php
+Route::middleware('auth:sanctum')->get('/token', function (Request $request) {
+    return response()->json([
+        'token' => $request->bearerToken(),
+        'user' => $request->user(),
+    ]);
+});
 
 
 
