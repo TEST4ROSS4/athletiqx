@@ -17,13 +17,13 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Folder,
+    Group,
     LayoutGrid,
     LibraryBig,
     School,
     UserCheck,
     UserCog,
     Users,
-    Group,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -89,9 +89,14 @@ export function AppSidebar() {
             icon: Group,
         },
         can('course-sections.view') && {
-        title: 'Course Sections',
-        href: '/course-sections',
-        icon: BookOpen,
+            title: 'Course Sections',
+            href: '/course-sections',
+            icon: BookOpen,
+        },
+        can('professor-course-sections.view') && {
+            title: 'Assign Professors',
+            href: '/professor-course-sections',
+            icon: UserCheck,
         },
         isSuperAdmin &&
             can('schools.view') && {

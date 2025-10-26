@@ -39,6 +39,11 @@ class AdminSeeder extends Seeder
             'course-sections.create',
             'course-sections.edit',
             'course-sections.delete',
+
+            'professor-course-sections.view',
+            'professor-course-sections.create',
+            'professor-course-sections.edit',
+            'professor-course-sections.delete',
         ];
 
         // ✅ Assign permissions to the role

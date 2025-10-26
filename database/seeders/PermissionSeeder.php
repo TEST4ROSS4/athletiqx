@@ -36,6 +36,15 @@ class PermissionSeeder extends Seeder
             ['name' => 'course-sections.view', 'module' => 'school'],
             ['name' => 'course-sections.edit', 'module' => 'school'],
             ['name' => 'course-sections.delete', 'module' => 'school'],
+
+            // PROFESSOR COURSE SECTIONS
+            ['name' => 'professor-course-sections.create', 'module' => 'school'],
+            ['name' => 'professor-course-sections.view', 'module' => 'school'],
+            ['name' => 'professor-course-sections.edit', 'module' => 'school'],
+            ['name' => 'professor-course-sections.delete', 'module' => 'school'],
+
+
+
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES

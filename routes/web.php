@@ -9,6 +9,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\CourseSectionController;
+use App\Http\Controllers\ProfessorCourseSectionController;
 
 
 
@@ -87,6 +88,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('course-sections/{courseSection}/edit', [CourseSectionController::class, 'edit'])->name('course-sections.edit')->middleware('permission:course-sections.edit');
     Route::put('course-sections/{courseSection}', [CourseSectionController::class, 'update'])->name('course-sections.update')->middleware('permission:course-sections.edit');
     Route::delete('course-sections/{courseSection}', [CourseSectionController::class, 'destroy'])->name('course-sections.destroy')->middleware('permission:course-sections.delete');
+
+    Route::get('professor-course-sections', [ProfessorCourseSectionController::class, 'index'])->name('professor-course-sections.index')->middleware('permission:professor-course-sections.view');
+    Route::get('professor-course-sections/create', [ProfessorCourseSectionController::class, 'create'])->name('professor-course-sections.create')->middleware('permission:professor-course-sections.create');
+    Route::post('professor-course-sections', [ProfessorCourseSectionController::class, 'store'])->name('professor-course-sections.store')->middleware('permission:professor-course-sections.create');
+    Route::get('professor-course-sections/{professorCourseSection}', [ProfessorCourseSectionController::class, 'show'])->name('professor-course-sections.show')->middleware('permission:professor-course-sections.view');
+    Route::get('professor-course-sections/{professorCourseSection}/edit', [ProfessorCourseSectionController::class, 'edit'])->name('professor-course-sections.edit')->middleware('permission:professor-course-sections.edit');
+    Route::put('professor-course-sections/{professorCourseSection}', [ProfessorCourseSectionController::class, 'update'])->name('professor-course-sections.update')->middleware('permission:professor-course-sections.edit');
+    Route::delete('professor-course-sections/{professorCourseSection}', [ProfessorCourseSectionController::class, 'destroy'])->name('professor-course-sections.destroy')->middleware('permission:professor-course-sections.delete');
 });
 
 require __DIR__ . '/settings.php';
