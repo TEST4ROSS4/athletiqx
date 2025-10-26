@@ -14,6 +14,7 @@ export default function Show({
         id: number;
         term: string;
         status: string;
+        units: number;
         course: { title: string };
         section: { code: string };
     };
@@ -37,6 +38,10 @@ export default function Show({
                         <div className="flex justify-between">
                             <span className="font-medium text-gray-600">Term:</span>
                             <span>{courseSection.term}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="font-medium text-gray-600">Units:</span>
+                            <span>{courseSection.units}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-medium text-gray-600">Status:</span>

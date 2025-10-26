@@ -16,6 +16,7 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    ClipboardCheck,
     Folder,
     Group,
     LayoutGrid,
@@ -24,6 +25,7 @@ import {
     UserCheck,
     UserCog,
     Users,
+    Clock,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -93,11 +95,24 @@ export function AppSidebar() {
             href: '/course-sections',
             icon: BookOpen,
         },
+        can('class-schedules.view') && {
+            title: 'Class Schedules',
+            href: '/class-schedules',
+            icon: Clock,
+        },
+        
         can('professor-course-sections.view') && {
             title: 'Assign Professors',
             href: '/professor-course-sections',
             icon: UserCheck,
         },
+
+        can('student-course-sections.view') && {
+            title: 'Enroll Students',
+            href: '/student-course-sections',
+            icon: ClipboardCheck,
+        },
+
         isSuperAdmin &&
             can('schools.view') && {
                 title: 'Schools',

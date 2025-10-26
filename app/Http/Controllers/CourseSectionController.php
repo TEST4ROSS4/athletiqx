@@ -15,7 +15,7 @@ class CourseSectionController extends Controller
     {
         $sort = $request->input('sort', 'created');
 
-        $courseSections = CourseSection::with(['course', 'section', 'classSchedule']) // ✅ include schedule
+        $courseSections = CourseSection::with(['course', 'section', 'classSchedule'])
             ->where('school_id', Auth::user()->school_id)
             ->when($sort === 'alpha', fn($q) => $q->orderBy('term'))
             ->when($sort === 'created', fn($q) => $q->orderBy('id'))
@@ -44,7 +44,7 @@ class CourseSectionController extends Controller
             'course_id' => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
             'term' => 'required|string|max:100',
-            'units' => 'required|integer|min:0|max:10', 
+            'units' => 'required|integer|min:0|max:10',
         ]);
 
         CourseSection::create([
@@ -61,7 +61,7 @@ class CourseSectionController extends Controller
         $this->authorizeSchoolAccess($courseSection);
 
         return Inertia::render('CourseSectionPage/View', [
-            'courseSection' => $courseSection->load(['course', 'section', 'classSchedule']), 
+            'courseSection' => $courseSection->load(['course', 'section', 'classSchedule']),
         ]);
     }
 
@@ -73,7 +73,7 @@ class CourseSectionController extends Controller
         $sections = Section::where('school_id', Auth::user()->school_id)->get();
 
         return Inertia::render('CourseSectionPage/Edit', [
-            'courseSection' => $courseSection->load('classSchedule'), 
+            'courseSection' => $courseSection->load('classSchedule'),
             'courses' => $courses,
             'sections' => $sections,
         ]);
@@ -87,8 +87,8 @@ class CourseSectionController extends Controller
             'course_id' => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
             'term' => 'required|string|max:100',
-            'status' => 'required|in:upcoming,ongoing,completed',
-            'units' => 'required|integer|min:0|max:10', 
+            'status' => 'required|in:upcoming,ongoing,completed,cancelled',
+            'units' => 'required|integer|min:0|max:10',
         ]);
 
         $courseSection->update($validated);

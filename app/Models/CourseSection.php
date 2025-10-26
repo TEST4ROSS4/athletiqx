@@ -36,6 +36,11 @@ class CourseSection extends Model
         return $this->belongsTo(Section::class);
     }
 
+    public function classSchedule()
+    {
+        return $this->hasOne(ClassSchedule::class);
+    }
+
     public function school()
     {
         return $this->belongsTo(School::class);
@@ -54,15 +59,15 @@ class CourseSection extends Model
     public function professors()
     {
         return $this->belongsToMany(User::class, 'professor_course_section', 'course_section_id', 'professor_id')
-                    ->withPivot('school_id')
-                    ->withTimestamps();
+            ->withPivot('school_id')
+            ->withTimestamps();
     }
 
     public function students()
     {
         return $this->belongsToMany(User::class, 'student_course_section', 'course_section_id', 'student_id')
-                    ->withPivot(['school_id', 'final_grade', 'attendance_rate'])
-                    ->withTimestamps();
+            ->withPivot(['school_id', 'final_grade', 'attendance_rate'])
+            ->withTimestamps();
     }
 
     // 🔍 Scopes for lifecycle filtering

@@ -19,6 +19,7 @@ export default function Edit({
         section_id: number;
         term: string;
         status: string;
+        units: number;
     };
     courses: { id: number; title: string }[];
     sections: { id: number; code: string }[];
@@ -28,11 +29,13 @@ export default function Edit({
         section_id: number | null;
         term: string;
         status: string;
+        units: number | '';
     }>({
         course_id: courseSection.course_id,
         section_id: courseSection.section_id,
         term: courseSection.term,
         status: courseSection.status,
+        units: courseSection.units,
     });
 
     function submit(e: React.FormEvent) {
@@ -113,6 +116,22 @@ export default function Edit({
                             placeholder="e.g. 1st Sem 2025–2026"
                         />
                         {errors.term && <p className="mt-1 text-sm text-red-500">{errors.term}</p>}
+                    </div>
+
+                    {/* Units Input */}
+                    <div className="grid gap-2">
+                        <label htmlFor="units" className="text-sm font-medium">Units:</label>
+                        <input
+                            id="units"
+                            type="number"
+                            min={0}
+                            max={10}
+                            value={data.units}
+                            onChange={(e) => setData('units', e.target.value === '' ? '' : parseInt(e.target.value))}
+                            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="e.g. 3"
+                        />
+                        {errors.units && <p className="mt-1 text-sm text-red-500">{errors.units}</p>}
                     </div>
 
                     {/* Status Radio Buttons */}

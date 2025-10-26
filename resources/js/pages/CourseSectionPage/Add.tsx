@@ -19,10 +19,12 @@ export default function Create({
         course_id: number | '';
         section_id: number | '';
         term: string;
+        units: number | '';
     }>({
         course_id: '',
         section_id: '',
         term: '',
+        units: '',
     });
 
     function submit(e: React.FormEvent) {
@@ -30,7 +32,6 @@ export default function Create({
         post(route('course-sections.store'));
     }
 
-    // 🔍 Search logic for Course
     function loadCourseOptions(inputValue: string, callback: (options: any[]) => void) {
         const filtered = courses
             .filter((course) => course.title.toLowerCase().includes(inputValue.toLowerCase()))
@@ -38,7 +39,6 @@ export default function Create({
         callback(filtered);
     }
 
-    // 🔍 Search logic for Section
     function loadSectionOptions(inputValue: string, callback: (options: any[]) => void) {
         const filtered = sections
             .filter((section) => section.code.toLowerCase().includes(inputValue.toLowerCase()))
@@ -60,7 +60,7 @@ export default function Create({
                 </Link>
 
                 <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
-                    {/* Course Searchable Select */}
+                    {/* Course Select */}
                     <div className="grid gap-2">
                         <label htmlFor="course_id" className="text-sm font-medium">Course:</label>
                         <AsyncSelect
@@ -73,7 +73,7 @@ export default function Create({
                         {errors.course_id && <p className="mt-1 text-sm text-red-500">{errors.course_id}</p>}
                     </div>
 
-                    {/* Section Searchable Select */}
+                    {/* Section Select */}
                     <div className="grid gap-2">
                         <label htmlFor="section_id" className="text-sm font-medium">Section:</label>
                         <AsyncSelect
@@ -97,6 +97,22 @@ export default function Create({
                             placeholder="e.g. 1st Term 2025–2026"
                         />
                         {errors.term && <p className="mt-1 text-sm text-red-500">{errors.term}</p>}
+                    </div>
+
+                    {/* Units Input */}
+                    <div className="grid gap-2">
+                        <label htmlFor="units" className="text-sm font-medium">Units:</label>
+                        <input
+                            id="units"
+                            type="number"
+                            min={0}
+                            max={10}
+                            value={data.units}
+                            onChange={(e) => setData('units', e.target.value === '' ? '' : parseInt(e.target.value))}
+                            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="e.g. 3"
+                        />
+                        {errors.units && <p className="mt-1 text-sm text-red-500">{errors.units}</p>}
                     </div>
 
                     <button

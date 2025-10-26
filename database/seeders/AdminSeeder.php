@@ -40,10 +40,20 @@ class AdminSeeder extends Seeder
             'course-sections.edit',
             'course-sections.delete',
 
+            'class-schedules.view',
+            'class-schedules.create',
+            'class-schedules.edit',
+            'class-schedules.delete',
+
             'professor-course-sections.view',
             'professor-course-sections.create',
             'professor-course-sections.edit',
             'professor-course-sections.delete',
+
+            'student-course-sections.view',
+            'student-course-sections.create',
+            'student-course-sections.edit',
+            'student-course-sections.delete',
         ];
 
         // ✅ Assign permissions to the role
