@@ -13,14 +13,12 @@ class Course extends Model
     ];
 
     public function school()
-{
-    return $this->belongsTo(School::class);
-}
-
-    public function sections()
     {
-        return $this->belongsToMany(Section::class, 'course_section');
+        return $this->belongsTo(School::class);
     }
 
+    public function courseSections()
+    {
+        return $this->hasMany(CourseSection::class);
+    }
 }
-

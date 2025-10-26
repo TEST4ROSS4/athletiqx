@@ -88,7 +88,11 @@ export function AppSidebar() {
             href: '/sections',
             icon: Group,
         },
-
+        can('course-sections.view') && {
+        title: 'Course Sections',
+        href: '/course-sections',
+        icon: BookOpen,
+        },
         isSuperAdmin &&
             can('schools.view') && {
                 title: 'Schools',

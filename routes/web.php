@@ -8,6 +8,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SchoolAdminController;
+use App\Http\Controllers\CourseSectionController;
 
 
 
@@ -78,6 +79,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sections/{section}/edit', [SectionController::class, 'edit'])->name('sections.edit')->middleware('permission:sections.edit');
     Route::put('sections/{section}', [SectionController::class, 'update'])->name('sections.update')->middleware('permission:sections.edit');
     Route::delete('sections/{section}', [SectionController::class, 'destroy'])->name('sections.destroy')->middleware('permission:sections.delete');
+
+    Route::get('course-sections', [CourseSectionController::class, 'index'])->name('course-sections.index')->middleware('permission:course-sections.view');
+    Route::get('course-sections/create', [CourseSectionController::class, 'create'])->name('course-sections.create')->middleware('permission:course-sections.create');
+    Route::post('course-sections', [CourseSectionController::class, 'store'])->name('course-sections.store')->middleware('permission:course-sections.create');
+    Route::get('course-sections/{courseSection}', [CourseSectionController::class, 'show'])->name('course-sections.show')->middleware('permission:course-sections.view');
+    Route::get('course-sections/{courseSection}/edit', [CourseSectionController::class, 'edit'])->name('course-sections.edit')->middleware('permission:course-sections.edit');
+    Route::put('course-sections/{courseSection}', [CourseSectionController::class, 'update'])->name('course-sections.update')->middleware('permission:course-sections.edit');
+    Route::delete('course-sections/{courseSection}', [CourseSectionController::class, 'destroy'])->name('course-sections.destroy')->middleware('permission:course-sections.delete');
 });
 
 require __DIR__ . '/settings.php';

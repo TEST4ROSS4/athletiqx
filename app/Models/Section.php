@@ -17,23 +17,9 @@ class Section extends Model
         return $this->belongsTo(School::class);
     }
 
-    public function courses()
-    {
-        return $this->belongsToMany(Course::class, 'course_section')
-                    ->withPivot('term')
-                    ->withTimestamps();
-    }
 
-    public function students()
+    public function courseSections()
     {
-        return $this->belongsToMany(User::class, 'student_section')
-                    ->withPivot(['grade', 'attendance', 'status', 'enrolled_at'])
-                    ->withTimestamps();
-    }
-
-    public function professors()
-    {
-        return $this->belongsToMany(User::class, 'professor_section')
-                    ->withTimestamps();
+        return $this->hasMany(CourseSection::class);
     }
 }
