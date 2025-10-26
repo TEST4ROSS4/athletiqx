@@ -11,14 +11,11 @@ use Illuminate\Support\Facades\Auth;
 
 class CourseSectionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $sort = $request->input('sort', 'created');
 
-        $courseSections = CourseSection::with(['course', 'section'])
+        $courseSections = CourseSection::with(['course', 'section', 'classSchedule']) // ✅ include schedule
             ->where('school_id', Auth::user()->school_id)
             ->when($sort === 'alpha', fn($q) => $q->orderBy('term'))
             ->when($sort === 'created', fn($q) => $q->orderBy('id'))
@@ -30,9 +27,6 @@ class CourseSectionController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $courses = Course::where('school_id', Auth::user()->school_id)->get();
@@ -44,15 +38,13 @@ class CourseSectionController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'course_id' => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
             'term' => 'required|string|max:100',
+            'units' => 'required|integer|min:0|max:10', 
         ]);
 
         CourseSection::create([
@@ -64,21 +56,15 @@ class CourseSectionController extends Controller
         return redirect()->route('course-sections.index')->with('success', 'Course section created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(CourseSection $courseSection)
     {
         $this->authorizeSchoolAccess($courseSection);
 
         return Inertia::render('CourseSectionPage/View', [
-            'courseSection' => $courseSection->load(['course', 'section']),
+            'courseSection' => $courseSection->load(['course', 'section', 'classSchedule']), 
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(CourseSection $courseSection)
     {
         $this->authorizeSchoolAccess($courseSection);
@@ -87,15 +73,12 @@ class CourseSectionController extends Controller
         $sections = Section::where('school_id', Auth::user()->school_id)->get();
 
         return Inertia::render('CourseSectionPage/Edit', [
-            'courseSection' => $courseSection,
+            'courseSection' => $courseSection->load('classSchedule'), 
             'courses' => $courses,
             'sections' => $sections,
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, CourseSection $courseSection)
     {
         $this->authorizeSchoolAccess($courseSection);
@@ -105,6 +88,7 @@ class CourseSectionController extends Controller
             'section_id' => 'required|exists:sections,id',
             'term' => 'required|string|max:100',
             'status' => 'required|in:upcoming,ongoing,completed',
+            'units' => 'required|integer|min:0|max:10', 
         ]);
 
         $courseSection->update($validated);
@@ -112,9 +96,6 @@ class CourseSectionController extends Controller
         return redirect()->route('course-sections.index')->with('success', 'Course section updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(CourseSection $courseSection)
     {
         $this->authorizeSchoolAccess($courseSection);
@@ -124,9 +105,6 @@ class CourseSectionController extends Controller
         return redirect()->route('course-sections.index')->with('success', 'Course section deleted successfully.');
     }
 
-    /**
-     * Restrict access to course_sections outside user's school.
-     */
     protected function authorizeSchoolAccess(CourseSection $courseSection)
     {
         if ($courseSection->school_id !== Auth::user()->school_id) {

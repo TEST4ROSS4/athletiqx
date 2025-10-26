@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->foreignId('course_id')->constrained()->cascadeOnDelete();
             $table->foreignId('section_id')->constrained()->cascadeOnDelete();
             $table->string('term');
+            $table->unsignedTinyInteger('units');
             $table->foreignId('school_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['upcoming', 'ongoing', 'completed', 'cancelled'])->default('upcoming');
             $table->timestamps();

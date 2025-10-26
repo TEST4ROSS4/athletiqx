@@ -15,6 +15,7 @@ class CourseSection extends Model
         'course_id',
         'section_id',
         'term',
+        'units',
         'school_id',
         'status',
     ];
