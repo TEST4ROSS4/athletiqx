@@ -73,21 +73,6 @@ class User extends Authenticatable
         return $this->belongsTo(School::class);
     }
 
-    /**
-     * Relationship: User is enrolled in many courses.
-     */
-    public function enrolledCourses()
-    {
-        return $this->belongsToMany(Course::class, 'course_student');
-    }
-
-    /**
-     * Relationship: User teaches many courses.
-     */
-    public function taughtCourses()
-    {
-        return $this->belongsToMany(Course::class, 'course_professor');
-    }
 
     /**
      * Helper: Check if user has the 'Admin' role.
@@ -103,5 +88,25 @@ class User extends Authenticatable
     public function scopeAdmin(Builder $query): Builder
     {
         return $query->role('Admin');
+    }
+
+    public function taughtCourseSections()
+    {
+        return $this->belongsToMany(
+            CourseSection::class,
+            'professor_course_section',
+            'professor_id',
+            'course_section_id'
+        )->withPivot('school_id')->withTimestamps();
+    }
+
+    public function enrolledCourseSections()
+    {
+        return $this->belongsToMany(
+            CourseSection::class,
+            'student_course_section',
+            'student_id',
+            'course_section_id'
+        )->withPivot(['school_id', 'final_grade', 'attendance_rate'])->withTimestamps();
     }
 }

@@ -16,14 +16,16 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    ClipboardCheck,
     Folder,
+    Group,
     LayoutGrid,
     LibraryBig,
     School,
     UserCheck,
     UserCog,
     Users,
-    Group,
+    Clock,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -87,6 +89,28 @@ export function AppSidebar() {
             title: 'Sections',
             href: '/sections',
             icon: Group,
+        },
+        can('course-sections.view') && {
+            title: 'Course Sections',
+            href: '/course-sections',
+            icon: BookOpen,
+        },
+        can('class-schedules.view') && {
+            title: 'Class Schedules',
+            href: '/class-schedules',
+            icon: Clock,
+        },
+        
+        can('professor-course-sections.view') && {
+            title: 'Assign Professors',
+            href: '/professor-course-sections',
+            icon: UserCheck,
+        },
+
+        can('student-course-sections.view') && {
+            title: 'Enroll Students',
+            href: '/student-course-sections',
+            icon: ClipboardCheck,
         },
 
         isSuperAdmin &&

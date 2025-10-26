@@ -30,6 +30,31 @@ class PermissionSeeder extends Seeder
             ['name' => 'sections.view', 'module' => 'school'],
             ['name' => 'sections.edit', 'module' => 'school'],
             ['name' => 'sections.delete', 'module' => 'school'],
+
+            // COURSE SECTIONS
+            ['name' => 'course-sections.create', 'module' => 'school'],
+            ['name' => 'course-sections.view', 'module' => 'school'],
+            ['name' => 'course-sections.edit', 'module' => 'school'],
+            ['name' => 'course-sections.delete', 'module' => 'school'],
+
+            // CLASS SCHEDULES
+            ['name' => 'class-schedules.create', 'module' => 'school'],
+            ['name' => 'class-schedules.view', 'module' => 'school'],
+            ['name' => 'class-schedules.edit', 'module' => 'school'],
+            ['name' => 'class-schedules.delete', 'module' => 'school'],
+
+            // PROFESSOR COURSE SECTIONS
+            ['name' => 'professor-course-sections.create', 'module' => 'school'],
+            ['name' => 'professor-course-sections.view', 'module' => 'school'],
+            ['name' => 'professor-course-sections.edit', 'module' => 'school'],
+            ['name' => 'professor-course-sections.delete', 'module' => 'school'],
+
+            // STUDENT COURSE SECTIONS
+            ['name' => 'student-course-sections.create', 'module' => 'school'],
+            ['name' => 'student-course-sections.view', 'module' => 'school'],
+            ['name' => 'student-course-sections.edit', 'module' => 'school'],
+            ['name' => 'student-course-sections.delete', 'module' => 'school'],
+
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES
