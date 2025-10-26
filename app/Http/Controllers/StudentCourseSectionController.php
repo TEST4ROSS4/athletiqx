@@ -17,7 +17,7 @@ class StudentCourseSectionController extends Controller
             ->where('school_id', Auth::user()->school_id)
             ->get();
 
-        return Inertia::render('AssignStudentsPage/Index', [
+        return Inertia::render('EnrollStudentsPage/Index', [
             'assignments' => $assignments,
         ]);
     }
@@ -35,7 +35,7 @@ class StudentCourseSectionController extends Controller
             ->where('school_id', $schoolId)
             ->get();
 
-        return Inertia::render('AssignStudentsPage/Add', [
+        return Inertia::render('EnrollStudentsPage/Add', [
             'students' => $students,
             'courseSections' => $courseSections,
         ]);
@@ -63,7 +63,7 @@ class StudentCourseSectionController extends Controller
     {
         $this->authorizeSchoolAccess($studentCourseSection);
 
-        return Inertia::render('AssignStudentsPage/View', [
+        return Inertia::render('EnrollStudentsPage/View', [
             'assignment' => $studentCourseSection->load(['student', 'courseSection.course', 'courseSection.section']),
         ]);
     }
@@ -83,7 +83,7 @@ class StudentCourseSectionController extends Controller
             ->where('school_id', $schoolId)
             ->get();
 
-        return Inertia::render('AssignStudentsPage/Edit', [
+        return Inertia::render('EnrollStudentsPage/Edit', [
             'assignment' => $studentCourseSection,
             'students' => $students,
             'courseSections' => $courseSections,
