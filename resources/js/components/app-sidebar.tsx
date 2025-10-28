@@ -17,15 +17,17 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     ClipboardCheck,
+    Clock,
     Folder,
     Group,
     LayoutGrid,
     LibraryBig,
     School,
+    Trophy,
     UserCheck,
     UserCog,
     Users,
-    Clock,
+    PersonStanding,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -100,7 +102,7 @@ export function AppSidebar() {
             href: '/class-schedules',
             icon: Clock,
         },
-        
+
         can('professor-course-sections.view') && {
             title: 'Assign Professors',
             href: '/professor-course-sections',
@@ -112,6 +114,22 @@ export function AppSidebar() {
             href: '/student-course-sections',
             icon: ClipboardCheck,
         },
+
+        // ------------------------------ ATHELETICS SIDE ------------------------------
+
+        can('sports.view') && {
+            title: 'Sports',
+            href: '/sports',
+            icon: Trophy,
+        },
+
+        can('sport-teams.view') && {
+            title: 'Sport Teams',
+            href: '/sport-teams',
+            icon: PersonStanding,
+        },
+
+        // ------------------------------ SUPER ADMIN ------------------------------
 
         isSuperAdmin &&
             can('schools.view') && {

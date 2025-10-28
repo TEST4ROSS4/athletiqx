@@ -116,12 +116,6 @@ export default function Edit({
       return;
     }
 
-    // const days = schedules.map((s) => s.day).join('/');
-    // const time = schedules.map((s) => `${s.start}-${s.end}`).join('/');
-    // const room = schedules.map((s) => s.room).join('/');
-
-    // setData({ ...data, days, time, room });
-
     put(route('class-schedules.update', classSchedule.id), {
       preserveScroll: true,
     });

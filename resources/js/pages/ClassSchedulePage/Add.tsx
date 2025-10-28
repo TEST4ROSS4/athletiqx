@@ -63,17 +63,6 @@ export default function Add({
         setData('room', room);
     }
 
-    // function updateSchedule(index: number, field: keyof (typeof schedules)[number], value: string | boolean) {
-    //   const updated = [...schedules];
-    //   if (field === 'isOnline') {
-    //     updated[index].isOnline = value as boolean;
-    //     updated[index].room = value ? 'ONLINE' : '';
-    //   } else {
-    //     updated[index][field] = value as string;
-    //   }
-    //   setSchedules(updated);
-    // }
-
     function updateSchedule(
         index: number,
         field: keyof (typeof schedules)[number],
