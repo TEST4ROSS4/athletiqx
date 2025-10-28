@@ -61,6 +61,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'sports.edit', 'module' => 'school'],
             ['name' => 'sports.delete', 'module' => 'school'],
 
+            // SPORT TEAMS
+            ['name' => 'sport-teams.create', 'module' => 'school'],
+            ['name' => 'sport-teams.view', 'module' => 'school'],
+            ['name' => 'sport-teams.edit', 'module' => 'school'],
+            ['name' => 'sport-teams.delete', 'module' => 'school'],
+
+
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES

@@ -23,10 +23,11 @@ import {
     LayoutGrid,
     LibraryBig,
     School,
+    Trophy,
     UserCheck,
     UserCog,
     Users,
-    Trophy,
+    PersonStanding,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -121,6 +122,14 @@ export function AppSidebar() {
             href: '/sports',
             icon: Trophy,
         },
+
+        can('sport-teams.view') && {
+            title: 'Sport Teams',
+            href: '/sport-teams',
+            icon: PersonStanding,
+        },
+
+        // ------------------------------ SUPER ADMIN ------------------------------
 
         isSuperAdmin &&
             can('schools.view') && {

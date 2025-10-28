@@ -20,8 +20,8 @@ class Sport extends Model
         return $this->belongsTo(School::class);
     }
 
-    // public function sportsTeams()
-    // {
-    //     return $this->hasMany(SportsTeam::class);
-    // }
+    public function sportsTeams()
+    {
+        return $this->hasMany(SportTeam::class);
+    }
 }
