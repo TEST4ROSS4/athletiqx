@@ -67,6 +67,14 @@ export default function Edit({
     const updated = [...schedules];
     updated.splice(index, 1);
     setSchedules(updated);
+    // 🔄 Sync derived fields to form state
+    const days = updated.map((s) => s.day).join('/');
+    const time = updated.map((s) => `${s.start}-${s.end}`).join('/');
+    const room = updated.map((s) => s.room).join('/');
+
+    setData('days', days);
+    setData('time', time);
+    setData('room', room);
   }
 
   function updateSchedule(index: number, field: keyof (typeof schedules)[number], value: string | boolean) {
@@ -78,6 +86,14 @@ export default function Edit({
       updated[index][field] = value as string;
     }
     setSchedules(updated);
+    // 🔄 Sync derived fields to form state
+    const days = updated.map((s) => s.day).join('/');
+    const time = updated.map((s) => `${s.start}-${s.end}`).join('/');
+    const room = updated.map((s) => s.room).join('/');
+
+    setData('days', days);
+    setData('time', time);
+    setData('room', room);
   }
 
   function submit(e: React.FormEvent) {
@@ -99,12 +115,6 @@ export default function Edit({
       setFormErrors(errors);
       return;
     }
-
-    const days = schedules.map((s) => s.day).join('/');
-    const time = schedules.map((s) => `${s.start}-${s.end}`).join('/');
-    const room = schedules.map((s) => s.room).join('/');
-
-    setData({ ...data, days, time, room });
 
     put(route('class-schedules.update', classSchedule.id), {
       preserveScroll: true,
