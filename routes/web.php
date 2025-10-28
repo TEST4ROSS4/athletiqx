@@ -4,6 +4,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SportController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SectionController;
@@ -114,6 +115,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('student-course-sections/{studentCourseSection}/edit', [StudentCourseSectionController::class, 'edit'])->name('student-course-sections.edit')->middleware('permission:student-course-sections.edit');
     Route::put('student-course-sections/{studentCourseSection}', [StudentCourseSectionController::class, 'update'])->name('student-course-sections.update')->middleware('permission:student-course-sections.edit');
     Route::delete('student-course-sections/{studentCourseSection}', [StudentCourseSectionController::class, 'destroy'])->name('student-course-sections.destroy')->middleware('permission:student-course-sections.delete');
+
+    Route::get('sports', [SportController::class, 'index'])->name('sports.index')->middleware('permission:sports.view');
+    Route::get('sports/create', [SportController::class, 'create'])->name('sports.create')->middleware('permission:sports.create');
+    Route::post('sports', [SportController::class, 'store'])->name('sports.store')->middleware('permission:sports.create');
+    Route::get('sports/{sport}', [SportController::class, 'show'])->name('sports.show')->middleware('permission:sports.view');
+    Route::get('sports/{sport}/edit', [SportController::class, 'edit'])->name('sports.edit')->middleware('permission:sports.edit');
+    Route::put('sports/{sport}', [SportController::class, 'update'])->name('sports.update')->middleware('permission:sports.edit');
+    Route::delete('sports/{sport}', [SportController::class, 'destroy'])->name('sports.destroy')->middleware('permission:sports.delete');
 });
 
 require __DIR__ . '/settings.php';

@@ -17,6 +17,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     ClipboardCheck,
+    Clock,
     Folder,
     Group,
     LayoutGrid,
@@ -25,7 +26,7 @@ import {
     UserCheck,
     UserCog,
     Users,
-    Clock,
+    Trophy,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -100,7 +101,7 @@ export function AppSidebar() {
             href: '/class-schedules',
             icon: Clock,
         },
-        
+
         can('professor-course-sections.view') && {
             title: 'Assign Professors',
             href: '/professor-course-sections',
@@ -111,6 +112,14 @@ export function AppSidebar() {
             title: 'Enroll Students',
             href: '/student-course-sections',
             icon: ClipboardCheck,
+        },
+
+        // ------------------------------ ATHELETICS SIDE ------------------------------
+
+        can('sports.view') && {
+            title: 'Sports',
+            href: '/sports',
+            icon: Trophy,
         },
 
         isSuperAdmin &&

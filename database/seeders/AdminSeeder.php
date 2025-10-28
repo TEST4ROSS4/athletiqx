@@ -54,6 +54,13 @@ class AdminSeeder extends Seeder
             'student-course-sections.create',
             'student-course-sections.edit',
             'student-course-sections.delete',
+
+            // ------------------------------------------------ ATHLETIC SIDE ------------------------------------------
+
+            'sports.view',
+            'sports.create',
+            'sports.edit',
+            'sports.delete',
         ];
 
         // ✅ Assign permissions to the role
