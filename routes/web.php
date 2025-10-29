@@ -12,6 +12,7 @@ use App\Http\Controllers\SportTeamController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\CourseSectionController;
+use App\Http\Controllers\CoachAssignmentController;
 use App\Http\Controllers\StudentCourseSectionController;
 use App\Http\Controllers\ProfessorCourseSectionController;
 
@@ -132,6 +133,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sport-teams/{sportTeam}/edit', [SportTeamController::class, 'edit'])->name('sport-teams.edit')->middleware('permission:sport-teams.edit');
     Route::put('sport-teams/{sportTeam}', [SportTeamController::class, 'update'])->name('sport-teams.update')->middleware('permission:sport-teams.edit');
     Route::delete('sport-teams/{sportTeam}', [SportTeamController::class, 'destroy'])->name('sport-teams.destroy')->middleware('permission:sport-teams.delete');
+
+    Route::get('coach-assignments', [CoachAssignmentController::class, 'index'])->name('coach-assignments.index')->middleware('permission:coach-assignments.view');
+    Route::get('coach-assignments/create', [CoachAssignmentController::class, 'create'])->name('coach-assignments.create')->middleware('permission:coach-assignments.create');
+    Route::post('coach-assignments', [CoachAssignmentController::class, 'store'])->name('coach-assignments.store')->middleware('permission:coach-assignments.create');
+    Route::get('coach-assignments/{coachAssignment}', [CoachAssignmentController::class, 'show'])->name('coach-assignments.show')->middleware('permission:coach-assignments.view');
+    Route::get('coach-assignments/{coachAssignment}/edit', [CoachAssignmentController::class, 'edit'])->name('coach-assignments.edit')->middleware('permission:coach-assignments.edit');
+    Route::put('coach-assignments/{coachAssignment}', [CoachAssignmentController::class, 'update'])->name('coach-assignments.update')->middleware('permission:coach-assignments.edit');
+    Route::delete('coach-assignments/{coachAssignment}', [CoachAssignmentController::class, 'destroy'])->name('coach-assignments.destroy')->middleware('permission:coach-assignments.delete');
 });
 
 require __DIR__ . '/settings.php';

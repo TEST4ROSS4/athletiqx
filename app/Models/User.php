@@ -29,7 +29,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, HasApiTokens;
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -108,5 +108,29 @@ class User extends Authenticatable
             'student_id',
             'course_section_id'
         )->withPivot(['school_id', 'final_grade', 'attendance_rate'])->withTimestamps();
+    }
+
+    public function coachAssignments()
+    {
+        return $this->hasMany(CoachAssignment::class, 'coach_id');
+    }
+
+    // COACH ASSIGNMENT SPORT TEAM MERGE LIST
+    public function assignedTeams()
+    {
+        $direct = SportTeam::whereIn('id', function ($query) {
+            $query->select('sport_team_id')
+                ->from('coach_assignments')
+                ->where('coach_id', $this->id)
+                ->whereNotNull('sport_team_id');
+        })->get();
+
+        $sports = CoachAssignment::where('coach_id', $this->id)
+            ->whereNotNull('sport_id')
+            ->pluck('sport_id');
+
+        $viaSport = SportTeam::whereIn('sport_id', $sports)->get();
+
+        return $direct->merge($viaSport)->unique('id');
     }
 }

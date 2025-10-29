@@ -22,12 +22,12 @@ import {
     Group,
     LayoutGrid,
     LibraryBig,
+    PersonStanding,
     School,
     Trophy,
     UserCheck,
     UserCog,
     Users,
-    PersonStanding,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -127,6 +127,12 @@ export function AppSidebar() {
             title: 'Sport Teams',
             href: '/sport-teams',
             icon: PersonStanding,
+        },
+
+        can('coach-assignments.view') && {
+            title: 'Assign Coach',
+            href: '/coach-assignments',
+            icon: UserCheck,
         },
 
         // ------------------------------ SUPER ADMIN ------------------------------

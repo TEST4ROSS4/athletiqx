@@ -24,4 +24,9 @@ class School extends Model
     {
         return $this->hasMany(Course::class);
     }
+
+    public function coachAssignments()
+    {
+        return $this->hasMany(CoachAssignment::class);
+    }
 }
