@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\Auth\MobileAuthController;
-use App\Http\Controllers\Mobile\MobileCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileCourseController;
+use App\Http\Controllers\Mobile\MobileSportsController;
 
 
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
 Route::get('/users', [MobileAuthController::class, 'getAllUsers']);
 Route::middleware('auth:sanctum')->get('/my-courses', [MobileCourseController::class, 'getCoursesBySchool']);
+Route::middleware('auth:sanctum')->get('/my-sports', [MobileSportsController::class, 'getAssignedSportsToCoach']);
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
     // Optional: Check if user has the correct role before allowing logout
