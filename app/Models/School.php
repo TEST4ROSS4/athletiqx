@@ -29,4 +29,14 @@ class School extends Model
     {
         return $this->hasMany(CoachAssignment::class);
     }
+
+    public function studentSportTeamAssignments()
+    {
+        return $this->hasMany(StudentSportTeam::class);
+    }
+
+    public function sportTeams()
+    {
+        return $this->hasMany(SportTeam::class);
+    }
 }

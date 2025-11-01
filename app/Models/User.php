@@ -133,4 +133,9 @@ class User extends Authenticatable
 
         return $direct->merge($viaSport)->unique('id');
     }
+
+    public function sportTeamAssignments()
+    {
+        return $this->hasMany(StudentSportTeam::class, 'student_id');
+    }
 }

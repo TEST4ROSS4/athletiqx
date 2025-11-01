@@ -28,4 +28,9 @@ class SportTeam extends Model
     {
         return $this->hasMany(CoachAssignment::class);
     }
+
+    public function studentAssignments()
+    {
+        return $this->hasMany(StudentSportTeam::class);
+    }
 }
