@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StudentSportTeam;
 use App\Models\SportTeam;
+use App\Models\StudentSportTeam;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,21 +13,23 @@ class StudentSportTeamController extends Controller
 {
     public function landing()
     {
-        $schoolId = Auth::user()->school_id;
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $sportTeams = SportTeam::with('sport')
-            ->where('school_id', $schoolId)
-            ->get()
-            ->groupBy('sport.name');
+        $teams = $user->hasRole('Admin')
+            ? SportTeam::with('sport')->where('school_id', $user->school_id)->get()
+            : SportTeam::with('sport')->whereIn('id', $user->assignedTeams()->pluck('id'))->get();
+
+        $groupedTeams = $teams->groupBy('sport.name');
 
         return Inertia::render('ManageTeamMembersPage/Landing', [
-            'groupedTeams' => $sportTeams,
+            'groupedTeams' => $groupedTeams,
         ]);
     }
 
     public function index(SportTeam $sportTeam)
     {
-        $this->authorizeSchoolAccess($sportTeam);
+        $this->authorizeTeamAccess($sportTeam, 'student-sport-teams.view');
 
         $assignments = StudentSportTeam::with('student')
             ->where('sport_team_id', $sportTeam->id)
@@ -41,7 +43,7 @@ class StudentSportTeamController extends Controller
 
     public function create(SportTeam $sportTeam)
     {
-        $this->authorizeSchoolAccess($sportTeam);
+        $this->authorizeTeamAccess($sportTeam, 'student-sport-teams.create');
 
         $students = User::role('student')
             ->where('school_id', Auth::user()->school_id)
@@ -55,7 +57,7 @@ class StudentSportTeamController extends Controller
 
     public function store(Request $request, SportTeam $sportTeam)
     {
-        $this->authorizeSchoolAccess($sportTeam);
+        $this->authorizeTeamAccess($sportTeam, 'student-sport-teams.create');
 
         $validated = $request->validate([
             'members' => 'required|array|min:1',
@@ -82,7 +84,7 @@ class StudentSportTeamController extends Controller
 
     public function edit(StudentSportTeam $studentSportTeam)
     {
-        $this->authorizeSchoolAccess($studentSportTeam);
+        $this->authorizeAssignmentAccess($studentSportTeam, 'student-sport-teams.edit');
 
         $students = User::role('student')
             ->where('school_id', Auth::user()->school_id)
@@ -97,7 +99,7 @@ class StudentSportTeamController extends Controller
 
     public function update(Request $request, StudentSportTeam $studentSportTeam)
     {
-        $this->authorizeSchoolAccess($studentSportTeam);
+        $this->authorizeAssignmentAccess($studentSportTeam, 'student-sport-teams.edit');
 
         $validated = $request->validate([
             'members.0.student_id' => 'required|exists:users,id',
@@ -119,16 +121,24 @@ class StudentSportTeamController extends Controller
 
     public function show(StudentSportTeam $studentSportTeam)
     {
-        $this->authorizeSchoolAccess($studentSportTeam);
+        $this->authorizeAssignmentAccess($studentSportTeam, 'student-sport-teams.view');
 
         return Inertia::render('ManageTeamMembersPage/View', [
-            'assignment' => $studentSportTeam->load('student', 'sportTeam.sport'),
+            'assignment' => $studentSportTeam->load('student', 'sportTeam.sport')->only([
+                'id',
+                'student_id',
+                'position',
+                'status',
+                'sport_team_id',
+                'student',
+                'sportTeam',
+            ]),
         ]);
     }
 
     public function destroy(StudentSportTeam $studentSportTeam)
     {
-        $this->authorizeSchoolAccess($studentSportTeam);
+        $this->authorizeAssignmentAccess($studentSportTeam, 'student-sport-teams.delete');
 
         $studentSportTeam->delete();
 
@@ -136,10 +146,32 @@ class StudentSportTeamController extends Controller
             ->with('success', 'Team member removed.');
     }
 
-    protected function authorizeSchoolAccess($model)
+    // 🔐 Centralized access logic
+    protected function authorizeTeamAccess(SportTeam $team, string $permission)
     {
-        if ($model->school_id !== Auth::user()->school_id) {
-            abort(403, 'Unauthorized access.');
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (
+            $team->school_id !== $user->school_id ||
+            ! $user->can($permission) ||
+            (! $user->hasRole('Admin') && ! $team->isAssignedTo($user))
+        ) {
+            abort(403, 'Unauthorized access to this team.');
+        }
+    }
+
+    protected function authorizeAssignmentAccess(StudentSportTeam $assignment, string $permission)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (
+            $assignment->school_id !== $user->school_id ||
+            ! $user->can($permission) ||
+            (! $user->hasRole('Admin') && ! $assignment->sportTeam->isAssignedTo($user))
+        ) {
+            abort(403, 'Unauthorized access to this assignment.');
         }
     }
 }

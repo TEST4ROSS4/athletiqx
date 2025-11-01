@@ -39,4 +39,10 @@ class School extends Model
     {
         return $this->hasMany(SportTeam::class);
     }
+
+    public function sports()
+    {
+        return $this->hasMany(Sport::class);
+    }
+
 }

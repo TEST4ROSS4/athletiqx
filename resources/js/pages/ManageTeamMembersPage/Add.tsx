@@ -27,7 +27,7 @@ export default function Add({
   sportTeam: { id: number; name: string };
   students: { id: number; name: string }[];
 }) {
-  const { data, setData, post, errors } = useForm({
+  const { data, setData, post } = useForm({
     sport_team_id: sportTeam.id,
     members: [] as Member[],
   });
@@ -35,8 +35,7 @@ export default function Add({
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
   function addMemberBlock() {
-    const updated = [...data.members, { student_id: null, position: '', status: '' }];
-    setData('members', updated);
+    setData('members', [...data.members, { student_id: null, position: '', status: '' }]);
   }
 
   function removeMemberBlock(index: number) {
@@ -72,10 +71,15 @@ export default function Add({
     });
   }
 
-  function loadStudentOptions(inputValue: string, callback: (options: any[]) => void) {
-    const filtered = students
-      .filter((s) => s.name.toLowerCase().includes(inputValue.toLowerCase()))
-      .map((s) => ({ label: s.name, value: s.id }));
+  const studentOptions = students.map((s) => ({
+    label: s.name,
+    value: s.id,
+  }));
+
+  function loadStudentOptions(inputValue: string, callback: (options: typeof studentOptions) => void) {
+    const filtered = studentOptions.filter((s) =>
+      s.label.toLowerCase().includes(inputValue.toLowerCase())
+    );
     callback(filtered);
   }
 
@@ -83,13 +87,13 @@ export default function Add({
     <AppLayout>
       <Head title={`Add Team Members – ${sportTeam.name}`} />
       <div className="p-3">
-        <h1 className="mb-4 text-2xl font-bold">Add Team Members</h1>
+        <h1 className="mb-4 text-2xl font-bold">Add Team Members to {sportTeam.name}</h1>
 
         <Link
           href={route('student-sport-teams.index', sportTeam.id)}
           className="mb-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
         >
-          Back
+          Back to Team
         </Link>
 
         <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
@@ -111,11 +115,8 @@ export default function Add({
                   cacheOptions
                   defaultOptions
                   loadOptions={loadStudentOptions}
-                  onChange={(option) => {
-                    if (option?.value != null) {
-                      updateMember(i, 'student_id', option.value);
-                    }
-                  }}
+                  onChange={(option) => updateMember(i, 'student_id', option?.value ?? null)}
+                  value={studentOptions.find((o) => o.value === m.student_id) || null}
                   placeholder="Search and select student"
                 />
 
