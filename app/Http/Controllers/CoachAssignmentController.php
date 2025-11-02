@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
 use App\Models\Sport;
 use App\Models\SportTeam;
 use App\Models\CoachAssignment;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class CoachAssignmentController extends Controller
 {
@@ -28,8 +28,9 @@ class CoachAssignmentController extends Controller
     {
         $schoolId = Auth::user()->school_id;
 
-        $coaches = User::role('coach')
-            ->where('school_id', $schoolId)
+        $coaches = User::where('school_id', $schoolId)
+            ->whereHas('roles.permissions', fn($q) => $q->where('name', 'student-sport-teams.view'))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'Admin'))
             ->select('id', 'name', 'email')
             ->get();
 
@@ -56,7 +57,7 @@ class CoachAssignmentController extends Controller
             'sport_team_id' => 'nullable|exists:sport_teams,id',
         ]);
 
-        if (!$validated['sport_id'] && !$validated['sport_team_id']) {
+        if (! $validated['sport_id'] && ! $validated['sport_team_id']) {
             throw ValidationException::withMessages([
                 'sport_id' => 'You must assign either a sport or a team.',
                 'sport_team_id' => 'You must assign either a sport or a team.',
@@ -87,13 +88,11 @@ class CoachAssignmentController extends Controller
         $coachAssignment->load(['coach', 'sport', 'sportTeam.sport']);
 
         if ($coachAssignment->sport_team_id) {
-            // Assigned to specific team — show that team + others
             $allTeams = $coachAssignment->coach->assignedTeams()->load('sport');
         } elseif ($coachAssignment->sport_id) {
-            // Assigned to sport — show all teams under that sport
             $allTeams = $coachAssignment->sport->sportsTeams()->with('sport')->get();
         } else {
-            $allTeams = collect(); // fallback
+            $allTeams = collect();
         }
 
         return Inertia::render('AssignCoachesPage/View', [
@@ -108,8 +107,8 @@ class CoachAssignmentController extends Controller
 
         $schoolId = Auth::user()->school_id;
 
-        $coaches = User::role('coach')
-            ->where('school_id', $schoolId)
+        $coaches = User::where('school_id', $schoolId)
+            ->whereHas('roles.permissions', fn($q) => $q->where('name', 'student-sport-teams.view'))
             ->select('id', 'name', 'email')
             ->get();
 
@@ -139,7 +138,7 @@ class CoachAssignmentController extends Controller
             'sport_team_id' => 'nullable|exists:sport_teams,id',
         ]);
 
-        if (!$validated['sport_id'] && !$validated['sport_team_id']) {
+        if (! $validated['sport_id'] && ! $validated['sport_team_id']) {
             throw ValidationException::withMessages([
                 'sport_id' => 'You must assign either a sport or a team.',
                 'sport_team_id' => 'You must assign either a sport or a team.',

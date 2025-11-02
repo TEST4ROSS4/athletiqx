@@ -13,6 +13,7 @@ use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\CourseSectionController;
 use App\Http\Controllers\CoachAssignmentController;
+use App\Http\Controllers\StudentSportTeamController;
 use App\Http\Controllers\StudentCourseSectionController;
 use App\Http\Controllers\ProfessorCourseSectionController;
 
@@ -141,6 +142,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('coach-assignments/{coachAssignment}/edit', [CoachAssignmentController::class, 'edit'])->name('coach-assignments.edit')->middleware('permission:coach-assignments.edit');
     Route::put('coach-assignments/{coachAssignment}', [CoachAssignmentController::class, 'update'])->name('coach-assignments.update')->middleware('permission:coach-assignments.edit');
     Route::delete('coach-assignments/{coachAssignment}', [CoachAssignmentController::class, 'destroy'])->name('coach-assignments.destroy')->middleware('permission:coach-assignments.delete');
+
+    Route::get('student-sport-teams/landing', [StudentSportTeamController::class, 'landing'])->name('student-sport-teams.landing')->middleware('permission:student-sport-teams.view');
+Route::get('student-sport-teams/team/{sportTeam}', [StudentSportTeamController::class, 'index'])->name('student-sport-teams.index')->middleware('permission:student-sport-teams.view');
+Route::get('student-sport-teams/team/{sportTeam}/create', [StudentSportTeamController::class, 'create'])->name('student-sport-teams.create')->middleware('permission:student-sport-teams.create');
+Route::post('student-sport-teams/team/{sportTeam}', [StudentSportTeamController::class, 'store'])->name('student-sport-teams.store')->middleware('permission:student-sport-teams.create');
+Route::get('student-sport-teams/member/{studentSportTeam}', [StudentSportTeamController::class, 'show'])->name('student-sport-teams.show')->middleware('permission:student-sport-teams.view');
+Route::get('student-sport-teams/member/{studentSportTeam}/edit', [StudentSportTeamController::class, 'edit'])->name('student-sport-teams.edit')->middleware('permission:student-sport-teams.edit');
+Route::put('student-sport-teams/member/{studentSportTeam}', [StudentSportTeamController::class, 'update'])->name('student-sport-teams.update')->middleware('permission:student-sport-teams.edit');
+Route::delete('student-sport-teams/member/{studentSportTeam}', [StudentSportTeamController::class, 'destroy'])->name('student-sport-teams.destroy')->middleware('permission:student-sport-teams.delete');
 });
 
 require __DIR__ . '/settings.php';
