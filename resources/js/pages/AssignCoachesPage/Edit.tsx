@@ -8,8 +8,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Assignment', href: '/coach-assignments' },
 ];
 
-type Option = { label: string; value: number };
-
 export default function Edit({
     assignment,
     coaches,
@@ -41,29 +39,39 @@ export default function Edit({
         put(route('coach-assignments.update', assignment.id));
     }
 
-    const coachOptions: Option[] = coaches.map((c) => ({
-        label: `${c.name} (${c.email})`,
-        value: c.id,
-    }));
+    function loadCoachOptions(inputValue: string, callback: (options: any[]) => void) {
+        const filtered = coaches
+            .filter((c) =>
+                c.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+                c.email.toLowerCase().includes(inputValue.toLowerCase())
+            )
+            .map((c) => ({
+                label: `${c.name} (${c.email})`,
+                value: c.id,
+            }));
+        callback(filtered);
+    }
 
-    const sportOptions: Option[] = sports.map((s) => ({
-        label: s.name,
-        value: s.id,
-    }));
+    function loadSportOptions(inputValue: string, callback: (options: any[]) => void) {
+        const filtered = sports
+            .filter((s) => s.name.toLowerCase().includes(inputValue.toLowerCase()))
+            .map((s) => ({
+                label: s.name,
+                value: s.id,
+            }));
+        callback(filtered);
+    }
 
-    const teamOptions: Option[] = sportTeams.map((t) => ({
-        label: `${t.name} (${t.sport.name})`,
-        value: t.id,
-    }));
-
-    function loadOptions(
-        options: Option[],
-        inputValue: string,
-        callback: (filtered: Option[]) => void
-    ) {
-        const filtered = options.filter((o) =>
-            o.label.toLowerCase().includes(inputValue.toLowerCase())
-        );
+    function loadSportTeamOptions(inputValue: string, callback: (options: any[]) => void) {
+        const filtered = sportTeams
+            .filter((t) =>
+                t.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+                t.sport.name.toLowerCase().includes(inputValue.toLowerCase())
+            )
+            .map((t) => ({
+                label: `${t.name} (${t.sport.name})`,
+                value: t.id,
+            }));
         callback(filtered);
     }
 
@@ -83,17 +91,18 @@ export default function Edit({
                 <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
                     {/* Coach Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="coach_id" className="text-sm font-medium">
-                            Team Manager (any user with team access permission):
-                        </label>
+                        <label htmlFor="coach_id" className="text-sm font-medium">Coach:</label>
                         <AsyncSelect
                             cacheOptions
                             defaultOptions
                             isClearable
-                            loadOptions={(input, cb) => loadOptions(coachOptions, input, cb)}
+                            loadOptions={loadCoachOptions}
+                            defaultValue={{
+                                label: coaches.find(c => c.id === assignment.coach_id)?.name || '',
+                                value: assignment.coach_id,
+                            }}
                             onChange={(option) => setData('coach_id', option?.value ?? null)}
-                            value={coachOptions.find((o) => o.value === data.coach_id) || null}
-                            placeholder="Search and select user"
+                            placeholder="Search and select coach"
                         />
                         {errors.coach_id && (
                             <p className="mt-1 text-sm text-red-500">{errors.coach_id}</p>
@@ -102,22 +111,28 @@ export default function Edit({
 
                     {/* Sport Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="sport_id" className="text-sm font-medium">
-                            Assign to All Teams in:
-                        </label>
+                        <label htmlFor="sport_id" className="text-sm font-medium">Assign to All Teams in:</label>
                         <AsyncSelect
                             cacheOptions
                             defaultOptions
                             isClearable
-                            loadOptions={(input, cb) => loadOptions(sportOptions, input, cb)}
+                            loadOptions={loadSportOptions}
+                            defaultValue={
+                                assignment.sport_id
+                                    ? {
+                                        label: sports.find(s => s.id === assignment.sport_id)?.name || '',
+                                        value: assignment.sport_id,
+                                    }
+                                    : null
+                            }
                             onChange={(option) => {
                                 setData('sport_id', option?.value ?? null);
                                 if (!option) setData('sport_team_id', null);
                             }}
-                            value={sportOptions.find((o) => o.value === data.sport_id) || null}
                             isDisabled={!!data.sport_team_id}
                             placeholder="Search and select sport"
                         />
+
                         {errors.sport_id && (
                             <p className="mt-1 text-sm text-red-500">{errors.sport_id}</p>
                         )}
@@ -125,22 +140,30 @@ export default function Edit({
 
                     {/* Sport Team Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="sport_team_id" className="text-sm font-medium">
-                            Assign to Specific Team:
-                        </label>
+                        <label htmlFor="sport_team_id" className="text-sm font-medium">Assign to Specific Team:</label>
                         <AsyncSelect
                             cacheOptions
                             defaultOptions
                             isClearable
-                            loadOptions={(input, cb) => loadOptions(teamOptions, input, cb)}
+                            loadOptions={loadSportTeamOptions}
+                            defaultValue={
+                                assignment.sport_team_id
+                                    ? {
+                                        label: sportTeams.find(t => t.id === assignment.sport_team_id)
+                                            ? `${sportTeams.find(t => t.id === assignment.sport_team_id)?.name} (${sportTeams.find(t => t.id === assignment.sport_team_id)?.sport.name})`
+                                            : '',
+                                        value: assignment.sport_team_id,
+                                    }
+                                    : null
+                            }
                             onChange={(option) => {
                                 setData('sport_team_id', option?.value ?? null);
                                 if (!option) setData('sport_id', null);
                             }}
-                            value={teamOptions.find((o) => o.value === data.sport_team_id) || null}
                             isDisabled={!!data.sport_id}
                             placeholder="Search and select team"
                         />
+
                         {errors.sport_team_id && (
                             <p className="mt-1 text-sm text-red-500">{errors.sport_team_id}</p>
                         )}

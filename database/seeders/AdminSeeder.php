@@ -72,10 +72,7 @@ class AdminSeeder extends Seeder
             'coach-assignments.edit',
             'coach-assignments.delete',
 
-            'student-sport-teams.create',
-            'student-sport-teams.view',
-            'student-sport-teams.edit',
-            'student-sport-teams.delete',
+
         ];
 
         // ✅ Assign permissions to the role

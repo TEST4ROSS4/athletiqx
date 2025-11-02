@@ -8,8 +8,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Assign Coach', href: '/coach-assignments' },
 ];
 
-type Option = { label: string; value: number };
-
 export default function Add({
     coaches,
     sports,
@@ -34,25 +32,54 @@ export default function Add({
         post(route('coach-assignments.store'));
     }
 
-    const coachOptions: Option[] = coaches.map((c) => ({
-        label: `${c.name} (${c.email})`,
-        value: c.id,
-    }));
+    function loadCoachOptions(
+        inputValue: string,
+        callback: (options: any[]) => void,
+    ) {
+        const filtered = coaches
+            .filter(
+                (c) =>
+                    c.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+                    c.email.toLowerCase().includes(inputValue.toLowerCase()),
+            )
+            .map((c) => ({
+                label: `${c.name} (${c.email})`,
+                value: c.id,
+            }));
+        callback(filtered);
+    }
 
-    const sportOptions: Option[] = sports.map((s) => ({
-        label: s.name,
-        value: s.id,
-    }));
+    function loadSportOptions(
+        inputValue: string,
+        callback: (options: any[]) => void,
+    ) {
+        const filtered = sports
+            .filter((s) =>
+                s.name.toLowerCase().includes(inputValue.toLowerCase()),
+            )
+            .map((s) => ({
+                label: s.name,
+                value: s.id,
+            }));
+        callback(filtered);
+    }
 
-    const teamOptions: Option[] = sportTeams.map((t) => ({
-        label: `${t.name} (${t.sport.name})`,
-        value: t.id,
-    }));
-
-    function loadOptions(options: Option[], inputValue: string, callback: (filtered: Option[]) => void) {
-        const filtered = options.filter((o) =>
-            o.label.toLowerCase().includes(inputValue.toLowerCase())
-        );
+    function loadSportTeamOptions(
+        inputValue: string,
+        callback: (options: any[]) => void,
+    ) {
+        const filtered = sportTeams
+            .filter(
+                (t) =>
+                    t.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+                    t.sport.name
+                        .toLowerCase()
+                        .includes(inputValue.toLowerCase()),
+            )
+            .map((t) => ({
+                label: `${t.name} (${t.sport.name})`,
+                value: t.id,
+            }));
         callback(filtered);
     }
 
@@ -60,7 +87,9 @@ export default function Add({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Assign Coach" />
             <div className="p-3">
-                <h1 className="mb-4 text-2xl font-bold">Assign Coach to Sport or Team</h1>
+                <h1 className="mb-4 text-2xl font-bold">
+                    Assign Coach to Sport or Team
+                </h1>
 
                 <Link
                     href={route('coach-assignments.index')}
@@ -69,68 +98,87 @@ export default function Add({
                     Back
                 </Link>
 
-                <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
+                <form
+                    onSubmit={submit}
+                    className="mx-auto mt-4 max-w-md space-y-6"
+                >
                     {/* Coach Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="coach_id" className="text-sm font-medium">
-                            Team Manager (any user with team access permission):
+                        <label
+                            htmlFor="coach_id"
+                            className="text-sm font-medium"
+                        >
+                            Coach:
                         </label>
                         <AsyncSelect
                             cacheOptions
                             defaultOptions
-                            loadOptions={(input, cb) => loadOptions(coachOptions, input, cb)}
-                            onChange={(option) => setData('coach_id', option?.value ?? null)}
-                            value={coachOptions.find((o) => o.value === data.coach_id) || null}
-                            placeholder="Search and select user"
+                            loadOptions={loadCoachOptions}
+                            onChange={(option) =>
+                                setData('coach_id', option?.value ?? null)
+                            }
+                            placeholder="Search and select coach"
                         />
                         {errors.coach_id && (
-                            <p className="mt-1 text-sm text-red-500">{errors.coach_id}</p>
+                            <p className="mt-1 text-sm text-red-500">
+                                {errors.coach_id}
+                            </p>
                         )}
                     </div>
 
                     {/* Sport Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="sport_id" className="text-sm font-medium">
+                        <label
+                            htmlFor="sport_id"
+                            className="text-sm font-medium"
+                        >
                             Sport (optional):
                         </label>
                         <AsyncSelect
                             isClearable
                             cacheOptions
                             defaultOptions
-                            loadOptions={(input, cb) => loadOptions(sportOptions, input, cb)}
+                            loadOptions={loadSportOptions}
                             onChange={(option) => {
                                 setData('sport_id', option?.value ?? null);
-                                if (!option) setData('sport_team_id', null);
+                                if (!option) setData('sport_team_id', null); // allow switching
                             }}
-                            value={sportOptions.find((o) => o.value === data.sport_id) || null}
                             isDisabled={!!data.sport_team_id}
                             placeholder="Search and select sport"
                         />
+
                         {errors.sport_id && (
-                            <p className="mt-1 text-sm text-red-500">{errors.sport_id}</p>
+                            <p className="mt-1 text-sm text-red-500">
+                                {errors.sport_id}
+                            </p>
                         )}
                     </div>
 
                     {/* Sport Team Select */}
                     <div className="grid gap-2">
-                        <label htmlFor="sport_team_id" className="text-sm font-medium">
+                        <label
+                            htmlFor="sport_team_id"
+                            className="text-sm font-medium"
+                        >
                             Sport Team (optional):
                         </label>
                         <AsyncSelect
                             isClearable
                             cacheOptions
                             defaultOptions
-                            loadOptions={(input, cb) => loadOptions(teamOptions, input, cb)}
+                            loadOptions={loadSportTeamOptions}
                             onChange={(option) => {
                                 setData('sport_team_id', option?.value ?? null);
-                                if (!option) setData('sport_id', null);
+                                if (!option) setData('sport_id', null); // allow switching
                             }}
-                            value={teamOptions.find((o) => o.value === data.sport_team_id) || null}
                             isDisabled={!!data.sport_id}
                             placeholder="Search and select team"
                         />
+
                         {errors.sport_team_id && (
-                            <p className="mt-1 text-sm text-red-500">{errors.sport_team_id}</p>
+                            <p className="mt-1 text-sm text-red-500">
+                                {errors.sport_team_id}
+                            </p>
                         )}
                     </div>
 

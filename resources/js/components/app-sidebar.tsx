@@ -28,7 +28,6 @@ import {
     UserCheck,
     UserCog,
     Users,
-    UserPlus,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -134,12 +133,6 @@ export function AppSidebar() {
             title: 'Assign Coach',
             href: '/coach-assignments',
             icon: UserCheck,
-        },
-
-        can('student-sport-teams.view') && {
-            title: 'Manage Team Members',
-            href: '/student-sport-teams/landing',
-            icon: UserPlus,
         },
 
         // ------------------------------ SUPER ADMIN ------------------------------

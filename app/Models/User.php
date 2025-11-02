@@ -2,19 +2,39 @@
 
 namespace App\Models;
 
+use App\Models\Course;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Collection;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Database\Eloquent\Builder;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Spatie\Permission\Traits\HasRoles;
+
+/**
+ * App\Models\User
+ *
+ * @property-read \Illuminate\Support\Collection $roles
+ * @method bool hasRole(string|int|array|\Spatie\Permission\Models\Role|\Illuminate\Support\Collection|\BackedEnum $roles, string|null $guard = null)
+ * @method \Spatie\Permission\Models\Role assignRole(string|array|\Spatie\Permission\Models\Role $role)
+ * @method void syncRoles(array|\Spatie\Permission\Models\Role $roles)
+ * @method bool hasPermissionTo(string|\Spatie\Permission\Models\Permission $permission, string|null $guardName = null)
+ * @method \Illuminate\Support\Collection getRoleNames()
+ * @method \Illuminate\Database\Eloquent\Builder role(string|array|\Spatie\Permission\Models\Role $roles, string|null $guard = null)
+ */
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, HasApiTokens;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'email',
@@ -22,11 +42,21 @@ class User extends Authenticatable
         'school_id',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -35,10 +65,29 @@ class User extends Authenticatable
         ];
     }
 
-    // 🔗 Relationships
+    /**
+     * Relationship: User belongs to a School.
+     */
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+
+    /**
+     * Helper: Check if user has the 'Admin' role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('Admin');
+    }
+
+    /**
+     * Scope: Query users with the 'Admin' role.
+     */
+    public function scopeAdmin(Builder $query): Builder
+    {
+        return $query->role('Admin');
     }
 
     public function taughtCourseSections()
@@ -66,59 +115,22 @@ class User extends Authenticatable
         return $this->hasMany(CoachAssignment::class, 'coach_id');
     }
 
-    public function sportTeamAssignments()
+    // COACH ASSIGNMENT SPORT TEAM MERGE LIST
+    public function assignedTeams()
     {
-        return $this->hasMany(StudentSportTeam::class, 'student_id');
-    }
+        $direct = SportTeam::whereIn('id', function ($query) {
+            $query->select('sport_team_id')
+                ->from('coach_assignments')
+                ->where('coach_id', $this->id)
+                ->whereNotNull('sport_team_id');
+        })->get();
 
-    // 🔍 Role Helpers
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('Admin');
-    }
-
-    public function scopeAdmin(Builder $query): Builder
-    {
-        return $query->role('Admin');
-    }
-
-    // ✅ Assigned Teams via CoachAssignment (sport or sport_team)
-    public function assignedTeams(): Collection
-    {
-        $directTeamIds = CoachAssignment::where('coach_id', $this->id)
-            ->where('school_id', $this->school_id)
-            ->whereNotNull('sport_team_id')
-            ->pluck('sport_team_id');
-
-        $sportIds = CoachAssignment::where('coach_id', $this->id)
-            ->where('school_id', $this->school_id)
+        $sports = CoachAssignment::where('coach_id', $this->id)
             ->whereNotNull('sport_id')
             ->pluck('sport_id');
 
-        $viaSportTeamIds = SportTeam::whereIn('sport_id', $sportIds)->pluck('id');
+        $viaSport = SportTeam::whereIn('sport_id', $sports)->get();
 
-        $allTeamIds = $directTeamIds->merge($viaSportTeamIds)->unique();
-
-        return SportTeam::whereIn('id', $allTeamIds)->get();
-    }
-
-    // ✅ Access Helper: Can manage this team?
-    public function canManageTeam(SportTeam $team): bool
-    {
-        if ($this->hasRole('School Admin')) {
-            return true;
-        }
-
-        if (! $this->can('student-sport-teams.view')) {
-            return false;
-        }
-
-        return CoachAssignment::where('coach_id', $this->id)
-            ->where('school_id', $this->school_id)
-            ->where(function ($q) use ($team) {
-                $q->where('sport_team_id', $team->id)
-                  ->orWhere('sport_id', $team->sport_id);
-            })
-            ->exists();
+        return $direct->merge($viaSport)->unique('id');
     }
 }
