@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CoachAssignment;
 use App\Models\SportTeam;
 use App\Models\StudentSportTeam;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class MobileSportsController extends Controller
@@ -53,5 +54,49 @@ class MobileSportsController extends Controller
         return response()->json([
             'data' => $players
         ]);
+    }
+
+    public function fetchTeamMembersCreate(SportTeam $sportTeam)
+    {
+        $students = User::role('student')
+            ->where('school_id', Auth::user()->school_id)
+            ->get();
+
+        return response()->json([
+            'sportTeam' => $sportTeam,
+            'students' => $students,
+        ]);
+    }
+
+    public function store(Request $request, SportTeam $sportTeam)
+    {
+        $validated = $request->validate([
+            'members' => 'required|array|min:1',
+            'members.*.student_id' => 'required|exists:users,id',
+            'members.*.status' => 'required|string',
+            'members.*.position' => 'required|string',
+        ]);
+
+        $schoolId = Auth::user()->school_id;
+
+        $createdMembers = [];
+
+        foreach ($validated['members'] as $member) {
+            $created = StudentSportTeam::create([
+                'student_id' => $member['student_id'],
+                'sport_team_id' => $sportTeam->id,
+                'school_id' => $schoolId,
+                'status' => $member['status'],
+                'position' => $member['position'],
+            ]);
+
+            $createdMembers[] = $created;
+        }
+
+        return response()->json([
+            'message' => 'Team members added successfully.',
+            'sport_team_id' => $sportTeam->id,
+            'members' => $createdMembers,
+        ], 201);
     }
 }
