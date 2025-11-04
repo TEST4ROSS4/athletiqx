@@ -45,4 +45,8 @@ class School extends Model
         return $this->hasMany(Sport::class);
     }
 
+    public function programs()
+    {
+        return $this->hasMany(Program::class);
+    }
 }

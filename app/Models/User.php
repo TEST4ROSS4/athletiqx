@@ -117,8 +117,33 @@ class User extends Authenticatable
             ->where('school_id', $this->school_id)
             ->where(function ($q) use ($team) {
                 $q->where('sport_team_id', $team->id)
-                  ->orWhere('sport_id', $team->sport_id);
+                    ->orWhere('sport_id', $team->sport_id);
             })
             ->exists();
+    }
+
+    public function createdPrograms()
+    {
+        return $this->hasMany(Program::class, 'created_by');
+    }
+
+    public function assignedPrograms()
+    {
+        return $this->hasMany(ProgramAssignment::class, 'assigned_by');
+    }
+
+    public function receivedProgramAssignments()
+    {
+        return $this->hasMany(ProgramAssignment::class, 'student_id');
+    }
+
+    public function exerciseLogs()
+    {
+        return $this->hasMany(ExerciseLog::class, 'student_id');
+    }
+
+    public function personalBests()
+    {
+        return $this->hasMany(PersonalBest::class, 'student_id');
     }
 }
