@@ -66,12 +66,12 @@ export default function Welcome() {
                                 >
                                     Log in
                                 </Link>
-                                {/* <Link
+                                <Link
                                     href={register()}
                                     className="rounded-md border border-[#19140035] px-4 py-1.5 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
                                 >
                                     Register
-                                </Link> */}
+                                </Link>
                             </>
                         )}
                     </div>
@@ -94,12 +94,12 @@ export default function Welcome() {
                                 >
                                     Log in
                                 </Link>
-                                {/* <Link
+                                <Link
                                     href={register()}
                                     className="rounded-md border border-[#19140035] px-4 py-2 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
                                 >
                                     Register
-                                </Link> */}
+                                </Link>
                             </>
                         )}
                     </div>
