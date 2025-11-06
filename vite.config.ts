@@ -20,9 +20,4 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
-    build: {
-        manifest: true,
-        outDir: 'public/build',
-        emptyOutDir: true,
-    },
 });
