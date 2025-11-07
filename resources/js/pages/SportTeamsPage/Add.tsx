@@ -67,7 +67,7 @@ export default function Add({
                             value={data.season}
                             onChange={(e) => setData('season', e.target.value)}
                             className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder="e.g. 2025–2026"
+                            placeholder="e.g. Season 88"
                         />
                         {errors.season && <p className="text-sm text-red-500">{errors.season}</p>}
                     </div>
