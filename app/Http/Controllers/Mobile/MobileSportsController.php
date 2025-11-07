@@ -78,6 +78,29 @@ class MobileSportsController extends Controller
         ]);
 
         $schoolId = Auth::user()->school_id;
+        $duplicates = [];
+
+        foreach ($validated['members'] as $member) {
+            $exists = StudentSportTeam::where('student_id', $member['student_id'])
+                ->where('sport_team_id', $sportTeam->id)
+                ->exists();
+
+            if ($exists) {
+                $student = User::find($member['student_id']);
+                $duplicates[] = [
+                    'student_id' => $member['student_id'],
+                    'name' => $student?->name,
+                    'message' => 'Already assigned to this team.',
+                ];
+            }
+        }
+
+        if (!empty($duplicates)) {
+            return response()->json([
+                'message' => 'Submission failed due to duplicate entries.',
+                'duplicates' => $duplicates,
+            ], 409); // 409 Conflict
+        }
 
         $createdMembers = [];
 
@@ -98,5 +121,15 @@ class MobileSportsController extends Controller
             'sport_team_id' => $sportTeam->id,
             'members' => $createdMembers,
         ], 201);
+    }
+
+    public function destroy(StudentSportTeam $studentSportTeam)
+    {
+        $studentSportTeam->delete();
+
+        return response()->json([
+            'message' => 'Team member removed.',
+            'team_id' => $studentSportTeam->sport_team_id,
+        ], 200);
     }
 }

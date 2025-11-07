@@ -14,6 +14,8 @@ Route::middleware('auth:sanctum')->get('/my-sports', [MobileSportsController::cl
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}', [MobileSportsController::class, 'getPlayers']);
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}/create', [MobileSportsController::class, 'fetchTeamMembersCreate']);
 Route::middleware('auth:sanctum')->post('/my-sports/players/{sportTeam}/store', [MobileSportsController::class, 'store']);
+Route::middleware('auth:sanctum')->delete('/my-sports/players/{studentSportTeam}/delete', [MobileSportsController::class, 'destroy']);
+
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
     // Optional: Check if user has the correct role before allowing logout
