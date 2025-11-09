@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Mobile;
 
 use App\Models\Course;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\CourseSection;
+use App\Http\Controllers\Controller;
+use App\Models\StudentCourseSection;
 use Illuminate\Support\Facades\Auth;
 
 class MobileCourseController extends Controller
@@ -26,7 +28,7 @@ class MobileCourseController extends Controller
         ])
             ->where('school_id', $schoolId)
             ->get();
-
+            
         return response()->json([
             'success' => true,
             'data' => $courses,
@@ -36,6 +38,15 @@ class MobileCourseController extends Controller
                 'name' => $user->name,
                 'school_id' => $schoolId,
             ],
+        ]);
+    }
+
+    public function getStudentsByCourse(CourseSection $courseSection)
+    {
+        $courseSection->load(['students', 'course']);
+
+        return response()->json([
+            'data' => $courseSection
         ]);
     }
 }

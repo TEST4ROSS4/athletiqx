@@ -9,7 +9,9 @@ use App\Http\Controllers\Mobile\MobileSportsController;
 
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
 Route::get('/users', [MobileAuthController::class, 'getAllUsers']);
+Route::middleware('auth:sanctum')->get('/user/permissions', [MobileAuthController::class, 'getCurrentUserPermissions']);
 Route::middleware('auth:sanctum')->get('/my-courses', [MobileCourseController::class, 'getCoursesBySchool']);
+Route::middleware('auth:sanctum')->get('/my-courses/students/{courseSection}', [MobileCourseController::class, 'getStudentsByCourse']);
 Route::middleware('auth:sanctum')->get('/my-sports', [MobileSportsController::class, 'getAssignedSportsToCoach']);
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}', [MobileSportsController::class, 'getPlayers']);
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}/create', [MobileSportsController::class, 'fetchTeamMembersCreate']);
