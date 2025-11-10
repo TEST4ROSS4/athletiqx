@@ -68,6 +68,24 @@ class MobileSportsController extends Controller
         ]);
     }
 
+    public function update(Request $request, StudentSportTeam $studentSportTeam)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+        ]);
+
+        $studentSportTeam->update([
+            'status' => $validated['status'],
+            'position' => $validated['position'],
+        ]);
+
+        return response()->json([
+            'message' => 'Team member updated successfully.',
+            'data' => $studentSportTeam,
+        ], 200);
+    }
+
     public function store(Request $request, SportTeam $sportTeam)
     {
         $validated = $request->validate([
