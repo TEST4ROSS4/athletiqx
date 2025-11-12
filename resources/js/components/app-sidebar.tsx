@@ -29,6 +29,7 @@ import {
     UserCog,
     Users,
     UserPlus,
+    Dumbbell,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -141,6 +142,13 @@ export function AppSidebar() {
             href: '/student-sport-teams/landing',
             icon: UserPlus,
         },
+
+        can('programs.view') && {
+            title: 'Training Programs',
+            href: '/programs/landing',
+            icon: Dumbbell, 
+        },
+
 
         // ------------------------------ SUPER ADMIN ------------------------------
 
