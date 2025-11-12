@@ -80,7 +80,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'student-sport-teams.edit', 'module' => 'school'],
             ['name' => 'student-sport-teams.delete', 'module' => 'school'],
 
-
+            // PROGRAMS
+            ['name' => 'programs.create', 'module' => 'school'],
+            ['name' => 'programs.view', 'module' => 'school'],
+            ['name' => 'programs.edit', 'module' => 'school'],
+            ['name' => 'programs.delete', 'module' => 'school'],
 
 
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
