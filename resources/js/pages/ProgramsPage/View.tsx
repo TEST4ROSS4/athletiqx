@@ -75,29 +75,82 @@ export default function View({ program, exercises }: Props) {
 
             <div className="mx-auto max-w-5xl space-y-8 px-4 sm:px-6 lg:px-8 py-6">
 
-                <div className="mb-6">
-                    <Link href={route('programs.index')}>
-                        <Button
-                            variant="outline"
-                            className="flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-100 transition"
-                        >
-                            <span className="text-lg">←</span>
-                            Back to Programs
-                        </Button>
-                    </Link>
-                </div>
-
                 {/* Header */}
-                <div className="mb-8 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                        {program.name}
-                    </h1>
-                    {program.note && (
-                        <p className="text-gray-600 text-sm max-w-2xl leading-relaxed">
-                            {program.note}
-                        </p>
-                    )}
-                </div>
+<div className="mb-8 flex items-center justify-between">
+  {/* Left: Back Button */}
+  <Link href={route('programs.index')}>
+    <Button
+      variant="outline"
+      size="icon"
+      className="text-gray-700 hover:bg-gray-100 transition"
+      title="Back to Programs"
+    >
+      <span className="text-lg">←</span>
+    </Button>
+  </Link>
+
+  
+
+  {/* Right: Edit & Assign Buttons */}
+  <div className="flex items-center gap-2">
+    <Link href={route('programs.edit', program.id)}>
+      <Button
+        variant="outline"
+        size="icon"
+        className="hover:bg-gray-100"
+        title="Edit Program"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.313l-4.182.455.455-4.182L16.862 3.487z"
+          />
+        </svg>
+      </Button>
+    </Link>
+
+    <Button
+      variant="default"
+      size="icon"
+      className="bg-blue-600 hover:bg-blue-700 text-white"
+      title="Assign Program"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm-8 6a8 8 0 1116 0H8zM12 14v4m0 0h4m-4 0H8"
+        />
+      </svg>
+    </Button>
+  </div>
+</div>
+{/* Middle: Program Title + Note */}
+  <div className="flex-1 text-center">
+    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+      {program.name}
+    </h1>
+    {program.note && (
+      <p className="text-gray-600 text-sm max-w-2xl mx-auto leading-relaxed">
+        {program.note}
+      </p>
+    )}
+  </div>
 
                 <div className="grid grid-cols-1 gap-4 rounded-lg border bg-white p-4 shadow-sm sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
                     <div>

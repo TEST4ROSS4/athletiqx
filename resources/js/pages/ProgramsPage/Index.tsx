@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { can } from '@/lib/can';
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowUpDown, Eye, Pencil, PlusCircle, Trash2, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { route } from 'ziggy-js';
 
 interface Program {
@@ -17,13 +17,12 @@ interface Program {
 interface Props {
   programs: {
     data: Program[];
-    links?: any;
-    meta?: {
-      total: number;
-      per_page: number;
-      current_page: number;
-      last_page: number;
-    };
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
   };
   filters: {
     search?: string;
@@ -32,12 +31,21 @@ interface Props {
   };
 }
 
-export default function Index({ programs: rawPrograms, filters }: Props) {
+export default function Index({ programs, filters }: Props) {
   const [search, setSearch] = useState(filters.search || '');
 
-  // Safe defaults to prevent undefined errors
-  const programs = rawPrograms || { data: [], meta: { total: 0, per_page: 12, current_page: 1, last_page: 1 } };
-  const meta = programs.meta || { total: 0, per_page: 12, current_page: 1, last_page: 1 };
+  // Trigger search automatically on change
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      router.get(
+        route('programs.index'),
+        { ...filters, search, page: 1 },
+        { preserveState: true, replace: true }
+      );
+    }, 300); // small debounce to avoid too many requests
+
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   function handleSortToggle() {
     const nextSort =
@@ -47,20 +55,7 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
         ? 'name'
         : 'exercises';
 
-    router.get(
-      route('programs.index'),
-      { ...filters, search, sort: nextSort },
-      { preserveState: true }
-    );
-  }
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    router.get(
-      route('programs.index'),
-      { ...filters, search },
-      { preserveState: true }
-    );
+    router.get(route('programs.index'), { ...filters, search, sort: nextSort }, { preserveState: true });
   }
 
   function handleDelete(id: number) {
@@ -69,18 +64,8 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
     }
   }
 
-  function goToPage(page: number) {
-    router.get(
-      route('programs.index'),
-      { ...filters, search, page },
-      { preserveState: true }
-    );
-  }
-
   return (
-    <AppLayout
-      breadcrumbs={[{ title: 'Training Programs', href: route('programs.landing') }]}
-    >
+    <AppLayout breadcrumbs={[{ title: 'Training Programs', href: route('programs.landing') }]}>
       <Head title="All Training Programs" />
 
       <div className="space-y-6 p-4">
@@ -100,11 +85,8 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
               </Link>
             </div>
 
-            {/* Search */}
-            <form
-              onSubmit={handleSearch}
-              className="mt-2 flex items-center gap-2 sm:mt-0 sm:ml-auto"
-            >
+            {/* Live Search */}
+            <div className="mt-2 flex items-center gap-2 sm:mt-0 sm:ml-auto">
               <input
                 type="text"
                 placeholder="Search programs..."
@@ -112,20 +94,13 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
                 onChange={(e) => setSearch(e.target.value)}
                 className="rounded-md border border-gray-300 px-3 py-1 focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <Button type="submit" size="sm">
-                Search
-              </Button>
-            </form>
+            </div>
           </div>
         </div>
 
         {/* Sort */}
         <div className="mt-2 sm:mt-4 flex justify-end">
-          <Button
-            variant="outline"
-            onClick={handleSortToggle}
-            className="flex items-center gap-2"
-          >
+          <Button variant="outline" onClick={handleSortToggle} className="flex items-center gap-2">
             <ArrowUpDown size={16} />
             Sort:{' '}
             {filters.sort === 'name'
@@ -159,11 +134,9 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
                   <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
                     {program.exercises_count} {program.exercises_count === 1 ? 'Exercise' : 'Exercises'}
                   </span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                      program.assignments_count > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}
-                  >
+                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                    program.assignments_count > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
                     {program.assignments_count > 0
                       ? `${program.assignments_count} Assigned`
                       : 'Unassigned'}
@@ -173,28 +146,19 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
                 <div className="mt-4 flex justify-end gap-2">
                   {can('programs.assign') && (
                     <Link href={route('programs.index', { assign: program.id })}>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Users size={16} />
-                      </Button>
+                      <Button variant="outline" size="sm" className="p-2"><Users size={16} /></Button>
                     </Link>
                   )}
-
                   {can('programs.edit') && (
                     <Link href={route('programs.edit', program.id)}>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Pencil size={16} />
-                      </Button>
+                      <Button variant="outline" size="sm" className="p-2"><Pencil size={16} /></Button>
                     </Link>
                   )}
-
                   {can('programs.view') && (
                     <Link href={route('programs.show', program.id)}>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Eye size={16} />
-                      </Button>
+                      <Button variant="outline" size="sm" className="p-2"><Eye size={16} /></Button>
                     </Link>
                   )}
-
                   {can('programs.delete') && (
                     <Button
                       variant="destructive"
@@ -211,34 +175,80 @@ export default function Index({ programs: rawPrograms, filters }: Props) {
           </div>
         )}
 
-{/* Pagination */}
-{programs.meta?.total && programs.meta.total > programs.meta.per_page && (
-  <div className="mt-6 flex justify-center items-center gap-4 text-sm text-muted-foreground">
-    {/* Previous Button */}
-    <Button
-      disabled={!programs.links.prev}
-      onClick={() => programs.links.prev && router.get(programs.links.prev, {}, { preserveState: true })}
-      size="sm"
-    >
-      Previous
-    </Button>
+        {/* Pagination */}
+        {programs.total > programs.per_page && (
+          <div className="mt-10 flex flex-col items-center justify-center gap-4">
+            <div className="flex items-center flex-wrap justify-center gap-2">
+              {/* Previous Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!programs.prev_page_url}
+                onClick={() =>
+                  programs.prev_page_url &&
+                  router.get(programs.prev_page_url, {}, { preserveState: true })
+                }
+                className="flex items-center gap-1"
+              >
+                ← Prev
+              </Button>
 
-    {/* Page Info */}
-    <span>
-      Page {programs.meta.current_page} of {programs.meta.last_page}
-    </span>
+              {/* Page Numbers */}
+              {Array.from({ length: programs.last_page }, (_, i) => i + 1)
+                .filter(
+                  (page) =>
+                    page === 1 ||
+                    page === programs.last_page ||
+                    Math.abs(page - programs.current_page) <= 2
+                )
+                .map((page, i, arr) => {
+                  const prev = arr[i - 1];
+                  const isActive = page === programs.current_page;
+                  const showEllipsis = prev && page - prev > 1;
 
-    {/* Next Button */}
-    <Button
-      disabled={!programs.links.next}
-      onClick={() => programs.links.next && router.get(programs.links.next, {}, { preserveState: true })}
-      size="sm"
-    >
-      Next
-    </Button>
-  </div>
-)}
+                  return (
+                    <div key={page} className="flex items-center">
+                      {showEllipsis && <span className="px-2 text-gray-400">…</span>}
+                      <Button
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
+                        className={`h-8 w-8 rounded-full ${
+                          isActive
+                            ? 'bg-primary text-white hover:bg-primary/90'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        onClick={() =>
+                          router.get(route('programs.index'), { ...filters, page }, { preserveState: true })
+                        }
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                })}
 
+              {/* Next Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!programs.next_page_url}
+                onClick={() =>
+                  programs.next_page_url &&
+                  router.get(programs.next_page_url, {}, { preserveState: true })
+                }
+                className="flex items-center gap-1"
+              >
+                Next →
+              </Button>
+            </div>
+
+            {/* Page Info */}
+            <p className="text-xs text-gray-500">
+              Showing {(programs.current_page - 1) * programs.per_page + 1}–
+              {Math.min(programs.current_page * programs.per_page, programs.total)} of {programs.total}
+            </p>
+          </div>
+        )}
       </div>
     </AppLayout>
   );
