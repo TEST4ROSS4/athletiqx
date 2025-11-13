@@ -129,7 +129,7 @@ class ProgramController extends Controller
             }
         });
 
-        return redirect()->route('programs.show')
+        return redirect()->route('programs.index')
             ->with('success', 'Program created successfully.');
     }
 
@@ -237,7 +237,7 @@ public function update(Request $request, Program $program)
     });
 
     return redirect()
-        ->route('programs.show', $program->id)
+        ->route('programs.index', $program->id)
         ->with('success', '✅ Program updated successfully.');
 }
 
