@@ -13,90 +13,90 @@ use Inertia\Inertia;
 class ProgramController extends Controller
 {
     public function landing()
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    $programs = Program::withCount(['exercises', 'assignments'])
-        ->where('school_id', $user->school_id)
-        ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-        ->orderByDesc('updated_at')
-        ->take(5)
-        ->get();
-
-    $summary = [
-        'total' => Program::where('school_id', $user->school_id)
+        $programs = Program::withCount(['exercises', 'assignments'])
+            ->where('school_id', $user->school_id)
             ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-            ->count(),
+            ->orderByDesc('updated_at')
+            ->take(5)
+            ->get();
 
-        'assigned' => Program::where('school_id', $user->school_id)
-            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-            ->has('assignments')
-            ->count(),
+        $summary = [
+            'total' => Program::where('school_id', $user->school_id)
+                ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
+                ->count(),
 
-        'unassigned' => Program::where('school_id', $user->school_id)
-            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-            ->doesntHave('assignments')
-            ->count(),
+            'assigned' => Program::where('school_id', $user->school_id)
+                ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
+                ->has('assignments')
+                ->count(),
 
-        'latest_created' => Program::where('school_id', $user->school_id)
-            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-            ->orderByDesc('created_at')
-            ->first()?->name,
+            'unassigned' => Program::where('school_id', $user->school_id)
+                ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
+                ->doesntHave('assignments')
+                ->count(),
 
-        'latest_created_at' => Program::where('school_id', $user->school_id)
-            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
-            ->orderByDesc('created_at')
-            ->first()?->created_at,
-    ];
+            'latest_created' => Program::where('school_id', $user->school_id)
+                ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
+                ->orderByDesc('created_at')
+                ->first()?->name,
 
-    return Inertia::render('ProgramsPage/Landing', [
-        'programs' => $programs,
-        'summary' => $summary,
-    ]);
-}
+            'latest_created_at' => Program::where('school_id', $user->school_id)
+                ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id))
+                ->orderByDesc('created_at')
+                ->first()?->created_at,
+        ];
 
-   public function index(Request $request)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    $query = Program::withCount(['exercises', 'assignments'])
-        ->where('school_id', $user->school_id)
-        ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id));
-
-    // 🔍 Search by name
-    if ($search = $request->input('search')) {
-        $query->where('name', 'like', "%{$search}%");
+        return Inertia::render('ProgramsPage/Landing', [
+            'programs' => $programs,
+            'summary' => $summary,
+        ]);
     }
 
-    // 🟢 Filter by assigned / unassigned
-    if ($status = $request->input('status')) {
-        $query->when($status === 'assigned', fn($q) => $q->has('assignments'))
-              ->when($status === 'unassigned', fn($q) => $q->doesntHave('assignments'));
+    public function index(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $query = Program::withCount(['exercises', 'assignments'])
+            ->where('school_id', $user->school_id)
+            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id));
+
+        // 🔍 Search by name
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // 🟢 Filter by assigned / unassigned
+        if ($status = $request->input('status')) {
+            $query->when($status === 'assigned', fn($q) => $q->has('assignments'))
+                ->when($status === 'unassigned', fn($q) => $q->doesntHave('assignments'));
+        }
+
+        // ↕️ Sorting options
+        switch ($request->input('sort')) {
+            case 'name':
+                $query->orderBy('name');
+                break;
+            case 'exercises':
+                $query->orderByDesc('exercises_count');
+                break;
+            case 'latest':
+            default:
+                $query->orderByDesc('created_at');
+                break;
+        }
+
+        $programs = $query->paginate(12)->withQueryString();
+
+        return Inertia::render('ProgramsPage/Index', [
+            'programs' => $programs->toArray(),
+            'filters' => $request->only(['search', 'status', 'sort']),
+        ]);
     }
-
-    // ↕️ Sorting options
-    switch ($request->input('sort')) {
-        case 'name':
-            $query->orderBy('name');
-            break;
-        case 'exercises':
-            $query->orderByDesc('exercises_count');
-            break;
-        case 'latest':
-        default:
-            $query->orderByDesc('created_at');
-            break;
-    }
-
-    $programs = $query->paginate(12)->withQueryString();
-
-    return Inertia::render('ProgramsPage/Index', [
-        'programs' => $programs->toArray(),
-        'filters' => $request->only(['search', 'status', 'sort']),
-    ]);
-}
 
 
 
@@ -106,168 +106,149 @@ class ProgramController extends Controller
     }
 
     public function store(Request $request)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'note' => 'nullable|string',
-        'exercises' => 'required|array|min:1',
-        'exercises.*.name' => 'required|string|max:255',
-        'exercises.*.description' => 'nullable|string',
-        'exercises.*.order' => 'nullable|integer',
-        'exercises.*.sets' => 'required|array|min:1',
-        'exercises.*.sets.*.order' => 'nullable|integer',
-        'exercises.*.sets.*.fields' => 'required|array',
-        'exercises.*.sets.*.suggested_values' => 'nullable|array',
-    ]);
-
-    // 👇 Return $program from the transaction
-    $program = DB::transaction(function () use ($validated, $user) {
-        $program = Program::create([
-            'created_by' => $user->id,
-            'school_id' => $user->school_id,
-            'name' => $validated['name'],
-            'note' => $validated['note'] ?? null,
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'note' => 'nullable|string',
+            'exercises' => 'required|array|min:1',
+            'exercises.*.name' => 'required|string|max:255',
+            'exercises.*.description' => 'nullable|string',
+            'exercises.*.order' => 'nullable|integer',
+            'exercises.*.sets' => 'required|array|min:1',
+            'exercises.*.sets.*.order' => 'nullable|integer',
+            'exercises.*.sets.*.fields' => 'required|array',
+            'exercises.*.sets.*.suggested_values' => 'nullable|array',
         ]);
 
-        foreach ($validated['exercises'] as $exerciseData) {
-            $exercise = ProgramExercise::create([
-                'program_id' => $program->id,
-                'name' => $exerciseData['name'],
-                'description' => $exerciseData['description'] ?? null,
-                'order' => $exerciseData['order'] ?? 0,
+        // 👇 Return $program from the transaction
+        $program = DB::transaction(function () use ($validated, $user) {
+            $program = Program::create([
+                'created_by' => $user->id,
+                'school_id' => $user->school_id,
+                'name' => $validated['name'],
+                'note' => $validated['note'] ?? null,
             ]);
 
-            foreach ($exerciseData['sets'] as $setData) {
-                ExerciseSet::create([
-                    'program_exercise_id' => $exercise->id,
-                    'order' => $setData['order'] ?? 0,
-                    'fields' => $setData['fields'],
-                    'suggested_values' => $setData['suggested_values'] ?? null,
+            foreach ($validated['exercises'] as $exerciseData) {
+                $exercise = ProgramExercise::create([
+                    'program_id' => $program->id,
+                    'name' => $exerciseData['name'],
+                    'description' => $exerciseData['description'] ?? null,
+                    'order' => $exerciseData['order'] ?? 0,
                 ]);
+
+                foreach ($exerciseData['sets'] as $setData) {
+                    ExerciseSet::create([
+                        'program_exercise_id' => $exercise->id,
+                        'order' => $setData['order'] ?? 0,
+                        'fields' => $setData['fields'],
+                        'suggested_values' => $setData['suggested_values'] ?? null,
+                    ]);
+                }
             }
-        }
 
-        return $program; // ✅ this makes $program available after transaction
-    });
+            return $program; // ✅ this makes $program available after transaction
+        });
 
-    // Now you can safely redirect to show route
-    return redirect()
-        ->route('programs.show', $program->id)
-        ->with('success', 'Program created successfully.');
-}
+        // Now you can safely redirect to show route
+        return redirect()
+            ->route('programs.show', $program->id)
+            ->with('success', 'Program created successfully.');
+    }
 
 
     public function edit(Program $program)
-{
-    $this->authorizeProgramAccess($program, 'programs.edit');
+    {
+        $this->authorizeProgramAccess($program, 'programs.edit');
 
-    // Load exercises and their sets
-    $program->load(['exercises.sets']);
+        // Load exercises and their sets
+        $program->load(['exercises.sets']);
 
-    return Inertia::render('ProgramsPage/Edit', [
-        'program' => [
-            'id' => $program->id,
-            'name' => $program->name,
-            'note' => $program->note,
-            'exercises' => $program->exercises->map(function ($exercise) {
-                return [
-                    'id' => $exercise->id,
-                    'name' => $exercise->name,
-                    'description' => $exercise->description,
-                    'order' => $exercise->order,
-                    'sets' => $exercise->sets->map(function ($set) {
-                        return [
-                            'id' => $set->id,
-                            'order' => $set->order,
-                            'fields' => $set->fields,
-                            'suggested_values' => $set->suggested_values ?? [],
-                        ];
-                    }),
-                ];
-            }),
-        ],
-    ]);
-}
+        return Inertia::render('ProgramsPage/Edit', [
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->name,
+                'note' => $program->note,
+                'exercises' => $program->exercises->map(function ($exercise) {
+                    return [
+                        'id' => $exercise->id,
+                        'name' => $exercise->name,
+                        'description' => $exercise->description,
+                        'order' => $exercise->order,
+                        'sets' => $exercise->sets->map(function ($set) {
+                            return [
+                                'id' => $set->id,
+                                'order' => $set->order,
+                                'fields' => $set->fields,
+                                'suggested_values' => $set->suggested_values ?? [],
+                            ];
+                        }),
+                    ];
+                }),
+            ],
+        ]);
+    }
 
-public function update(Request $request, Program $program)
-{
-    $this->authorizeProgramAccess($program, 'programs.edit');
+    public function update(Request $request, $id)
+    {
+        $program = Program::findOrFail($id);
 
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'note' => 'nullable|string',
-        'exercises' => 'required|array|min:1',
-        'exercises.*.id' => 'nullable|integer',
-        'exercises.*.name' => 'required|string|max:255',
-        'exercises.*.description' => 'nullable|string',
-        'exercises.*.order' => 'nullable|integer',
-        'exercises.*.sets' => 'required|array|min:1',
-        'exercises.*.sets.*.id' => 'nullable|integer',
-        'exercises.*.sets.*.order' => 'nullable|integer',
-        'exercises.*.sets.*.fields' => 'required|array',
-        'exercises.*.sets.*.suggested_values' => 'nullable|array',
-    ]);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'note' => 'nullable|string',
+            'exercises' => 'required|array|min:1',
 
-    DB::transaction(function () use ($validated, $program) {
+            'exercises.*.name' => 'required|string|max:255',
+            'exercises.*.description' => 'nullable|string',
+            'exercises.*.order' => 'required|integer',
 
-        // Update program details
-        $program->update([
-            'name' => $validated['name'],
-            'note' => $validated['note'] ?? null,
+            'exercises.*.sets' => 'required|array|min:1',
+            'exercises.*.sets.*.order' => 'required|integer',
+
+            'exercises.*.sets.*.fields' => 'required|array|min:1',
+            'exercises.*.sets.*.fields.*.name' => 'required|string|max:255',
+            'exercises.*.sets.*.fields.*.type' => 'required|string',
+
+            'exercises.*.sets.*.suggested_values' => 'nullable|array',
         ]);
 
-        $existingExerciseIds = $program->exercises()->pluck('id')->toArray();
-        $incomingExerciseIds = collect($validated['exercises'])->pluck('id')->filter()->toArray();
+        // Return the updated program
+        $program = DB::transaction(function () use ($program, $validated) {
 
-        // Delete removed exercises
-        $toDeleteExercises = array_diff($existingExerciseIds, $incomingExerciseIds);
-        if (!empty($toDeleteExercises)) {
-            ProgramExercise::whereIn('id', $toDeleteExercises)->delete();
-        }
+            $program->update([
+                'name' => $validated['name'],
+                'note' => $validated['note'] ?? null,
+            ]);
 
-        foreach ($validated['exercises'] as $exerciseData) {
-            $exercise = isset($exerciseData['id'])
-                ? ProgramExercise::findOrFail($exerciseData['id'])
-                : new ProgramExercise(['program_id' => $program->id]);
+            $program->exercises()->delete();
 
-            $exercise->fill([
-                'name' => $exerciseData['name'],
-                'description' => $exerciseData['description'] ?? null,
-                'order' => $exerciseData['order'] ?? 0,
-            ])->save();
+            // Rebuild all exercises & sets from validated data
+            foreach ($validated['exercises'] as $exerciseData) {
+                $exercise = $program->exercises()->create([
+                    'name'        => $exerciseData['name'],
+                    'description' => $exerciseData['description'] ?? null,
+                    'order'       => $exerciseData['order'],
+                ]);
 
-            $existingSetIds = $exercise->sets()->pluck('id')->toArray();
-            $incomingSetIds = collect($exerciseData['sets'])->pluck('id')->filter()->toArray();
-
-            // Delete removed sets
-            $toDeleteSets = array_diff($existingSetIds, $incomingSetIds);
-            if (!empty($toDeleteSets)) {
-                ExerciseSet::whereIn('id', $toDeleteSets)->delete();
+                foreach ($exerciseData['sets'] as $setData) {
+                    $exercise->sets()->create([
+                        'order' => $setData['order'],
+                        'fields' => $setData['fields'],
+                        'suggested_values' => $setData['suggested_values'] ?? [],
+                    ]);
+                }
             }
 
-            // Update or create sets
-            foreach ($exerciseData['sets'] as $setData) {
-                $set = isset($setData['id'])
-                    ? ExerciseSet::findOrFail($setData['id'])
-                    : new ExerciseSet(['program_exercise_id' => $exercise->id]);
+            return $program;
+        });
 
-                $set->fill([
-                    'order' => $setData['order'] ?? 0,
-                    'fields' => $setData['fields'], 
-                    'suggested_values' => $setData['suggested_values'] ?? [], 
-                ])->save();
-            }
-        }
-    });
-
-    return redirect()
-        ->route('programs.show', $program->id)
-        ->with('success', '✅ Program updated successfully.');
-}
-
+        return redirect()
+            ->route('programs.show', $program->id)
+            ->with('success', 'Program updated successfully.');
+    }
 
 
 
