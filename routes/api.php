@@ -28,7 +28,9 @@ Route::middleware('auth:sanctum')->delete('/my-sports/players/{studentSportTeam}
 //COACH:TRANING MODULE
 Route::middleware('auth:sanctum')->get('/my-programs', [MobileProgramsController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/my-programs/{program}', [MobileProgramsController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/my-programs', [MobileProgramsController::class, 'store']);
 Route::middleware('auth:sanctum')->delete('/my-programs/{program}', [MobileProgramsController::class, 'destroy']);
+Route::middleware('auth:sanctum')->put('/my-programs/{id}', [MobileProgramsController::class, 'update']);
 
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
