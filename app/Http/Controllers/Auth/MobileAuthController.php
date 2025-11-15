@@ -44,22 +44,32 @@ class MobileAuthController extends Controller
     }
 
     public function getAllUsers()
-{
-    $users = User::with(['roles', 'permissions'])->get();
+    {
+        $users = User::with(['roles', 'permissions'])->get();
 
-    $formatted = $users->map(function ($user) {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'roles' => $user->getRoleNames(), // returns a collection of role names
-            'permissions' => $user->getAllPermissions()->pluck('name'), // returns a collection of permission names
-        ];
-    });
+        $formatted = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->getRoleNames(), // returns a collection of role names
+                'permissions' => $user->getAllPermissions()->pluck('name'), // returns a collection of permission names
+            ];
+        });
 
-    return response()->json([
-        'users' => $formatted,
-    ]);
-}
+        return response()->json([
+            'users' => $formatted,
+        ]);
+    }
 
+    public function getCurrentUserPermissions()
+    {
+        $user = User::with(['roles', 'permissions'])->find(Auth::id());
+
+        return response()->json([
+            'user' => $user->only(['id', 'name', 'email']),
+            'roles' => $user->getRoleNames(), // Requires HasRoles trait
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+        ]);
+    }
 }
