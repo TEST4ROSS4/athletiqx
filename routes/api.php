@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileCourseController;
+use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
 use App\Http\Controllers\Mobile\MobileProgramsController;
 use App\Http\Controllers\Mobile\MobileSportsController;
 
@@ -31,6 +32,14 @@ Route::middleware('auth:sanctum')->get('/my-programs/{program}', [MobilePrograms
 Route::middleware('auth:sanctum')->post('/my-programs', [MobileProgramsController::class, 'store']);
 Route::middleware('auth:sanctum')->delete('/my-programs/{program}', [MobileProgramsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->put('/my-programs/{id}', [MobileProgramsController::class, 'update']);
+
+//COACH COURSE ASSIGNMENT
+Route::middleware('auth:sanctum')->get('/program-assignments', [MobileProgramAssignmentController::class, 'allProgramAssignments']);
+Route::middleware('auth:sanctum')->get('/program-assignments/students', [MobileProgramAssignmentController::class, 'getTeamsAssignedToCoach']);
+Route::middleware('auth:sanctum')->post('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'fetchAssignments']);
+Route::middleware('auth:sanctum')->put('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'update']);
+
 
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
