@@ -41,12 +41,20 @@ interface Program {
     updated_at?: string;
 }
 
+interface Assignment {
+    id: number;
+    student_id: number;
+    student_name: string;
+    assigned_at: string;
+}
+
 interface Props {
     program: Program;
     exercises: Exercise[];
+    assignments: Assignment[];
 }
 
-export default function View({ program, exercises }: Props) {
+export default function View({ program, exercises, assignments }: Props) {
     const [search, setSearch] = useState('');
     const [openExercise, setOpenExercise] = useState<number | null>(null);
 
@@ -55,9 +63,9 @@ export default function View({ program, exercises }: Props) {
             [...(exercises || [])]
                 .sort((a, b) => a.order - b.order)
                 .filter((ex) =>
-                    ex.name.toLowerCase().includes(search.toLowerCase()),
+                    ex.name.toLowerCase().includes(search.toLowerCase())
                 ),
-        [exercises, search],
+        [exercises, search]
     );
 
     function toggleExercise(id: number) {
@@ -74,121 +82,69 @@ export default function View({ program, exercises }: Props) {
             <Head title={`View Program - ${program.name}`} />
 
             <div className="mx-auto max-w-5xl space-y-8 px-4 sm:px-6 lg:px-8 py-6">
-
                 {/* Header */}
-<div className="mb-8 flex items-center justify-between">
-  {/* Left: Back Button */}
-  <Link href={route('programs.index')}>
-    <Button
-      variant="outline"
-      size="icon"
-      className="text-gray-700 hover:bg-gray-100 transition"
-      title="Back to Programs"
-    >
-      <span className="text-lg">←</span>
-    </Button>
-  </Link>
-
-  
-
-  {/* Right: Edit & Assign Buttons */}
-  <div className="flex items-center gap-2">
-    <Link href={route('programs.edit', program.id)}>
-      <Button
-        variant="outline"
-        size="icon"
-        className="hover:bg-gray-100"
-        title="Edit Program"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.313l-4.182.455.455-4.182L16.862 3.487z"
-          />
-        </svg>
-      </Button>
-    </Link>
-
-    <Button
-      variant="default"
-      size="icon"
-      className="bg-blue-600 hover:bg-blue-700 text-white"
-      title="Assign Program"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm-8 6a8 8 0 1116 0H8zM12 14v4m0 0h4m-4 0H8"
-        />
-      </svg>
-    </Button>
-  </div>
-</div>
-{/* Middle: Program Title + Note */}
-  <div className="flex-1 text-center">
-    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-      {program.name}
-    </h1>
-    {program.note && (
-      <p className="text-gray-600 text-sm max-w-2xl mx-auto leading-relaxed">
-        {program.note}
-      </p>
-    )}
-  </div>
-
-                <div className="grid grid-cols-1 gap-4 rounded-lg border bg-white p-4 shadow-sm sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
-                    <div>
-                        <p className="text-xs text-gray-500 uppercase">
-                            Program ID
-                        </p>
-                        <p className="font-medium text-gray-800">{program.id}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 uppercase">
-                            Created On
-                        </p>
-                        <p className="font-medium text-gray-800">
-                            {program.created_at
-                                ? dayjs(program.created_at).format('MMM D, YYYY')
-                                : '—'}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 uppercase">
-                            Last Updated
-                        </p>
-                        <p className="font-medium text-gray-800">
-                            {program.updated_at
-                                ? dayjs(program.updated_at).format('MMM D, YYYY')
-                                : '—'}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 uppercase">
-                            Created By
-                        </p>
-                        <p className="font-medium text-gray-800">
-                            {program.created_by ?? 'System'}
-                        </p>
+                <div className="mb-8 flex items-center justify-between">
+                    <Link href={route('programs.index')}>
+                        <Button variant="outline" size="icon" className="text-gray-700 hover:bg-gray-100 transition" title="Back to Programs">
+                            <span className="text-lg">←</span>
+                        </Button>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link href={route('programs.edit', program.id)}>
+                            <Button variant="outline" size="icon" className="hover:bg-gray-100" title="Edit Program">
+                                ✎
+                            </Button>
+                        </Link>
+                        <Button variant="default" size="icon" className="bg-blue-600 hover:bg-blue-700 text-white" title="Assign Program">
+                            +
+                        </Button>
                     </div>
                 </div>
 
+                {/* Program Info */}
+                <div className="flex-1 text-center mb-6">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{program.name}</h1>
+                    {program.note && <p className="text-gray-600 text-sm max-w-2xl mx-auto leading-relaxed">{program.note}</p>}
+                </div>
+
+                {/* Program Meta */}
+                <div className="grid grid-cols-1 gap-4 rounded-lg border bg-white p-4 shadow-sm sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
+                    <div>
+                        <p className="text-xs text-gray-500 uppercase">Program ID</p>
+                        <p className="font-medium text-gray-800">{program.id}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 uppercase">Created On</p>
+                        <p className="font-medium text-gray-800">{program.created_at ? dayjs(program.created_at).format('MMM D, YYYY') : '—'}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 uppercase">Last Updated</p>
+                        <p className="font-medium text-gray-800">{program.updated_at ? dayjs(program.updated_at).format('MMM D, YYYY') : '—'}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 uppercase">Created By</p>
+                        <p className="font-medium text-gray-800">{program.created_by ?? 'System'}</p>
+                    </div>
+                </div>
+
+                {/* Assigned Students */}
+                <div className="mt-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-2">Assigned Students</h2>
+                    {assignments.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No students assigned yet.</p>
+                    ) : (
+                        <ul className="space-y-1">
+                            {assignments.map((a) => (
+                                <li key={a.id} className="text-gray-800">
+                                    {a.student_name}{' '}
+                                    <span className="text-gray-400 text-xs">({dayjs(a.assigned_at).format('MMM D, YYYY')})</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                {/* Exercise Search */}
                 <div className="relative mt-6">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                     <input
@@ -200,120 +156,53 @@ export default function View({ program, exercises }: Props) {
                     />
                 </div>
 
+                {/* Exercises */}
                 <div className="space-y-6">
-                    <h2 className="border-b pb-2 text-xl font-semibold text-gray-900">
-                        Exercises
-                    </h2>
-
+                    <h2 className="border-b pb-2 text-xl font-semibold text-gray-900">Exercises</h2>
                     {sortedExercises.length === 0 ? (
                         <p className="text-sm text-gray-500 italic">
-                            {search
-                                ? 'No exercises match your search.'
-                                : (
-                                    <>
-                                        This program has no exercises yet.{' '}
-                                        <Link
-                                            href={route('programs.edit', program.id)}
-                                            className="text-blue-600 underline"
-                                        >
-                                            Add exercises
-                                        </Link>
-                                        .
-                                    </>
-                                )}
+                            {search ? 'No exercises match your search.' : <>This program has no exercises yet. <Link href={route('programs.edit', program.id)} className="text-blue-600 underline">Add exercises</Link>.</>}
                         </p>
                     ) : (
                         sortedExercises.map((exercise, exIdx) => {
                             const isOpen = openExercise === exercise.id;
-
                             return (
-                                <div
-                                    key={exercise.id}
-                                    className="transition-transform hover:scale-[1.01] rounded-lg border bg-white p-5 shadow-sm hover:shadow-md"
-                                >
-
-                                    <button
-                                        onClick={() => toggleExercise(exercise.id)}
-                                        aria-expanded={isOpen}
-                                        className="flex w-full items-center justify-between text-left"
-                                    >
+                                <div key={exercise.id} className="transition-transform hover:scale-[1.01] rounded-lg border bg-white p-5 shadow-sm hover:shadow-md">
+                                    <button onClick={() => toggleExercise(exercise.id)} aria-expanded={isOpen} className="flex w-full items-center justify-between text-left">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-800">
-                                                {exIdx + 1}. {exercise.name}
-                                            </h3>
-                                            {exercise.description && (
-                                                <p className="mt-1 text-sm text-gray-600">
-                                                    {exercise.description}
-                                                </p>
-                                            )}
+                                            <h3 className="text-lg font-semibold text-gray-800">{exIdx + 1}. {exercise.name}</h3>
+                                            {exercise.description && <p className="mt-1 text-sm text-gray-600">{exercise.description}</p>}
                                         </div>
-                                        {isOpen ? (
-                                            <ChevronDown className="h-5 w-5 text-gray-500" />
-                                        ) : (
-                                            <ChevronRight className="h-5 w-5 text-gray-500" />
-                                        )}
+                                        {isOpen ? <ChevronDown className="h-5 w-5 text-gray-500" /> : <ChevronRight className="h-5 w-5 text-gray-500" />}
                                     </button>
 
-                                    <div
-                                        className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                                            isOpen ? 'max-h-screen mt-4' : 'max-h-0'
-                                        }`}
-                                    >
+                                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-screen mt-4' : 'max-h-0'}`}>
                                         <div className="space-y-4">
                                             {exercise.sets.map((set, setIdx) => (
-                                                <div
-                                                    key={set.id}
-                                                    className="rounded-md border bg-gray-50 p-4"
-                                                >
+                                                <div key={set.id} className="rounded-md border bg-gray-50 p-4">
                                                     <div className="mb-2 flex items-center justify-between">
-                                                        <h4 className="text-sm font-medium text-gray-800">
-                                                            Set {setIdx + 1}
-                                                        </h4>
-                                                        <span className="text-xs text-gray-500">
-                                                            Order {set.order}
-                                                        </span>
+                                                        <h4 className="text-sm font-medium text-gray-800">Set {setIdx + 1}</h4>
+                                                        <span className="text-xs text-gray-500">Order {set.order}</span>
                                                     </div>
-
                                                     <table className="w-full border-t border-gray-200 text-sm">
                                                         <thead>
                                                             <tr className="text-left text-gray-500">
-                                                                <th className="py-2 pr-3 font-medium">
-                                                                    Field
-                                                                </th>
-                                                                <th className="py-2 font-medium">
-                                                                    Suggested Value
-                                                                </th>
+                                                                <th className="py-2 pr-3 font-medium">Field</th>
+                                                                <th className="py-2 font-medium">Suggested Value</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {set.fields.map(
-                                                                (field, fIdx) => {
-                                                                    const suggested =
-                                                                        set
-                                                                            .suggested_values?.[
-                                                                            fIdx
-                                                                        ];
-                                                                    return (
-                                                                        <tr
-                                                                            key={fIdx}
-                                                                            className="border-t border-gray-100 hover:bg-gray-100/50"
-                                                                        >
-                                                                            <td className="py-2 pr-3 text-gray-800">
-                                                                                {field.name}
-                                                                            </td>
-                                                                            <td className="py-2 text-gray-700">
-                                                                                {suggested?.value
-                                                                                    ? `${suggested.value}${
-                                                                                          suggested.unit
-                                                                                              ? ` ${suggested.unit}`
-                                                                                              : ''
-                                                                                      }`
-                                                                                    : '—'}
-                                                                            </td>
-                                                                        </tr>
-                                                                    );
-                                                                },
-                                                            )}
+                                                            {set.fields.map((field, fIdx) => {
+                                                                const suggested = set.suggested_values?.[fIdx];
+                                                                return (
+                                                                    <tr key={fIdx} className="border-t border-gray-100 hover:bg-gray-100/50">
+                                                                        <td className="py-2 pr-3 text-gray-800">{field.name}</td>
+                                                                        <td className="py-2 text-gray-700">
+                                                                            {suggested?.value ? `${suggested.value}${suggested.unit ? ` ${suggested.unit}` : ''}` : '—'}
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
                                                         </tbody>
                                                     </table>
                                                 </div>

@@ -43,15 +43,7 @@ export default function Landing({ programs, summary }: Props) {
                             Create New Program
                         </Button>
                     </Link>
-                    <Link href={route('programs.index')}>
-                        <Button
-                            variant="secondary"
-                            className="flex items-center gap-2"
-                        >
-                            <Users size={18} />
-                            Assign Program
-                        </Button>
-                    </Link>
+
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">

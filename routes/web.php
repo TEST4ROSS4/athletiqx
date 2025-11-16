@@ -15,6 +15,7 @@ use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\CourseSectionController;
 use App\Http\Controllers\CoachAssignmentController;
 use App\Http\Controllers\StudentSportTeamController;
+use App\Http\Controllers\ProgramAssignmentController;
 use App\Http\Controllers\StudentCourseSectionController;
 use App\Http\Controllers\ProfessorCourseSectionController;
 
@@ -163,6 +164,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('programs/{program}/edit', [ProgramController::class, 'edit'])->name('programs.edit')->middleware('permission:programs.edit');
     Route::put('programs/{program}', [ProgramController::class, 'update'])->name('programs.update')->middleware('permission:programs.edit');
     Route::delete('programs/{program}', [ProgramController::class, 'destroy'])->name('programs.destroy')->middleware('permission:programs.delete');
+
+    Route::get('programs/{program}/assignments/create', [ProgramAssignmentController::class, 'create'])->name('programs.assignments.create')->middleware('permission:programs.assignments.create');
+    Route::post('programs/{program}/assignments', [ProgramAssignmentController::class, 'store'])->name('programs.assignments.store')->middleware('permission:programs.assignments.create');
+    Route::get('programs/{program}/assignments/edit', [ProgramAssignmentController::class, 'edit'])->name('programs.assignments.edit')->middleware('permission:programs.assignments.edit');
+    Route::put('programs/{program}/assignments', [ProgramAssignmentController::class, 'update'])->name('programs.assignments.update')->middleware('permission:programs.assignments.edit');
+    Route::get('programs/{program}/assignments/search-teams', [ProgramAssignmentController::class, 'searchTeams'])->name('programs.assignments.searchTeams')->middleware('permission:programs.assignments.create');
+    Route::get('programs/{program}/assignments/search-students', [ProgramAssignmentController::class, 'searchStudents'])->name('programs.assignments.searchStudents')->middleware('permission:programs.assignments.create');
+
 });
 
 require __DIR__ . '/settings.php';
