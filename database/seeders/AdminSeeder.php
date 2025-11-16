@@ -81,6 +81,11 @@ class AdminSeeder extends Seeder
             'programs.view',
             'programs.edit',
             'programs.delete',
+
+            'programs.assignments.create',
+            'programs.assignments.view',
+            'programs.assignments.edit',
+
         ];
 
         // ✅ Assign permissions to the role
@@ -88,7 +93,7 @@ class AdminSeeder extends Seeder
 
         // 👤 Create or find the school admin user
         $user = User::firstOrCreate(
-            ['email' => 'admin@fit.edu'],
+            ['email' => 'admin@fit.com'],
             [
                 'name' => 'School Admin',
                 'password' => bcrypt('admin'),

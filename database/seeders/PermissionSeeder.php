@@ -86,6 +86,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'programs.edit', 'module' => 'school'],
             ['name' => 'programs.delete', 'module' => 'school'],
 
+            // PROGRAM ASSIGNMENTS
+            ['name' => 'programs.assignments.create', 'module' => 'school'],
+            ['name' => 'programs.assignments.view', 'module' => 'school'],
+            ['name' => 'programs.assignments.edit', 'module' => 'school'],
+
+
 
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 

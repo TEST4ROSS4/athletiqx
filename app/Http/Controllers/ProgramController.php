@@ -57,46 +57,51 @@ class ProgramController extends Controller
     }
 
     public function index(Request $request)
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        $query = Program::withCount(['exercises', 'assignments'])
-            ->where('school_id', $user->school_id)
-            ->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id));
+    $query = Program::withCount(['exercises', 'assignments'])
+        ->where('school_id', $user->school_id);
 
-        // 🔍 Search by name
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        // 🟢 Filter by assigned / unassigned
-        if ($status = $request->input('status')) {
-            $query->when($status === 'assigned', fn($q) => $q->has('assignments'))
-                ->when($status === 'unassigned', fn($q) => $q->doesntHave('assignments'));
-        }
-
-        // ↕️ Sorting options
-        switch ($request->input('sort')) {
-            case 'name':
-                $query->orderBy('name');
-                break;
-            case 'exercises':
-                $query->orderByDesc('exercises_count');
-                break;
-            case 'latest':
-            default:
-                $query->orderByDesc('created_at');
-                break;
-        }
-
-        $programs = $query->paginate(12)->withQueryString();
-
-        return Inertia::render('ProgramsPage/Index', [
-            'programs' => $programs->toArray(),
-            'filters' => $request->only(['search', 'status', 'sort']),
-        ]);
+    if ($user->hasRole('Student')) {
+        $query->whereHas('assignments', fn($q) => $q->where('student_id', $user->id));
+    } else {
+        $query->when(! $user->hasRole('Admin'), fn($q) => $q->where('created_by', $user->id));
     }
+
+    // Search by program name
+    if ($search = $request->input('search')) {
+        $query->where('name', 'like', "%{$search}%");
+    }
+
+    // Filter by assigned / unassigned
+    if ($status = $request->input('status')) {
+        $query->when($status === 'assigned', fn($q) => $q->has('assignments'))
+              ->when($status === 'unassigned', fn($q) => $q->doesntHave('assignments'));
+    }
+
+    // Sorting
+    switch ($request->input('sort')) {
+        case 'name':
+            $query->orderBy('name');
+            break;
+        case 'exercises':
+            $query->orderByDesc('exercises_count');
+            break;
+        case 'latest':
+        default:
+            $query->orderByDesc('created_at');
+            break;
+    }
+
+    $programs = $query->paginate(12)->withQueryString();
+
+    return Inertia::render('ProgramsPage/Index', [
+        'programs' => $programs->toArray(),
+        'filters' => $request->only(['search', 'status', 'sort']),
+    ]);
+}
 
 
 
@@ -254,39 +259,53 @@ class ProgramController extends Controller
 
 
     public function show(Program $program)
-    {
-        $this->authorizeProgramAccess($program, 'programs.view');
+{
+    $this->authorizeProgramAccess($program, 'programs.view');
 
-        $program->load(['exercises.sets', 'creator:id,name']);
+    // Eager load exercises, sets, creator, and assigned students
+    $program->load([
+        'exercises.sets',
+        'creator:id,name',
+        'assignments.student:id,name'
+    ]);
 
-        return Inertia::render('ProgramsPage/View', [
-            'program' => [
-                'id' => $program->id,
-                'name' => $program->name,
-                'note' => $program->note,
-                'created_by' => $program->creator?->name ?? 'System',
-                'school_id' => $program->school_id,
-                'created_at' => $program->created_at,
-                'updated_at' => $program->updated_at,
-            ],
-            'exercises' => $program->exercises->map(function ($exercise) {
-                return [
-                    'id' => $exercise->id,
-                    'name' => $exercise->name,
-                    'description' => $exercise->description,
-                    'order' => $exercise->order,
-                    'sets' => $exercise->sets->map(function ($set) {
-                        return [
-                            'id' => $set->id,
-                            'order' => $set->order,
-                            'fields' => $set->fields,
-                            'suggested_values' => $set->suggested_values,
-                        ];
-                    }),
-                ];
-            }),
-        ]);
-    }
+    return Inertia::render('ProgramsPage/View', [
+        'program' => [
+            'id' => $program->id,
+            'name' => $program->name,
+            'note' => $program->note,
+            'created_by' => $program->creator?->name ?? 'System',
+            'school_id' => $program->school_id,
+            'created_at' => $program->created_at,
+            'updated_at' => $program->updated_at,
+        ],
+        'exercises' => $program->exercises->map(function ($exercise) {
+            return [
+                'id' => $exercise->id,
+                'name' => $exercise->name,
+                'description' => $exercise->description,
+                'order' => $exercise->order,
+                'sets' => $exercise->sets->map(function ($set) {
+                    return [
+                        'id' => $set->id,
+                        'order' => $set->order,
+                        'fields' => $set->fields,
+                        'suggested_values' => $set->suggested_values,
+                    ];
+                }),
+            ];
+        }),
+        'assignments' => $program->assignments->map(function ($a) {
+            return [
+                'id' => $a->id,
+                'student_id' => $a->student_id,
+                'student_name' => $a->student?->name,
+                'assigned_at' => $a->assigned_at ?? $a->created_at,
+            ];
+        }),
+    ]);
+}
+
 
     public function destroy(Program $program)
     {
