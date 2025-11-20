@@ -30,6 +30,7 @@ import {
     Users,
     UserPlus,
     Dumbbell,
+    PencilLine,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -147,6 +148,12 @@ export function AppSidebar() {
             title: 'Training Programs',
             href: '/programs/landing',
             icon: Dumbbell, 
+        },
+
+        can('exercise-logs.view') && {
+        title: 'Exercise Logs',
+        href: '/exercise-logs',
+        icon: PencilLine,  
         },
 
 

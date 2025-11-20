@@ -146,4 +146,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(PersonalBest::class, 'student_id');
     }
+
+    public function isAssignedToProgram(Program $program)
+    {
+        return $this->receivedProgramAssignments()
+            ->where('program_id', $program->id)
+            ->exists();
+    }
 }

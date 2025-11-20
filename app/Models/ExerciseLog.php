@@ -10,22 +10,22 @@ class ExerciseLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'program_assignment_id',
-        'program_exercise_id',
-        'exercise_set_id',
-        'student_id',
-        'logged_at',
-        'metrics',
+        'assignment_id',
+        'exercise_id',
+        'set_id',
+        'values',
         'notes',
+        'completed',
+        'performed_at',
     ];
 
     protected $casts = [
-        'program_assignment_id' => 'integer',
-        'program_exercise_id' => 'integer',
-        'exercise_set_id' => 'integer',
-        'student_id' => 'integer',
-        'logged_at' => 'datetime',
-        'metrics' => 'array',
+        'assignment_id' => 'integer',
+        'exercise_id' => 'integer',
+        'set_id' => 'integer',
+        'values' => 'array',
+        'completed' => 'boolean',
+        'performed_at' => 'datetime',
     ];
 
     // 🔗 Relationships

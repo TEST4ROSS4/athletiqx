@@ -86,6 +86,11 @@ class AdminSeeder extends Seeder
             'programs.assignments.view',
             'programs.assignments.edit',
 
+            'exercise-logs.create',
+            'exercise-logs.view',
+            'exercise-logs.edit',
+            'exercise-logs.delete',
+
         ];
 
         // ✅ Assign permissions to the role

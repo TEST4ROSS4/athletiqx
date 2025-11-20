@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('exercise_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('program_assignment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('program_exercise_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('exercise_set_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-            $table->timestamp('logged_at')->nullable();
-            $table->json('metrics'); // e.g. { "reps": 10, "weight": 60 }
+            $table->foreignId('assignment_id')->constrained('program_assignments')->cascadeOnDelete();
+            $table->foreignId('exercise_id')->constrained('program_exercises')->cascadeOnDelete();
+            $table->foreignId('set_id')->constrained('exercise_sets')->cascadeOnDelete();
+            $table->json('inputs');
             $table->text('notes')->nullable();
+            $table->boolean('marked_as_done')->default(false);
             $table->timestamps();
         });
     }

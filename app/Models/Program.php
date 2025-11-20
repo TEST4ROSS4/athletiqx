@@ -72,8 +72,8 @@ class Program extends Model
     public function scopeFilterable($query, array $filters)
     {
         if (isset($filters['status'])) {
-            $query->when($filters['status'] === 'assigned', fn ($q) => $q->has('assignments'))
-                  ->when($filters['status'] === 'unassigned', fn ($q) => $q->doesntHave('assignments'));
+            $query->when($filters['status'] === 'assigned', fn($q) => $q->has('assignments'))
+                ->when($filters['status'] === 'unassigned', fn($q) => $q->doesntHave('assignments'));
         }
 
         if (isset($filters['search'])) {
@@ -92,5 +92,11 @@ class Program extends Model
         }
 
         return $query;
+    }
+
+    // Check if the user is a student assigned to this program
+    public function isAssignedTo(User $user)
+    {
+        return $this->assignments()->where('student_id', $user->id)->exists();
     }
 }
