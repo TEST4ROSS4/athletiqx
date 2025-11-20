@@ -46,6 +46,6 @@ class ProgramAssignment extends Model
 
     public function logs()
     {
-        return $this->hasMany(ExerciseLog::class);
+        return $this->hasMany(ExerciseLog::class, 'assignment_id');
     }
 }
