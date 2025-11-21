@@ -11,43 +11,32 @@ class ExerciseLog extends Model
 
     protected $fillable = [
         'assignment_id',
-        'exercise_id',
         'set_id',
-        'values',
+        'inputs',
         'notes',
-        'completed',
-        'performed_at',
+        'marked_as_done',
     ];
 
     protected $casts = [
         'assignment_id' => 'integer',
-        'exercise_id' => 'integer',
         'set_id' => 'integer',
-        'values' => 'array',
-        'completed' => 'boolean',
-        'performed_at' => 'datetime',
+        'inputs' => 'array',
+        'marked_as_done' => 'boolean',
     ];
-
-    // 🔗 Relationships
 
     public function assignment()
     {
-        return $this->belongsTo(ProgramAssignment::class, 'program_assignment_id');
-    }
-
-    public function exercise()
-    {
-        return $this->belongsTo(ProgramExercise::class, 'program_exercise_id');
+        return $this->belongsTo(ProgramAssignment::class, 'assignment_id');
     }
 
     public function set()
     {
-        return $this->belongsTo(ExerciseSet::class, 'exercise_set_id');
+        return $this->belongsTo(ExerciseSet::class, 'set_id');
     }
 
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->assignment->student();
     }
 
     public function personalBest()
@@ -55,3 +44,4 @@ class ExerciseLog extends Model
         return $this->hasOne(PersonalBest::class, 'source_log_id');
     }
 }
+

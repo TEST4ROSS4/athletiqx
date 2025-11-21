@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('exercise_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('assignment_id')->constrained('program_assignments')->cascadeOnDelete();
-            $table->foreignId('exercise_id')->constrained('program_exercises')->cascadeOnDelete();
             $table->foreignId('set_id')->constrained('exercise_sets')->cascadeOnDelete();
-            $table->json('inputs');
+            $table->json('inputs')->nullable();
             $table->text('notes')->nullable();
             $table->boolean('marked_as_done')->default(false);
             $table->timestamps();

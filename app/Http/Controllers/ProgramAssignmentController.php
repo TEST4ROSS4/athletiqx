@@ -81,40 +81,50 @@ class ProgramAssignmentController extends Controller
     }
 
     protected function syncAssignments(Request $request, Program $program): void
-    {
-        $validated = $request->validate([
-            'team_ids' => 'array',
-            'team_ids.*' => 'integer',
-            'student_ids' => 'array',
-            'student_ids.*' => 'integer',
-            'excluded_student_ids' => 'array',
-            'excluded_student_ids.*' => 'integer',
-            'notes' => 'nullable|string|max:1000',
-        ]);
+{
+    // Validate incoming data
+    $validated = $request->validate([
+        'team_ids' => 'array',
+        'team_ids.*' => 'integer',
+        'student_ids' => 'array',
+        'student_ids.*' => 'integer',
+        'excluded_student_ids' => 'array',
+        'excluded_student_ids.*' => 'integer',
+        'notes' => 'nullable|string|max:1000',
+    ]);
 
-        $excludedStudentIds = collect($validated['excluded_student_ids'] ?? []);
-        $allStudentIds = collect($validated['student_ids'] ?? []);
+    // Get the excluded students and all students
+    $excludedStudentIds = collect($validated['excluded_student_ids'] ?? []);
+    $allStudentIds = collect($validated['student_ids'] ?? []);
 
-        if (!empty($validated['team_ids'])) {
-            $teamStudentIds = StudentSportTeam::whereIn('sport_team_id', $validated['team_ids'])
-                ->pluck('student_id');
-            $allStudentIds = $allStudentIds->merge($teamStudentIds)->unique();
-        }
-
-        $allStudentIds = $allStudentIds->diff($excludedStudentIds);
-
-        $program->assignments()->whereNotIn('student_id', $allStudentIds)->delete();
-
-        foreach ($allStudentIds as $studentId) {
-            $program->assignments()->updateOrCreate(
-                ['student_id' => $studentId],
-                [
-                    'assigned_by' => $request->user()->id,
-                    'notes' => $validated['notes'] ?? null,
-                ]
-            );
-        }
+    // Merge team student IDs if team IDs are provided
+    if (!empty($validated['team_ids'])) {
+        $teamStudentIds = StudentSportTeam::whereIn('sport_team_id', $validated['team_ids'])
+            ->pluck('student_id');
+        $allStudentIds = $allStudentIds->merge($teamStudentIds)->unique();
     }
+
+    // Exclude the students that are in the excluded list
+    $allStudentIds = $allStudentIds->diff($excludedStudentIds);
+
+    // Delete assignments for students who are not in the updated list
+    $program->assignments()->whereNotIn('student_id', $allStudentIds)->delete();
+
+    // Store or update assignments for each student
+    foreach ($allStudentIds as $studentId) {
+        $program->assignments()->updateOrCreate(
+            [
+                'student_id' => $studentId,
+            ],
+            [
+                'assigned_by' => $request->user()->id,
+                'notes' => $validated['notes'] ?? null,
+                'assigned_at' => now(),  // Store the current date and time of assignment
+            ]
+        );
+    }
+}
+
 
     /**
      * Search teams (typeahead).
