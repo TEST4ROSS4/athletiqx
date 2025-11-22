@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileCalendarAssignmentController;
+use App\Http\Controllers\Mobile\MobileCalendarScheduleController;
 use App\Http\Controllers\Mobile\MobileCourseController;
 use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
 use App\Http\Controllers\Mobile\MobileProgramsController;
@@ -44,6 +46,20 @@ Route::middleware('auth:sanctum')->put('/program-assignments/{program}/assignmen
 //STUDENT PROGRAM ASSIGNMENT
 Route::middleware('auth:sanctum')->get('/my-assigned-programs', [MobileProgramStudentController::class, 'programsAssignedToMe']);
 
+//SCHEUDLE MODULE
+Route::middleware('auth:sanctum')->get('/schedules', [MobileCalendarScheduleController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/schedules/{id}', [MobileCalendarScheduleController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/schedules', [MobileCalendarScheduleController::class, 'store']);
+Route::middleware('auth:sanctum')->put('/schedules/{id}', [MobileCalendarScheduleController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/schedules/{id}', [MobileCalendarScheduleController::class, 'destroy']);
+Route::middleware('auth:sanctum')->get('/coach-teams', [MobileCalendarScheduleController::class, 'coachTeams']);
+
+Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarScheduleController::class, 'professorCourseSections']);
+
+
+
+
+
 
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
@@ -63,7 +79,3 @@ Route::middleware('auth:sanctum')->get('/token', function (Request $request) {
         'user' => $request->user(),
     ]);
 });
-
-
-
-
