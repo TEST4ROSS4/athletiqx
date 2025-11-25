@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileCalendarAssignmentController;
 use App\Http\Controllers\Mobile\MobileCalendarScheduleController;
 use App\Http\Controllers\Mobile\MobileCourseController;
+use App\Http\Controllers\Mobile\MobileExerciseLogsController;
 use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
 use App\Http\Controllers\Mobile\MobileProgramsController;
 use App\Http\Controllers\Mobile\MobileProgramStudentController;
@@ -55,6 +56,11 @@ Route::middleware('auth:sanctum')->delete('/schedules/{id}', [MobileCalendarSche
 Route::middleware('auth:sanctum')->get('/coach-teams', [MobileCalendarScheduleController::class, 'coachTeams']);
 
 Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarScheduleController::class, 'professorCourseSections']);
+
+//EXERCISE LOGS
+Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
+
+Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/fetch', [MobileExerciseLogsController::class, 'show']);
 
 
 

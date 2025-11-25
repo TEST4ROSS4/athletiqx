@@ -96,11 +96,6 @@ class MobileCalendarScheduleController extends Controller
         ]);
     }
 
-
-
-
-
-
     //Create new schedule
     public function store(Request $request)
     {
