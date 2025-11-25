@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('program_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('assigned_by')->constrained('users')->cascadeOnDelete();
-            $table->enum('status', ['active', 'completed', 'archived'])->default('active');
+            $table->enum('status', ['Assigned', 'In-Progress', 'Completed'])->default('Assigned');
             $table->timestamp('assigned_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamp('marked_done_at')->nullable();

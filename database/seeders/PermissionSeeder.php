@@ -91,6 +91,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'programs.assignments.view', 'module' => 'school'],
             ['name' => 'programs.assignments.edit', 'module' => 'school'],
 
+            // EXERCISE LOGS
+            ['name' => 'exercise-logs.create', 'module' => 'school'],
+            ['name' => 'exercise-logs.view', 'module' => 'school'],
+            ['name' => 'exercise-logs.edit', 'module' => 'school'],
+            ['name' => 'exercise-logs.delete', 'module' => 'school'],
 
 
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------

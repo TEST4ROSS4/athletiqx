@@ -156,4 +156,11 @@ class User extends Authenticatable
             'calendar_id'
         )->withTimestamps();
     }
+    
+    public function isAssignedToProgram(Program $program)
+    {
+        return $this->receivedProgramAssignments()
+            ->where('program_id', $program->id)
+            ->exists();
+    }
 }

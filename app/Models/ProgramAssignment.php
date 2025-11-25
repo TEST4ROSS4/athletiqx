@@ -48,4 +48,10 @@ class ProgramAssignment extends Model
     {
         return $this->hasMany(ExerciseLog::class, 'assignment_id');
     }
+
+    // Check if the user is assigned as a coach for this assignment
+    public function isAssignedToCoach(User $user)
+    {
+        return $this->assigned_by === $user->id;
+    }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SportTeamController;
+use App\Http\Controllers\ExerciseLogController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\CourseSectionController;
@@ -172,6 +173,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('programs/{program}/assignments/search-teams', [ProgramAssignmentController::class, 'searchTeams'])->name('programs.assignments.searchTeams')->middleware('permission:programs.assignments.create');
     Route::get('programs/{program}/assignments/search-students', [ProgramAssignmentController::class, 'searchStudents'])->name('programs.assignments.searchStudents')->middleware('permission:programs.assignments.create');
 
+    Route::get('exercise-logs/{studentId?}', [ExerciseLogController::class, 'index'])->name('exercise-logs.index')->middleware('permission:exercise-logs.view');
+    Route::get('exercise-logs/{assignment}/view', [ExerciseLogController::class, 'show'])->name('exercise-logs.show')->middleware('permission:exercise-logs.view');
+    Route::get('exercise-logs/{assignment}/form', [ExerciseLogController::class, 'form'])->name('exercise-logs.form')->middleware('permission:exercise-logs.edit');
+    Route::post('exercise-logs/{assignment}', [ExerciseLogController::class, 'store'])->name('exercise-logs.store')->middleware('permission:exercise-logs.edit');
+    // Route::put('exercise-logs/{assignment}', [ExerciseLogController::class, 'update'])->name('exercise-logs.update')->middleware('permission:exercise-logs.edit');
 });
 
 require __DIR__ . '/settings.php';
