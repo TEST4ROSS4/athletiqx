@@ -118,6 +118,7 @@ class MobileProgramAssignmentController extends Controller
                     'assigned_at' => Carbon::parse($assignment->created_at)
                         ->timezone('Asia/Manila')
                         ->toIso8601String(), // or ->format('Y-m-d\TH:i:sP') for ISO 8601
+                    'program_assignment_id' => $assignment->id,
                     'team' => [
                         'id' => $team?->id,
                         'name' => $team?->name,

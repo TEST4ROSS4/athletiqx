@@ -59,8 +59,9 @@ Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarSch
 
 //EXERCISE LOGS
 Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/student/{studentId?}/fetch', [MobileExerciseLogsController::class, 'show']);
 
-Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/fetch', [MobileExerciseLogsController::class, 'show']);
+
 
 
 
