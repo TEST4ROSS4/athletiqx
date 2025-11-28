@@ -23,33 +23,37 @@ export default function Landing({ groupedTeams }: Props) {
   return (
     <AppLayout>
       <Head title="Team Members" />
+      <div className="p-6">
+        <div className="space-y-6">
+          {/* Heading */}
+          <h1 className="font-heading text-2xl font-semibold text-[#102d4e]">
+            Manage Team Members
+          </h1>
 
-      <div className="p-4">
-        <h1 className="mb-6 text-2xl font-bold">Manage Team Members</h1>
-
-        {!hasTeams ? (
-          <p className="text-muted-foreground">No teams available for your access.</p>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(groupedTeams).map(([sportName, teams]) => (
-              <div key={sportName}>
-                <h2 className="mb-4 text-lg font-semibold">{sportName}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {teams.map((team) => (
-                    <Link key={team.id} href={route('student-sport-teams.index', team.id)}>
-                      <Card className="hover:shadow-md transition hover:ring-2 hover:ring-primary">
-                        <CardHeader>
-                          <CardTitle>{team.name}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{team.season}</p>
-                        </CardHeader>
-                      </Card>
-                    </Link>
-                  ))}
+          {!hasTeams ? (
+            <p className="text-muted-foreground">No teams available for your access.</p>
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(groupedTeams).map(([sportName, teams]) => (
+                <div key={sportName}>
+                  <h2 className="mb-4 text-lg font-heading font-semibold text-[#102d4e]">{sportName}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {teams.map((team) => (
+                      <Link key={team.id} href={route('student-sport-teams.index', team.id)}>
+                        <Card className="hover:shadow-md transition hover:ring-2 hover:ring-primary">
+                          <CardHeader>
+                            <CardTitle>{team.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{team.season}</p>
+                          </CardHeader>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );

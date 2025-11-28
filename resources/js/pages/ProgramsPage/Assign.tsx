@@ -52,7 +52,7 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
     setData('excluded_student_ids', excludedStudentIds);
   }, [selectedTeams, selectedStudents, excludedStudentIds]);
 
-    const fetchTeams = useCallback(async (q: string) => {
+  const fetchTeams = useCallback(async (q: string) => {
     setLoading(true);
     const url = route('programs.assignments.searchTeams', program.id).toString() + `?q=${encodeURIComponent(q)}`;
     const res = await fetch(url, { credentials: 'same-origin' });
@@ -151,7 +151,7 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
     else post(route('programs.assignments.store', program.id));
   }
 
-    return (
+  return (
     <AppLayout
       breadcrumbs={[
         {
@@ -165,14 +165,14 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
         <h1 className="mb-4 text-2xl font-bold">👥 Assign Program</h1>
         <form onSubmit={submitAssign} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">Assigning:</label>
-            <div className="mt-1 rounded-md border bg-gray-50 px-3 py-2">
+            <label className="font-heading text-sm text-[#102d4e]">Assigning:</label>
+            <div className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none">
               <strong>{program.name}</strong>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Assign To:</label>
+            <label className="font-heading text-sm text-[#102d4e]">Assign To:</label>
             <div className="mt-1 flex items-center gap-4">
               <label className="inline-flex items-center gap-2">
                 <input
@@ -198,7 +198,7 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
+            <label className="font-heading text-sm text-[#102d4e]">
               Search {data.type === 'team' ? 'Teams' : 'Athletes'}:
             </label>
             <input
@@ -207,7 +207,7 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
                 data.type === 'team' ? setTeamQuery(e.target.value) : setStudentQuery(e.target.value)
               }
               placeholder={`Search ${data.type === 'team' ? 'teams' : 'athletes'}...`}
-              className="w-full rounded-md border px-3 py-2"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
               autoComplete="off"
             />
             {loading && <div className="mt-1 text-sm text-gray-500">Searching…</div>}
@@ -250,7 +250,7 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Selected:</label>
+            <label className="font-heading text-sm text-[#102d4e]">Selected:</label>
             <div className="mt-2 flex flex-wrap gap-2">
               {selectedTeams.map((t) => (
                 <div
@@ -301,11 +301,11 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Notes (optional)</label>
+            <label className="font-heading text-sm text-[#102d4e]">Notes (optional)</label>
             <textarea
               value={data.notes}
               onChange={(e) => setData('notes', e.target.value)}
-              className="w-full rounded-md border px-3 py-2"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
               rows={3}
             />
             {errors.notes && (
@@ -314,13 +314,13 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
           </div>
 
           <div className="flex items-center justify-between">
-            <button type="button" onClick={() => window.history.back()}>
+            <button type="button" onClick={() => window.history.back()} className="rounded-lg bg-gray-700 px-4 py-2 font-heading font-semibold text-white hover:bg-gray-800">
               Back
             </button>
             <button
               type="submit"
               disabled={processing}
-              className="rounded-md bg-green-600 px-4 py-2 text-white"
+              className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
             >
               {isEdit ? 'Update Assignments' : 'Assign Program'}
             </button>

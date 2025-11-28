@@ -325,240 +325,214 @@ export default function Edit({ program }: Props) {
     return (
         <AppLayout>
             <Head title={`Edit Program: ${program.name}`} />
-            <div className="p-4">
-                <h1 className="mb-4 text-2xl font-bold">
-                    ✏️ Edit Training Program
-                </h1>
+            <div className="p-3">
+                <div className="p-3">
+                    <h1 className="mb-4 font-heading text-2xl font-semibold text-[#102d4e]">
+                        ✏️ Edit Training Program
+                    </h1>
 
-                <Link
-                    href={route('programs.index')}
-                    className="mb-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
-                >
-                    Back to Programs
-                </Link>
-
-                <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6">
-                    <div className="space-y-2">
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            className="w-full rounded border px-3 py-2 text-sm"
-                            placeholder="Program Name"
-                        />
-                        <textarea
-                            value={data.note}
-                            onChange={(e) => setData('note', e.target.value)}
-                            className="w-full rounded border px-3 py-2 text-sm"
-                            placeholder="Optional Note"
-                        />
-                    </div>
-
-                    {/* Exercises */}
-                    <ReactSortable
-                        list={data.exercises}
-                        setList={(newList) =>
-                            setData(
-                                'exercises',
-                                newList.map((ex, i) => ({ ...ex, order: i })),
-                            )
-                        }
-                        className="space-y-6"
+                    <Link
+                        href={route('programs.index')}
+                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                     >
-                        {data.exercises.map((ex, i) => (
-                            <div
-                                key={ex.id}
-                                className="space-y-2 border-b pb-4"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">
-                                        Exercise {i + 1}
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeExercise(i)}
-                                        className="text-xs text-red-600 hover:underline"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
+                        Back to Programs
+                    </Link>
 
-                                <input
-                                    type="text"
-                                    value={ex.name}
-                                    onChange={(e) =>
-                                        updateExercise(
-                                            i,
-                                            'name',
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full rounded border px-3 py-2 text-sm"
-                                    placeholder="Exercise Name"
-                                />
-                                <textarea
-                                    value={ex.description}
-                                    onChange={(e) =>
-                                        updateExercise(
-                                            i,
-                                            'description',
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full rounded border px-3 py-2 text-sm"
-                                    placeholder="Optional Description"
-                                />
+                    <form onSubmit={submit} className="mx-auto mt-4 max-w-3xl space-y-6 font-sans">
+                        <div className="space-y-2">
+                            <input
+                                type="text"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                placeholder="Program Name"
+                            />
+                            <textarea
+                                value={data.note}
+                                onChange={(e) => setData('note', e.target.value)}
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                placeholder="Optional Note"
+                            />
+                        </div>
 
-                                {/* Sets */}
-                                <ReactSortable
-                                    list={ex.sets}
-                                    setList={(newList) =>
-                                        updateExercise(
-                                            i,
-                                            'sets',
-                                            newList.map((s, idx) => ({
-                                                ...s,
-                                                order: idx,
-                                            })),
-                                        )
-                                    }
-                                    className="space-y-2"
+                        {/* Exercises */}
+                        <ReactSortable
+                            list={data.exercises}
+                            setList={(newList) =>
+                                setData(
+                                    'exercises',
+                                    newList.map((ex, i) => ({ ...ex, order: i })),
+                                )
+                            }
+                            className="space-y-6"
+                        >
+                            {data.exercises.map((ex, i) => (
+                                <div
+                                    key={ex.id}
+                                    className="space-y-2 border-b pb-4"
                                 >
-                                    {ex.sets.map((set, j) => (
-                                        <div
-                                            key={set.id}
-                                            className="space-y-2 rounded border p-3"
+                                    <div className="flex items-center justify-between">
+                                        <label className="font-heading text-sm text-[#102d4e]">
+                                            Exercise {i + 1}
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExercise(i)}
+                                            className="text-xs text-red-600 hover:underline"
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-sm font-medium">
-                                                    Set {j + 1}
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeSet(i, j)
-                                                    }
-                                                    className="text-xs text-red-600 hover:underline"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
+                                            Remove
+                                        </button>
+                                    </div>
 
-                                            {/* Fields */}
-                                            {set.fields.map((f, k) => {
-                                                const suggested = set
-                                                    .suggested_values?.[k] || {
-                                                    value: '',
-                                                    unit: '',
-                                                };
-                                                const showUnitDropdown =
-                                                    f.name === 'Weight' ||
-                                                    f.name === 'Distance';
-                                                const units =
-                                                    fieldUnits[f.name] || [];
+                                    <input
+                                        type="text"
+                                        value={ex.name}
+                                        onChange={(e) =>
+                                            updateExercise(
+                                                i,
+                                                'name',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                        placeholder="Exercise Name"
+                                    />
+                                    <textarea
+                                        value={ex.description}
+                                        onChange={(e) =>
+                                            updateExercise(
+                                                i,
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                        placeholder="Optional Description"
+                                    />
 
-                                                return (
-                                                    <div
-                                                        key={k}
-                                                        className="grid grid-cols-5 items-center gap-2"
+                                    {/* Sets */}
+                                    <ReactSortable
+                                        list={ex.sets}
+                                        setList={(newList) =>
+                                            updateExercise(
+                                                i,
+                                                'sets',
+                                                newList.map((s, idx) => ({
+                                                    ...s,
+                                                    order: idx,
+                                                })),
+                                            )
+                                        }
+                                        className="space-y-2"
+                                    >
+                                        {ex.sets.map((set, j) => (
+                                            <div
+                                                key={set.id}
+                                                className="space-y-2 rounded-md border p-3 shadow-sm"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <label className="font-heading text-sm text-[#102d4e]">
+                                                        Set {j + 1}
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeSet(i, j)
+                                                        }
+                                                        className="text-xs text-red-600 hover:underline"
                                                     >
-                                                        <select
-                                                            value={f.name}
-                                                            onChange={(e) => {
-                                                                const field =
-                                                                    predefinedFields.find(
-                                                                        (pf) =>
-                                                                            pf.name ===
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                    );
-                                                                if (!field)
-                                                                    return;
-                                                                updateFieldMeta(
-                                                                    i,
-                                                                    j,
-                                                                    k,
-                                                                    'name',
-                                                                    field.name,
-                                                                );
-                                                                updateFieldMeta(
-                                                                    i,
-                                                                    j,
-                                                                    k,
-                                                                    'type',
-                                                                    field.type,
-                                                                );
-                                                            }}
-                                                            className="rounded border px-3 py-2 text-sm"
+                                                        Remove
+                                                    </button>
+                                                </div>
+
+                                                {/* Fields */}
+                                                {set.fields.map((f, k) => {
+                                                    const suggested = set
+                                                        .suggested_values?.[k] || {
+                                                        value: '',
+                                                        unit: '',
+                                                    };
+                                                    const showUnitDropdown =
+                                                        f.name === 'Weight' ||
+                                                        f.name === 'Distance';
+                                                    const units =
+                                                        fieldUnits[f.name] || [];
+
+                                                    return (
+                                                        <div
+                                                            key={k}
+                                                            className="grid grid-cols-5 items-center gap-2"
                                                         >
-                                                            <option value="">
-                                                                Select Field
-                                                            </option>
-                                                            {predefinedFields.map(
-                                                                (pf) => (
-                                                                    <option
-                                                                        key={
-                                                                            pf.name
-                                                                        }
-                                                                        value={
-                                                                            pf.name
-                                                                        }
-                                                                    >
-                                                                        {
-                                                                            pf.name
-                                                                        }
-                                                                    </option>
-                                                                ),
-                                                            )}
-                                                        </select>
-
-                                                        <input
-                                                            type="text"
-                                                            value={f.type}
-                                                            readOnly
-                                                            className="rounded border bg-gray-100 px-3 py-2 text-sm"
-                                                        />
-
-                                                        <input
-                                                            type={
-                                                                f.type ===
-                                                                'number'
-                                                                    ? 'number'
-                                                                    : 'text'
-                                                            }
-                                                            value={
-                                                                suggested.value
-                                                            }
-                                                            onChange={(e) =>
-                                                                updateSuggestedValue(
-                                                                    i,
-                                                                    j,
-                                                                    k,
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            className="rounded border px-3 py-2 text-sm"
-                                                            placeholder={
-                                                                f.type ===
-                                                                'duration'
-                                                                    ? 'hh:mm:ss'
-                                                                    : f.type ===
-                                                                        'number'
-                                                                      ? 'e.g., 10'
-                                                                      : 'Enter text'
-                                                            }
-                                                        />
-
-                                                        {showUnitDropdown && (
                                                             <select
+                                                                value={f.name}
+                                                                onChange={(e) => {
+                                                                    const field =
+                                                                        predefinedFields.find(
+                                                                            (pf) =>
+                                                                                pf.name ===
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        );
+                                                                    if (!field)
+                                                                        return;
+                                                                    updateFieldMeta(
+                                                                        i,
+                                                                        j,
+                                                                        k,
+                                                                        'name',
+                                                                        field.name,
+                                                                    );
+                                                                    updateFieldMeta(
+                                                                        i,
+                                                                        j,
+                                                                        k,
+                                                                        'type',
+                                                                        field.type,
+                                                                    );
+                                                                }}
+                                                                className="rounded border px-3 py-2 text-sm"
+                                                            >
+                                                                <option value="">
+                                                                    Select Field
+                                                                </option>
+                                                                {predefinedFields.map(
+                                                                    (pf) => (
+                                                                        <option
+                                                                            key={
+                                                                                pf.name
+                                                                            }
+                                                                            value={
+                                                                                pf.name
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                pf.name
+                                                                            }
+                                                                        </option>
+                                                                    ),
+                                                                )}
+                                                            </select>
+
+                                                            <input
+                                                                type="text"
+                                                                value={f.type}
+                                                                readOnly
+                                                                className="rounded border bg-gray-100 px-3 py-2 text-sm"
+                                                            />
+
+                                                            <input
+                                                                type={
+                                                                    f.type ===
+                                                                        'number'
+                                                                        ? 'number'
+                                                                        : 'text'
+                                                                }
                                                                 value={
-                                                                    suggested.unit ||
-                                                                    units[0]
+                                                                    suggested.value
                                                                 }
                                                                 onChange={(e) =>
-                                                                    updateFieldUnit(
+                                                                    updateSuggestedValue(
                                                                         i,
                                                                         j,
                                                                         k,
@@ -567,113 +541,141 @@ export default function Edit({ program }: Props) {
                                                                     )
                                                                 }
                                                                 className="rounded border px-3 py-2 text-sm"
+                                                                placeholder={
+                                                                    f.type ===
+                                                                        'duration'
+                                                                        ? 'hh:mm:ss'
+                                                                        : f.type ===
+                                                                            'number'
+                                                                            ? 'e.g., 10'
+                                                                            : 'Enter text'
+                                                                }
+                                                            />
+
+                                                            {showUnitDropdown && (
+                                                                <select
+                                                                    value={
+                                                                        suggested.unit ||
+                                                                        units[0]
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        updateFieldUnit(
+                                                                            i,
+                                                                            j,
+                                                                            k,
+                                                                            e.target
+                                                                                .value,
+                                                                        )
+                                                                    }
+                                                                    className="rounded border px-3 py-2 text-sm"
+                                                                >
+                                                                    {units.map(
+                                                                        (u) => (
+                                                                            <option
+                                                                                key={
+                                                                                    u
+                                                                                }
+                                                                                value={
+                                                                                    u
+                                                                                }
+                                                                            >
+                                                                                {u}
+                                                                            </option>
+                                                                        ),
+                                                                    )}
+                                                                </select>
+                                                            )}
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeFieldMeta(
+                                                                        i,
+                                                                        j,
+                                                                        k,
+                                                                    )
+                                                                }
+                                                                className="text-red-600 hover:text-red-800"
                                                             >
-                                                                {units.map(
-                                                                    (u) => (
-                                                                        <option
-                                                                            key={
-                                                                                u
-                                                                            }
-                                                                            value={
-                                                                                u
-                                                                            }
-                                                                        >
-                                                                            {u}
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
-                                                        )}
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                removeFieldMeta(
-                                                                    i,
-                                                                    j,
-                                                                    k,
-                                                                )
-                                                            }
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = [
-                                                        ...data.exercises,
-                                                    ];
-                                                    updated[i].sets[
-                                                        j
-                                                    ].fields.push({
-                                                        name: '',
-                                                        type: 'text',
-                                                    });
-                                                    updated[i].sets[
-                                                        j
-                                                    ].suggested_values?.push({
-                                                        value: '',
-                                                        unit: '',
-                                                    });
-                                                    setData(
-                                                        'exercises',
-                                                        updated,
+                                                                <X className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
                                                     );
-                                                }}
-                                                className="text-sm text-blue-700 hover:underline"
-                                            >
-                                                + Add Field
-                                            </button>
-                                        </div>
-                                    ))}
-                                </ReactSortable>
+                                                })}
 
-                                <div className="mt-2 flex gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => addSet(i)}
-                                        className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
-                                    >
-                                        <PlusCircle className="h-5 w-5 text-blue-700" />
-                                        <span>Add Set</span>
-                                    </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = [
+                                                            ...data.exercises,
+                                                        ];
+                                                        updated[i].sets[
+                                                            j
+                                                        ].fields.push({
+                                                            name: '',
+                                                            type: 'text',
+                                                        });
+                                                        updated[i].sets[
+                                                            j
+                                                        ].suggested_values?.push({
+                                                            value: '',
+                                                            unit: '',
+                                                        });
+                                                        setData(
+                                                            'exercises',
+                                                            updated,
+                                                        );
+                                                    }}
+                                                    className="text-sm text-blue-700 hover:underline"
+                                                >
+                                                    + Add Field
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </ReactSortable>
+
+                                    <div className="mt-2 flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => addSet(i)}
+                                            className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+                                        >
+                                            <PlusCircle className="h-5 w-5 text-blue-700" />
+                                            <span>Add Set</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </ReactSortable>
-
-                    <button
-                        type="button"
-                        onClick={addExercise}
-                        className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
-                    >
-                        <PlusCircle className="h-5 w-5 text-blue-700" />
-                        <span>Add Exercise</span>
-                    </button>
-
-                    {/* Error Messages */}
-                    {formErrors.length > 0 && (
-                        <div className="space-y-1 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                            {formErrors.map((err, idx) => (
-                                <p key={idx}>{err}</p>
                             ))}
-                        </div>
-                    )}
+                        </ReactSortable>
 
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700"
-                        disabled={data.exercises.length === 0}
-                    >
-                        Update Program
-                    </button>
-                </form>
+                        <button
+                            type="button"
+                            onClick={addExercise}
+                            className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+                        >
+                            <PlusCircle className="h-5 w-5 text-blue-700" />
+                            <span>Add Exercise</span>
+                        </button>
+
+                        {/* Error Messages */}
+                        {formErrors.length > 0 && (
+                            <div className="space-y-1 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                                {formErrors.map((err, idx) => (
+                                    <p key={idx}>{err}</p>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Submit */}
+                        <button
+                            type="submit"
+                            className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                            disabled={data.exercises.length === 0}
+                        >
+                            Update Program
+                        </button>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

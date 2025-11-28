@@ -55,7 +55,7 @@ export default function Index({
                 {/* Student Dropdown for Admin/Coach */}
                 {(currentUserRole === 'Admin' || currentUserRole === 'Coach') && (
                     <div className="flex items-center gap-4">
-                        <label htmlFor="student" className="font-semibold text-gray-700">Select Student:</label>
+                        <label htmlFor="student" className="font-semibold font-heading text-[#102d4e]">Select Student:</label>
                         <select
                             id="student"
                             value={studentId}

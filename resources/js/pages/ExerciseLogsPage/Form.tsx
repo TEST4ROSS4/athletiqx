@@ -49,11 +49,11 @@ export default function Form({ assignment }: Props) {
         ex.id !== exerciseId
           ? ex
           : {
-              ...ex,
-              sets: ex.sets.map((s) =>
-                s.id !== setId ? s : { ...s, values: { ...s.values, [fieldName]: value } }
-              ),
-            }
+            ...ex,
+            sets: ex.sets.map((s) =>
+              s.id !== setId ? s : { ...s, values: { ...s.values, [fieldName]: value } }
+            ),
+          }
       )
     );
   };
@@ -64,11 +64,11 @@ export default function Form({ assignment }: Props) {
         ex.id !== exerciseId
           ? ex
           : {
-              ...ex,
-              sets: ex.sets.map((s) =>
-                s.id !== setId ? s : { ...s, marked_as_done: !s.marked_as_done }
-              ),
-            }
+            ...ex,
+            sets: ex.sets.map((s) =>
+              s.id !== setId ? s : { ...s, marked_as_done: !s.marked_as_done }
+            ),
+          }
       )
     );
   };
@@ -132,13 +132,12 @@ export default function Form({ assignment }: Props) {
             <span>{status}</span>
             <div className="flex-1 h-2 bg-gray-200 rounded overflow-hidden">
               <div
-                className={`h-2 rounded transition-all duration-500 ease-in-out ${
-                  status === 'Completed'
+                className={`h-2 rounded transition-all duration-500 ease-in-out ${status === 'Completed'
                     ? 'bg-green-500'
                     : status === 'In-Progress'
-                    ? 'bg-yellow-400'
-                    : 'bg-gray-400'
-                }`}
+                      ? 'bg-yellow-400'
+                      : 'bg-gray-400'
+                  }`}
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -220,7 +219,7 @@ export default function Form({ assignment }: Props) {
           ))}
 
           <div className="flex gap-4">
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none">Save Changes</Button>
             <Button type="button" variant="outline" onClick={() => window.history.back()}>
               Back
             </Button>

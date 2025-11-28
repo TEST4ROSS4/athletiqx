@@ -23,41 +23,61 @@ export default function Edit({ section }: { section: { id: number; code: string;
             <Head title="Edit Section" />
             <div className="p-3">
                 <div className="p-3">
-                    <h1 className="mb-4 text-2xl font-bold">CRUD App</h1>
+                    {/* Heading */}
+                    <h1 className="text-2xl font-heading font-semibold text-[#102d4e] mb-4">
+                        Edit Section
+                    </h1>
 
                     <Link
                         href={route('sections.index')}
-                        className="mb-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 text-sm font-heading font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                     >
                         Back
                     </Link>
 
-                    <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
+                    <form
+                        onSubmit={submit}
+                        className="space-y-6 mt-4 max-w-md mx-auto font-sans"
+                    >
                         <div className="grid gap-2">
-                            <label htmlFor="code" className="text-sm font-medium">Section Code:</label>
+                            <label
+                                htmlFor="code"
+                                className="text-sm font-heading text-[#102d4e]"
+                            >
+                                Section Code:
+                            </label>
                             <input
                                 id="code"
                                 value={data.code}
                                 onChange={(e) => setData('code', e.target.value)}
-                                className="mt-1 block w-full rounded-md border px-3 py-2"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#102d4e] focus:border-[#102d4e]"
+                                placeholder="Enter your section code"
+
                             />
-                            {errors.code && <p className="text-sm text-red-500">{errors.code}</p>}
+                            {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code}</p>}
                         </div>
 
                         <div className="grid gap-2">
-                            <label htmlFor="program" className="text-sm font-medium">Program:</label>
+                            <label
+                                htmlFor="program"
+                                className="text-sm font-heading text-[#102d4e]"
+                            >
+                                Program:
+                            </label>
                             <input
                                 id="program"
                                 value={data.program}
                                 onChange={(e) => setData('program', e.target.value)}
-                                className="mt-1 block w-full rounded-md border px-3 py-2"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#102d4e] focus:border-[#102d4e]"
+                                placeholder="Enter your program"
+
                             />
-                            {errors.program && <p className="text-sm text-red-500">{errors.program}</p>}
+                            {errors.program && <p className="text-red-500 text-sm mt-1">{errors.program}</p>}
                         </div>
 
                         <button
                             type="submit"
-                            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700"
+                            className="bg-[#102d4e] hover:bg-[#0d243d] text-white font-heading font-semibold py-2 px-4 rounded-md transition focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                         >
                             Update
                         </button>
