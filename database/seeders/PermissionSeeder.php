@@ -101,13 +101,19 @@ class PermissionSeeder extends Seeder
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES
-            ['name' => 'roles.create', 'module' => 'school-admin'],
-            ['name' => 'roles.view', 'module' => 'school-admin'],
-            ['name' => 'roles.edit', 'module' => 'school-admin'],
-            ['name' => 'roles.delete', 'module' => 'school-admin'],
+            ['name' => 'scholarships.create', 'module' => 'school-admin'],
+            ['name' => 'scholarships.view',   'module' => 'school-admin'],
+            ['name' => 'scholarships.edit',   'module' => 'school-admin'],
+            ['name' => 'scholarships.delete', 'module' => 'school-admin'],
+
 
 
             // -------------------------------------- SUPER ADMIN ONLY --------------------------------------
+
+            ['name' => 'roles.create', 'module' => 'super'],
+            ['name' => 'roles.view', 'module' => 'super'],
+            ['name' => 'roles.edit', 'module' => 'super'],
+            ['name' => 'roles.delete', 'module' => 'super'],
 
             // SCHOOLS 
             ['name' => 'schools.create', 'module' => 'super'],

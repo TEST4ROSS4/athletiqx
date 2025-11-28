@@ -11,6 +11,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SportTeamController;
 use App\Http\Controllers\ExerciseLogController;
+use App\Http\Controllers\ScholarshipController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\CourseSectionController;
@@ -178,6 +179,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('exercise-logs/{assignment}/form', [ExerciseLogController::class, 'form'])->name('exercise-logs.form')->middleware('permission:exercise-logs.edit');
     Route::post('exercise-logs/{assignment}', [ExerciseLogController::class, 'store'])->name('exercise-logs.store')->middleware('permission:exercise-logs.edit');
     // Route::put('exercise-logs/{assignment}', [ExerciseLogController::class, 'update'])->name('exercise-logs.update')->middleware('permission:exercise-logs.edit');
+
+    Route::get('scholarships', [ScholarshipController::class, 'index'])->name('scholarships.index')->middleware('permission:scholarships.view');
+    Route::post('scholarships/save', [ScholarshipController::class, 'save'])->name('scholarships.save')->middleware('permission:scholarships.edit');
+    Route::put('scholarships/grade/{id}', [ScholarshipController::class, 'updateStudentGrade'])->name('scholarships.updateGrade')->middleware('permission:scholarships.edit');
+    Route::get('scholarships/check/{studentCourseSection}', [ScholarshipController::class, 'checkEligibility'])->name('scholarships.check')->middleware('permission:scholarships.view');
+    Route::get('scholarships/check-course/{courseSection}', [ScholarshipController::class, 'checkEligibilityForCourseSection'])->name('scholarships.checkCourse')->middleware('permission:scholarships.view');
+    Route::get('scholarships/student', [ScholarshipController::class, 'studentView'])->name('scholarships.student')->middleware('permission:scholarships.view');
 });
 
 require __DIR__ . '/settings.php';

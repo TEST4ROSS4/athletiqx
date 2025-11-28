@@ -39,6 +39,12 @@ class SuperAdminSeeder extends Seeder
             'school-admins.create',
             'school-admins.edit',
             'school-admins.delete',
+
+            //Roles and Permissions module
+            'roles.view',
+            'roles.create',
+            'roles.edit',
+            'roles.delete',
         ];
 
         // ✅ Assign permissions to the role

@@ -20,11 +20,6 @@ class AdminSeeder extends Seeder
             'users.edit',
             'users.delete',
 
-            'roles.view',
-            'roles.create',
-            'roles.edit',
-            'roles.delete',
-
             'courses.view',
             'courses.create',
             'courses.edit',
@@ -54,6 +49,12 @@ class AdminSeeder extends Seeder
             'student-course-sections.create',
             'student-course-sections.edit',
             'student-course-sections.delete',
+
+            'scholarships.view',
+            'scholarships.create',
+            'scholarships.edit',
+            'scholarships.delete',
+
 
             // ------------------------------------------------ ATHLETIC SIDE ------------------------------------------
 

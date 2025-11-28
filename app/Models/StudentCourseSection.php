@@ -33,7 +33,7 @@ class StudentCourseSection extends Model
 
     public function courseSection()
     {
-        return $this->belongsTo(CourseSection::class);
+        return $this->belongsTo(CourseSection::class, 'course_section_id');
     }
 
     public function school()

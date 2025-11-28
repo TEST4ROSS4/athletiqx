@@ -81,49 +81,49 @@ class ProgramAssignmentController extends Controller
     }
 
     protected function syncAssignments(Request $request, Program $program): void
-{
-    // Validate incoming data
-    $validated = $request->validate([
-        'team_ids' => 'array',
-        'team_ids.*' => 'integer',
-        'student_ids' => 'array',
-        'student_ids.*' => 'integer',
-        'excluded_student_ids' => 'array',
-        'excluded_student_ids.*' => 'integer',
-        'notes' => 'nullable|string|max:1000',
-    ]);
+    {
+        // Validate incoming data
+        $validated = $request->validate([
+            'team_ids' => 'array',
+            'team_ids.*' => 'integer',
+            'student_ids' => 'array',
+            'student_ids.*' => 'integer',
+            'excluded_student_ids' => 'array',
+            'excluded_student_ids.*' => 'integer',
+            'notes' => 'nullable|string|max:1000',
+        ]);
 
-    // Get the excluded students and all students
-    $excludedStudentIds = collect($validated['excluded_student_ids'] ?? []);
-    $allStudentIds = collect($validated['student_ids'] ?? []);
+        // Get the excluded students and all students
+        $excludedStudentIds = collect($validated['excluded_student_ids'] ?? []);
+        $allStudentIds = collect($validated['student_ids'] ?? []);
 
-    // Merge team student IDs if team IDs are provided
-    if (!empty($validated['team_ids'])) {
-        $teamStudentIds = StudentSportTeam::whereIn('sport_team_id', $validated['team_ids'])
-            ->pluck('student_id');
-        $allStudentIds = $allStudentIds->merge($teamStudentIds)->unique();
+        // Merge team student IDs if team IDs are provided
+        if (!empty($validated['team_ids'])) {
+            $teamStudentIds = StudentSportTeam::whereIn('sport_team_id', $validated['team_ids'])
+                ->pluck('student_id');
+            $allStudentIds = $allStudentIds->merge($teamStudentIds)->unique();
+        }
+
+        // Exclude the students that are in the excluded list
+        $allStudentIds = $allStudentIds->diff($excludedStudentIds);
+
+        // Delete assignments for students who are not in the updated list
+        $program->assignments()->whereNotIn('student_id', $allStudentIds)->delete();
+
+        // Store or update assignments for each student
+        foreach ($allStudentIds as $studentId) {
+            $program->assignments()->updateOrCreate(
+                [
+                    'student_id' => $studentId,
+                ],
+                [
+                    'assigned_by' => $request->user()->id,
+                    'notes' => $validated['notes'] ?? null,
+                    'assigned_at' => now(),  // Store the current date and time of assignment
+                ]
+            );
+        }
     }
-
-    // Exclude the students that are in the excluded list
-    $allStudentIds = $allStudentIds->diff($excludedStudentIds);
-
-    // Delete assignments for students who are not in the updated list
-    $program->assignments()->whereNotIn('student_id', $allStudentIds)->delete();
-
-    // Store or update assignments for each student
-    foreach ($allStudentIds as $studentId) {
-        $program->assignments()->updateOrCreate(
-            [
-                'student_id' => $studentId,
-            ],
-            [
-                'assigned_by' => $request->user()->id,
-                'notes' => $validated['notes'] ?? null,
-                'assigned_at' => now(),  // Store the current date and time of assignment
-            ]
-        );
-    }
-}
 
 
     /**
@@ -162,8 +162,12 @@ class ProgramAssignmentController extends Controller
             ->when($teamId, fn($query) => $query->where('sport_team_id', $teamId))
             ->when($excludeStudentIds->isNotEmpty(), fn($q) => $q->whereNotIn('student_id', $excludeStudentIds))
             ->when($excludeTeamIds->isNotEmpty(), fn($q) => $q->whereNotIn('sport_team_id', $excludeTeamIds))
-            ->when($q !== '', fn($query) =>
-                $query->whereHas('student', fn($sub) =>
+            ->when(
+                $q !== '',
+                fn($query) =>
+                $query->whereHas(
+                    'student',
+                    fn($sub) =>
                     $sub->where('name', 'LIKE', '%' . $q . '%')
                 )
             )

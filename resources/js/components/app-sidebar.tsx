@@ -18,19 +18,20 @@ import {
     BookOpen,
     ClipboardCheck,
     Clock,
+    Dumbbell,
     Folder,
+    GraduationCap,
     Group,
     LayoutGrid,
     LibraryBig,
+    PencilLine,
     PersonStanding,
     School,
     Trophy,
     UserCheck,
     UserCog,
-    Users,
     UserPlus,
-    Dumbbell,
-    PencilLine,
+    Users,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -80,11 +81,11 @@ export function AppSidebar() {
             href: '/users',
             icon: Users,
         },
-        can('roles.view') && {
-            title: 'Roles',
-            href: '/roles',
-            icon: UserCheck,
-        },
+        // can('roles.view') && {
+        //     title: 'Roles',
+        //     href: '/roles',
+        //     icon: UserCheck,
+        // },
         can('courses.view') && {
             title: 'Courses',
             href: '/courses',
@@ -118,6 +119,12 @@ export function AppSidebar() {
             icon: ClipboardCheck,
         },
 
+        can('scholarships.view') && {
+            title: 'Scholarship Settings',
+            href: '/scholarships',
+            icon: GraduationCap,
+        },
+
         // ------------------------------ ATHELETICS SIDE ------------------------------
 
         can('sports.view') && {
@@ -147,15 +154,14 @@ export function AppSidebar() {
         can('programs.view') && {
             title: 'Training Programs',
             href: '/programs/landing',
-            icon: Dumbbell, 
+            icon: Dumbbell,
         },
 
         can('exercise-logs.view') && {
-        title: 'Exercise Logs',
-        href: '/exercise-logs',
-        icon: PencilLine,  
+            title: 'Exercise Logs',
+            href: '/exercise-logs',
+            icon: PencilLine,
         },
-
 
         // ------------------------------ SUPER ADMIN ------------------------------
 
@@ -170,6 +176,12 @@ export function AppSidebar() {
                 title: 'School Admin',
                 href: '/school-admins',
                 icon: UserCog,
+            },
+        isSuperAdmin &&
+            can('roles.view') && {
+                title: 'Roles',
+                href: '/roles',
+                icon: UserCheck,
             },
     ].filter(Boolean) as NavItem[];
 

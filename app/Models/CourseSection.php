@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CourseSection extends Model
 {
@@ -26,44 +30,73 @@ class CourseSection extends Model
     ];
 
     // 🔗 Relationships
-    public function course()
+
+    /**
+     * @return BelongsTo<Course,CourseSection>
+     */
+    public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
 
-    public function section()
+    /**
+     * @return BelongsTo<Section,CourseSection>
+     */
+    public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    public function classSchedule()
+    /**
+     * @return HasOne<ClassSchedule>
+     */
+    public function classSchedule(): HasOne
     {
         return $this->hasOne(ClassSchedule::class);
     }
 
-    public function school()
+    /**
+     * @return BelongsTo<School,CourseSection>
+     */
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function professorAssignments()
+    /**
+     * @return HasMany<ProfessorCourseSection>
+     */
+    public function professorAssignments(): HasMany
     {
         return $this->hasMany(ProfessorCourseSection::class);
     }
 
-    public function studentEnrollments()
+    /**
+     * @return HasMany<StudentCourseSection>
+     */
+    public function studentEnrollments(): HasMany
     {
         return $this->hasMany(StudentCourseSection::class);
     }
 
-    public function professors()
+    /**
+     * Professors assigned to this course section.
+     *
+     * @return BelongsToMany<User>
+     */
+    public function professors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'professor_course_section', 'course_section_id', 'professor_id')
             ->withPivot('school_id')
             ->withTimestamps();
     }
 
-    public function students()
+    /**
+     * Students enrolled in this course section.
+     *
+     * @return BelongsToMany<User>
+     */
+    public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'student_course_section', 'course_section_id', 'student_id')
             ->withPivot(['school_id', 'final_grade', 'attendance_rate'])
@@ -71,6 +104,7 @@ class CourseSection extends Model
     }
 
     // 🔍 Scopes for lifecycle filtering
+
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'upcoming');

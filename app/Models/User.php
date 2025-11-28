@@ -10,6 +10,14 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\CourseSection;
+
+
+/**
+ * @method \Illuminate\Database\Eloquent\Relations\BelongsToMany taughtCourseSections()
+ * @method \Illuminate\Database\Eloquent\Relations\BelongsToMany enrolledCourseSections()
+ */
 
 class User extends Authenticatable
 {
@@ -41,6 +49,29 @@ class User extends Authenticatable
         return $this->belongsTo(School::class);
     }
 
+    /**
+     * The course this student is enrolled in (main program).
+     */
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
+    }
+
+    /**
+     * The section this student belongs to.
+     */
+    public function section()
+    {
+        return $this->belongsTo(Section::class, 'section_id');
+    }
+
+
+    /**
+     * Course sections this professor teaches.
+     *
+     * @return BelongsToMany<CourseSection>
+     */
+
     public function taughtCourseSections()
     {
         return $this->belongsToMany(
@@ -50,6 +81,11 @@ class User extends Authenticatable
             'course_section_id'
         )->withPivot('school_id')->withTimestamps();
     }
+    /**
+     * Course sections this student is enrolled in.
+     *
+     * @return BelongsToMany<CourseSection>
+     */
 
     public function enrolledCourseSections()
     {
