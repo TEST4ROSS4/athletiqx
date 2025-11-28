@@ -76,13 +76,13 @@ export default function Index({ programs, filters }: Props) {
             <div className="flex flex-wrap gap-2">
               {can('programs.create') && (
                 <Link href={route('programs.create')}>
-                  <Button className="flex items-center gap-2">
+                  <Button className="flex items-center gap-2 rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none">
                     Create Program
                   </Button>
                 </Link>
               )}
               <Link href={route('programs.landing')}>
-                <Button variant="secondary">Back</Button>
+                <Button className="rounded-lg bg-gray-700 px-4 py-2 font-heading font-semibold text-white hover:bg-gray-800">Back</Button>
               </Link>
             </div>
 

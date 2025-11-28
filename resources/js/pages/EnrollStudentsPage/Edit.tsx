@@ -70,65 +70,71 @@ export default function Edit({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Edit Enrollment" />
       <div className="p-3">
-        <h1 className="mb-4 text-2xl font-bold">Edit Student Enrollment</h1>
+        <div className="p-3">
+          {/* Heading */}
+          <h1 className="text-2xl font-heading font-semibold text-[#102d4e] mb-4">
+            Edit Student Enrollment
+          </h1>
 
-        <Link
-          href={route('student-course-sections.index')}
-          className="mb-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
-        >
-          Back
-        </Link>
-
-        <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
-          {/* Student Select */}
-          <div className="grid gap-2">
-            <label htmlFor="student_id" className="text-sm font-medium">Student:</label>
-            <AsyncSelect
-              cacheOptions
-              defaultOptions
-              loadOptions={loadStudentOptions}
-              defaultValue={{
-                label: students.find(s => s.id === assignment.student_id)
-                  ? `${students.find(s => s.id === assignment.student_id)?.name} (${students.find(s => s.id === assignment.student_id)?.email})`
-                  : '',
-                value: assignment.student_id,
-              }}
-              onChange={(option) => setData('student_id', option?.value ?? null)}
-              placeholder="Search and select student"
-            />
-            {errors.student_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.student_id}</p>
-            )}
-          </div>
-
-          {/* Course Section Select */}
-          <div className="grid gap-2">
-            <label htmlFor="course_section_id" className="text-sm font-medium">Course Section:</label>
-            <AsyncSelect
-              cacheOptions
-              defaultOptions
-              loadOptions={loadCourseSectionOptions}
-              defaultValue={{
-                label: courseSections.find(cs => cs.id === assignment.course_section_id)
-                  ? `${courseSections.find(cs => cs.id === assignment.course_section_id)?.course.title} - ${courseSections.find(cs => cs.id === assignment.course_section_id)?.section.code} (${courseSections.find(cs => cs.id === assignment.course_section_id)?.term})`
-                  : '',
-                value: assignment.course_section_id,
-              }}
-              onChange={(option) => setData('course_section_id', option?.value ?? null)}
-              placeholder="Search and select course section"
-            />
-            {errors.course_section_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700"
+          {/* Back Button */}
+          <Link
+            href={route('student-course-sections.index')}
+            className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 text-sm font-heading font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
           >
-            Update
-          </button>
-        </form>
+            Back
+          </Link>
+
+          <form onSubmit={submit} className="space-y-6 mt-4 max-w-md mx-auto font-sans">
+            {/* Student Select */}
+            <div className="grid gap-2">
+              <label htmlFor="student_id" className="text-sm font-heading text-[#102d4e]">Student:</label>
+              <AsyncSelect
+                cacheOptions
+                defaultOptions
+                loadOptions={loadStudentOptions}
+                defaultValue={{
+                  label: students.find(s => s.id === assignment.student_id)
+                    ? `${students.find(s => s.id === assignment.student_id)?.name} (${students.find(s => s.id === assignment.student_id)?.email})`
+                    : '',
+                  value: assignment.student_id,
+                }}
+                onChange={(option) => setData('student_id', option?.value ?? null)}
+                placeholder="Search and select student"
+              />
+              {errors.student_id && (
+                <p className="mt-1 text-sm text-red-500">{errors.student_id}</p>
+              )}
+            </div>
+
+            {/* Course Section Select */}
+            <div className="grid gap-2">
+              <label htmlFor="course_section_id" className="text-sm font-heading text-[#102d4e]">Course Section:</label>
+              <AsyncSelect
+                cacheOptions
+                defaultOptions
+                loadOptions={loadCourseSectionOptions}
+                defaultValue={{
+                  label: courseSections.find(cs => cs.id === assignment.course_section_id)
+                    ? `${courseSections.find(cs => cs.id === assignment.course_section_id)?.course.title} - ${courseSections.find(cs => cs.id === assignment.course_section_id)?.section.code} (${courseSections.find(cs => cs.id === assignment.course_section_id)?.term})`
+                    : '',
+                  value: assignment.course_section_id,
+                }}
+                onChange={(option) => setData('course_section_id', option?.value ?? null)}
+                placeholder="Search and select course section"
+              />
+              {errors.course_section_id && (
+                <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="bg-[#102d4e] hover:bg-[#0d243d] text-white font-heading font-semibold py-2 px-4 rounded-md transition focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+            >
+              Update
+            </button>
+          </form>
+        </div>
       </div>
     </AppLayout>
   );

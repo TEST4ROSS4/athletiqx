@@ -28,30 +28,42 @@ export default function View({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="View Assignment" />
-            <div className="flex items-center justify-center p-6">
-                <div className="w-full max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-md">
-                    <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Coach Assignment Details</h1>
+            <div className="p-6">
+                <div className="max-w-lg mx-auto space-y-6">
+                    {/* Heading */}
+                    <h1 className="text-2xl font-heading font-semibold text-[#102d4e]">
+                        Coach Assignment Details
+                    </h1>
 
-                    <div className="space-y-4 text-sm text-gray-700">
-                        <div className="flex justify-between">
-                            <span className="font-medium text-gray-600">Coach:</span>
-                            <span>{assignment.coach?.name ?? '—'}</span>
+                    {/* Back Button */}
+                    <Link
+                        href={route('coach-assignments.index')}
+                        className="inline-block rounded-lg bg-[#102d4e] px-4 py-2 text-sm font-heading font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                    >
+                        Back
+                    </Link>
+
+                    {/* User Info Card */}
+                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+                        <div className="">
+                            <p className="text-sm font-heading text-[#102d4e]">Coach:</p>
+                            <p className="text-base font-sans text-gray-800">{assignment.coach?.name ?? '—'}</p>
                         </div>
 
                         {isTeamAssignment ? (
                             <>
-                                <div className="flex justify-between">
-                                    <span className="font-medium text-gray-600">Assigned Team:</span>
-                                    <span>{assignment.sport_team?.name ?? '—'}</span>
+                                <div>
+                                    <p className="text-sm font-heading text-[#102d4e]">Assigned Team:</p>
+                                    <p className="text-base font-sans text-gray-800">{assignment.sport_team?.name ?? '—'}</p>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="font-medium text-gray-600">Sport:</span>
-                                    <span>{assignment.sport_team?.sport?.name ?? '—'}</span>
+                                <div>
+                                    <p className="text-sm font-heading text-[#102d4e]">Sport:</p>
+                                    <p className="text-base font-sans text-gray-800">{assignment.sport_team?.sport?.name ?? '—'}</p>
                                 </div>
                                 {otherTeams.length > 0 && (
                                     <div className="pt-4">
-                                        <span className="block text-sm font-semibold text-gray-600 mb-2">Other Teams Assigned:</span>
-                                        <ul className="list-disc pl-5 text-sm text-gray-700">
+                                        <span className="block text-sm font-heading text-[#102d4e] mb-2">Other Teams Assigned:</span>
+                                        <ul className="list-disc pl-5 text-base font-sans text-gray-800">
                                             {otherTeams.map((t) => (
                                                 <li key={t.id}>
                                                     {t.name} ({t.sport?.name ?? '—'})
@@ -63,14 +75,14 @@ export default function View({
                             </>
                         ) : (
                             <>
-                                <div className="flex justify-between">
-                                    <span className="font-medium text-gray-600">Sport:</span>
-                                    <span>{assignment.sport?.name ?? '—'}</span>
+                                <div>
+                                    <p className="text-sm font-heading text-[#102d4e]">Sport:</p>
+                                    <p className="text-base font-sans text-gray-800">{assignment.sport?.name ?? '—'}</p>
                                 </div>
                                 {otherTeams.length > 0 && (
-                                    <div className="pt-4">
-                                        <span className="block text-sm font-semibold text-gray-600 mb-2">Teams Under This Sport:</span>
-                                        <ul className="list-disc pl-5 text-sm text-gray-700">
+                                    <div>
+                                        <span className="block text-sm font-heading text-[#102d4e] mb-2">Teams Under This Sport:</span>
+                                        <ul className="list-disc pl-5 text-base font-sans text-gray-800">
                                             {otherTeams.map((t) => (
                                                 <li key={t.id}>{t.name}</li>
                                             ))}
@@ -79,15 +91,6 @@ export default function View({
                                 )}
                             </>
                         )}
-                    </div>
-
-                    <div className="mt-6 text-center">
-                        <Link
-                            href={route('coach-assignments.index')}
-                            className="inline-block rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                        >
-                            Back
-                        </Link>
                     </div>
                 </div>
             </div>

@@ -68,7 +68,7 @@ export default function Welcome() {
                                 </Link>
                                 <Link
                                     href={register()}
-                                    className="rounded-md border border-[#19140035] px-4 py-1.5 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
+                                    className="hidden rounded-md border border-[#19140035] px-4 py-1.5 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
                                 >
                                     Register
                                 </Link>
@@ -96,7 +96,7 @@ export default function Welcome() {
                                 </Link>
                                 <Link
                                     href={register()}
-                                    className="rounded-md border border-[#19140035] px-4 py-2 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
+                                    className="hidden rounded-md border border-[#19140035] px-4 py-2 hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b]"
                                 >
                                     Register
                                 </Link>
@@ -106,7 +106,7 @@ export default function Welcome() {
                 )}
                 {/* Hero Section */}
                 <main className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                    <h1 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
+                    <h1 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl text-[#102d4e]">
                         Empowering Student-Athletes & Educators
                     </h1>
                     <p className="mt-4 max-w-xl text-base text-[#4a4a45] sm:text-lg dark:text-[#bcbcb7]">
@@ -114,14 +114,26 @@ export default function Welcome() {
                         coaches monitor performance across academics and
                         athletics — all in one platform.
                     </p>
-                    {!auth.user && (
-                        <button
+
+                    <div className="flex flex-row justify-center gap-4">
+                        {!auth.user && (
+                            <button
+                                onClick={scrollToDemo}
+                                className="mt-6 inline-block rounded-md bg-[#102d4e] px-6 py-2 text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                            >
+                                Get Started
+                            </button>
+                        )}
+
+                        <a
+                            href="#"
                             onClick={scrollToDemo}
-                            className="mt-6 inline-block rounded-md bg-[#1b1b18] px-6 py-2 text-white hover:bg-[#2a2a25] dark:bg-[#EDEDEC] dark:text-[#0a0a0a] dark:hover:bg-[#d6d6d4]"
+                            className="mt-6 inline-block rounded-md bg-[#102d4e] px-6 py-2 text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                         >
-                            Get Started
-                        </button>
-                    )}
+                            Download App
+                        </a>
+                    </div>
+
                 </main>
                 {/* Feature Cards */}
                 <section className="bg-[#FAFAF9] px-6 py-12 dark:bg-[#121212]">
@@ -156,7 +168,7 @@ export default function Welcome() {
                                 key={idx}
                                 className="rounded-lg border border-[#eaeaea] p-6 transition hover:shadow-md dark:border-[#2a2a2a]"
                             >
-                                <h3 className="text-lg font-medium">
+                                <h3 className="text-lg font-medium text-[#102d4e]">
                                     {card.title}
                                 </h3>
                                 <p className="mt-2 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
@@ -168,7 +180,7 @@ export default function Welcome() {
                 </section>
                 {/* Value Proposition */}
                 <section className="px-6 py-12 text-center">
-                    <h2 className="text-2xl font-semibold">Why AthletiQX?</h2>
+                    <h2 className="text-2xl font-semibold text-[#102d4e]">Why AthletiQX?</h2>
                     <p className="mx-auto mt-4 max-w-2xl text-[#4a4a45] dark:text-[#bcbcb7]">
                         Built for collaboration, AthletiQX bridges the gap
                         between academics and athletics. Whether you're
@@ -183,8 +195,8 @@ export default function Welcome() {
                     <div className="mx-auto max-w-6xl">
                         {/* Headline + Subtext */}
                         <div className="mb-16 text-center">
-                            <h2 className="text-3xl leading-tight font-bold">
-                                Request a Personalized Demo
+                            <h2 className="text-3xl leading-tight font-bold text-[#102d4e]">
+                                Connect With Us
                             </h2>
                             <p className="mx-auto mt-4 max-w-3xl text-base text-[#4a4a45] dark:text-[#bcbcb7]">
                                 Every institution has unique goals—and so do our
@@ -197,7 +209,7 @@ export default function Welcome() {
                         {/* Grid Layout: Cards + Form */}
                         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
                             {/* Left: Feature Cards */}
-                            <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2">
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2">
                                 {[
                                     {
                                         title: '🎯 Tailored Walkthroughs',
@@ -220,7 +232,7 @@ export default function Welcome() {
                                         key={idx}
                                         className="rounded-xl border border-[#eaeaea] bg-white p-6 text-left shadow-sm transition hover:shadow-md dark:border-[#2a2a2a] dark:bg-[#121212]"
                                     >
-                                        <h3 className="text-md font-semibold">
+                                        <h3 className="text-md font-semibold text-[#102d4e]">
                                             {card.title}
                                         </h3>
                                         <p className="mt-2 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
@@ -230,8 +242,28 @@ export default function Welcome() {
                                 ))}
                             </div>
 
+                            {/* Right: Contact Info */}
+                            <div className="rounded-xl border border-[#eaeaea] bg-white p-6 text-left shadow-sm transition hover:shadow-md dark:border-[#2a2a2a] dark:bg-[#121212] flex flex-col lg:h-full justify-between">
+                                <h3 className="mb-2 text-xl font-semibold text-[#102d4e]">
+                                    Let’s get you started
+                                </h3>
+                                <p className="mb-6 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
+                                    For all inquiries, you can reach us directly at:
+                                </p>
+
+                                <div className="mb-6 text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC]">
+                                    📧 <a href="mailto:visioncorewebworks@gmail.com" className="hover:underline">
+                                        visioncorewebworks@gmail.com
+                                    </a>
+                                </div>
+
+                                <div className="text-xs text-[#7a7a75] dark:text-[#a5a5a0]">
+                                    🤝 We’re excited to connect with you.
+                                </div>
+                            </div>
+
                             {/* Right: Demo Form */}
-                            <div className="rounded-2xl border border-[#eaeaea] bg-white p-8 shadow-lg dark:border-[#2a2a2a] dark:bg-[#181818]">
+                            {/* <div className="rounded-2xl border border-[#eaeaea] bg-white p-8 shadow-lg dark:border-[#2a2a2a] dark:bg-[#181818]">
                                 <h3 className="mb-2 text-xl font-semibold">
                                     Let’s get you started
                                 </h3>
@@ -267,7 +299,7 @@ export default function Welcome() {
                                     🔒 Your information is secure. We’ll only
                                     use it to schedule your demo.
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </section>

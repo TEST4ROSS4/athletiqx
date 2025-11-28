@@ -134,141 +134,146 @@ export default function Edit({
     callback(filtered);
   }
 
-    return (
+  return (
     <AppLayout>
       <Head title="Edit Class Schedule" />
       <div className="p-3">
-        <h1 className="mb-4 text-2xl font-bold">Edit Class Schedule</h1>
+        <div className="p-3">
+          {/* Heading */}
+          <h1 className="text-2xl font-heading font-semibold text-[#102d4e] mb-4">
+            Edit Class Schedule
+          </h1>
 
-        <Link
-          href={route('class-schedules.index')}
-          className="mb-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
-        >
-          Back
-        </Link>
+          <Link
+            href={route('class-schedules.index')}
+            className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 text-sm font-heading font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+          >
+            Back
+          </Link>
 
-        <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
-          {/* Course Section Select */}
-          <div className="grid gap-2">
-            <label htmlFor="course_section_id" className="text-sm font-medium">Course Section:</label>
-            <AsyncSelect
-              cacheOptions
-              defaultOptions
-              loadOptions={loadCourseSectionOptions}
-              onChange={(option) => {
-                if (option?.value != null) {
-                  setData('course_section_id', option.value);
-                }
-              }}
-              defaultValue={(() => {
-                const match = courseSections.find(cs => cs.id === classSchedule.course_section_id);
-                return match
-                  ? {
+          <form onSubmit={submit} className="space-y-6 mt-4 max-w-md mx-auto font-sans">
+            {/* Course Section Select */}
+            <div className="grid gap-2">
+              <label htmlFor="course_section_id" className="text-sm font-heading text-[#102d4e]">Course Section:</label>
+              <AsyncSelect
+                cacheOptions
+                defaultOptions
+                loadOptions={loadCourseSectionOptions}
+                onChange={(option) => {
+                  if (option?.value != null) {
+                    setData('course_section_id', option.value);
+                  }
+                }}
+                defaultValue={(() => {
+                  const match = courseSections.find(cs => cs.id === classSchedule.course_section_id);
+                  return match
+                    ? {
                       label: `${match.course.title} - ${match.section.code}`,
                       value: match.id,
                     }
-                  : null;
-              })()}
-              placeholder="Search and select course section"
-            />
-            {errors.course_section_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
-            )}
-          </div>
+                    : null;
+                })()}
+                placeholder="Search and select course section"
+              />
+              {errors.course_section_id && (
+                <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
+              )}
+            </div>
 
-          {/* Schedule Blocks */}
-          <div className="space-y-4">
-            {schedules.map((s, i) => (
-              <div key={i} className="grid gap-2 border-b pb-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Schedule {i + 1}</label>
-                  <button
-                    type="button"
-                    onClick={() => removeScheduleBlock(i)}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    Remove
-                  </button>
-                </div>
+            {/* Schedule Blocks */}
+            <div className="space-y-4">
+              {schedules.map((s, i) => (
+                <div key={i} className="grid gap-2 border-b pb-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-heading text-[#102d4e]">Schedule {i + 1}</label>
+                    <button
+                      type="button"
+                      onClick={() => removeScheduleBlock(i)}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
 
-                <select
-                  value={s.day}
-                  onChange={(e) => updateSchedule(i, 'day', e.target.value)}
-                  className="rounded border px-3 py-2 text-sm"
-                >
-                  <option value="">Select day</option>
-                  {dayOptions.map((d) => (
-                    <option key={d.value} value={d.value}>{d.label}</option>
-                  ))}
-                </select>
-
-                <div className="flex gap-2">
-                  <input
-                    type="time"
-                    value={s.start}
-                    onChange={(e) => updateSchedule(i, 'start', e.target.value)}
-                    className="w-1/2 rounded border px-3 py-2 text-sm"
-                  />
-                  <input
-                    type="time"
-                    value={s.end}
-                    onChange={(e) => updateSchedule(i, 'end', e.target.value)}
-                    className="w-1/2 rounded border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={s.isOnline}
-                    onChange={(e) => updateSchedule(i, 'isOnline', e.target.checked)}
-                  />
-                  <label className="text-sm">Online</label>
-                </div>
-
-                {!s.isOnline && (
-                  <input
-                    type="text"
-                    value={s.room}
-                    onChange={(e) => updateSchedule(i, 'room', e.target.value)}
+                  <select
+                    value={s.day}
+                    onChange={(e) => updateSchedule(i, 'day', e.target.value)}
                     className="rounded border px-3 py-2 text-sm"
-                    placeholder="Room"
-                  />
-                )}
+                  >
+                    <option value="">Select day</option>
+                    {dayOptions.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="time"
+                      value={s.start}
+                      onChange={(e) => updateSchedule(i, 'start', e.target.value)}
+                      className="w-1/2 rounded border px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="time"
+                      value={s.end}
+                      onChange={(e) => updateSchedule(i, 'end', e.target.value)}
+                      className="w-1/2 rounded border px-3 py-2 text-sm"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={s.isOnline}
+                      onChange={(e) => updateSchedule(i, 'isOnline', e.target.checked)}
+                    />
+                    <label className="text-sm">Online</label>
+                  </div>
+
+                  {!s.isOnline && (
+                    <input
+                      type="text"
+                      value={s.room}
+                      onChange={(e) => updateSchedule(i, 'room', e.target.value)}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                      placeholder="Room"
+                    />
+                  )}
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addScheduleBlock}
+                className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+              >
+                <PlusCircle className="h-5 w-5 text-blue-700" />
+                <span>Add Schedule</span>
+              </button>
+            </div>
+
+            {formErrors.length > 0 && (
+              <div className="space-y-1 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                {formErrors.map((err, idx) => (
+                  <p key={idx}>{err}</p>
+                ))}
               </div>
-            ))}
+            )}
+
+            {/* Laravel validation errors */}
+            {errors.days && <p className="text-sm text-red-600">{errors.days}</p>}
+            {errors.time && <p className="text-sm text-red-600">{errors.time}</p>}
+            {errors.room && <p className="text-sm text-red-600">{errors.room}</p>}
 
             <button
-              type="button"
-              onClick={addScheduleBlock}
-              className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+              type="submit"
+              className="bg-[#102d4e] hover:bg-[#0d243d] text-white font-heading font-semibold py-2 px-4 rounded-md transition focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+              disabled={schedules.length === 0}
             >
-              <PlusCircle className="h-5 w-5 text-blue-700" />
-              <span>Add Schedule</span>
+              Update
             </button>
-          </div>
-
-          {formErrors.length > 0 && (
-            <div className="space-y-1 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-              {formErrors.map((err, idx) => (
-                <p key={idx}>{err}</p>
-              ))}
-            </div>
-          )}
-
-          {/* Laravel validation errors */}
-          {errors.days && <p className="text-sm text-red-600">{errors.days}</p>}
-          {errors.time && <p className="text-sm text-red-600">{errors.time}</p>}
-          {errors.room && <p className="text-sm text-red-600">{errors.room}</p>}
-
-          <button
-            type="submit"
-            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700"
-            disabled={schedules.length === 0}
-          >
-            Update
-          </button>
-        </form>
+          </form>
+        </div>
       </div>
     </AppLayout>
   );

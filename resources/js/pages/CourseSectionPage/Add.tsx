@@ -50,78 +50,107 @@ export default function Create({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Add Course Section" />
             <div className="p-3">
-                <h1 className="mb-4 text-2xl font-bold">Add Course Section</h1>
+                <div className="p-3">
+                    {/* Heading */}
+                    <h1 className="mb-4 font-heading text-2xl font-semibold text-[#102d4e]">
+                        Add Course Section
+                    </h1>
 
-                <Link
-                    href={route('course-sections.index')}
-                    className="mb-4 inline-block rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
-                >
-                    Back
-                </Link>
-
-                <form onSubmit={submit} className="mx-auto mt-4 max-w-md space-y-6">
-                    {/* Course Select */}
-                    <div className="grid gap-2">
-                        <label htmlFor="course_id" className="text-sm font-medium">Course:</label>
-                        <AsyncSelect
-                            cacheOptions
-                            defaultOptions
-                            loadOptions={loadCourseOptions}
-                            onChange={(option) => setData('course_id', option?.value || '')}
-                            placeholder="Select course"
-                        />
-                        {errors.course_id && <p className="mt-1 text-sm text-red-500">{errors.course_id}</p>}
-                    </div>
-
-                    {/* Section Select */}
-                    <div className="grid gap-2">
-                        <label htmlFor="section_id" className="text-sm font-medium">Section:</label>
-                        <AsyncSelect
-                            cacheOptions
-                            defaultOptions
-                            loadOptions={loadSectionOptions}
-                            onChange={(option) => setData('section_id', option?.value || '')}
-                            placeholder="Select section"
-                        />
-                        {errors.section_id && <p className="mt-1 text-sm text-red-500">{errors.section_id}</p>}
-                    </div>
-
-                    {/* Term Input */}
-                    <div className="grid gap-2">
-                        <label htmlFor="term" className="text-sm font-medium">Term:</label>
-                        <input
-                            id="term"
-                            value={data.term}
-                            onChange={(e) => setData('term', e.target.value)}
-                            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder="e.g. 1st Term 2025–2026"
-                        />
-                        {errors.term && <p className="mt-1 text-sm text-red-500">{errors.term}</p>}
-                    </div>
-
-                    {/* Units Input */}
-                    <div className="grid gap-2">
-                        <label htmlFor="units" className="text-sm font-medium">Units:</label>
-                        <input
-                            id="units"
-                            type="number"
-                            min={0}
-                            max={10}
-                            value={data.units}
-                            onChange={(e) => setData('units', e.target.value === '' ? '' : parseInt(e.target.value))}
-                            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder="e.g. 3"
-                        />
-                        {errors.units && <p className="mt-1 text-sm text-red-500">{errors.units}</p>}
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700"
+                    {/* Back Button */}
+                    <Link
+                        href={route('course-sections.index')}
+                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                     >
-                        Submit
-                    </button>
-                </form>
+                        Back
+                    </Link>
+
+                    <form
+                        onSubmit={submit}
+                        className="mx-auto mt-4 max-w-md space-y-6 font-sans"
+                    >
+                        {/* Course Select */}
+                        <div className="grid gap-2">
+                            <label
+                                htmlFor="course_id"
+                                className="font-heading text-sm text-[#102d4e]"
+                            >
+                                Course:
+                            </label>
+                            <AsyncSelect
+                                cacheOptions
+                                defaultOptions
+                                loadOptions={loadCourseOptions}
+                                onChange={(option) => setData('course_id', option?.value || '')}
+                                placeholder="Select course"
+                            />
+                            {errors.course_id && <p className="mt-1 text-sm text-red-500">{errors.course_id}</p>}
+                        </div>
+
+                        {/* Section Select */}
+                        <div className="grid gap-2">
+                            <label
+                                htmlFor="section_id"
+                                className="font-heading text-sm text-[#102d4e]"
+                            >
+                                Section:
+                            </label>
+                            <AsyncSelect
+                                cacheOptions
+                                defaultOptions
+                                loadOptions={loadSectionOptions}
+                                onChange={(option) => setData('section_id', option?.value || '')}
+                                placeholder="Select section"
+                            />
+                            {errors.section_id && <p className="mt-1 text-sm text-red-500">{errors.section_id}</p>}
+                        </div>
+
+                        {/* Term Input */}
+                        <div className="grid gap-2">
+                            <label
+                                htmlFor="term"
+                                className="font-heading text-sm text-[#102d4e]"
+                            >
+                                Term:
+                            </label>
+                            <input
+                                id="term"
+                                value={data.term}
+                                onChange={(e) => setData('term', e.target.value)}
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                placeholder="e.g. 1st Term 2025–2026"
+                            />
+                            {errors.term && <p className="mt-1 text-sm text-red-500">{errors.term}</p>}
+                        </div>
+
+                        {/* Units Input */}
+                        <div className="grid gap-2">
+                            <label
+                                htmlFor="units"
+                                className="font-heading text-sm text-[#102d4e]"
+                            >
+                                Units:
+                            </label>
+                            <input
+                                id="units"
+                                type="number"
+                                min={0}
+                                max={10}
+                                value={data.units}
+                                onChange={(e) => setData('units', e.target.value === '' ? '' : parseInt(e.target.value))}
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                placeholder="e.g. 3"
+                            />
+                            {errors.units && <p className="mt-1 text-sm text-red-500">{errors.units}</p>}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                        >
+                            Submit
+                        </button>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

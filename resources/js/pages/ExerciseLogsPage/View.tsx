@@ -66,18 +66,19 @@ export default function View({ assignment }: Props) {
         >
             <Head title="View Exercise Log" />
 
-            
+
             <div className="space-y-6 p-4">
                 {/* LOG EXERCISE BUTTON */}
-            {assignment.can_log && (
-                <div className="flex flex-col gap-4 sm:flex-row">
-                    <Link href={route('exercise-logs.form', assignment.id)}>
-                        <Button className="flex items-center gap-2">
-                            Log Exercise
-                        </Button>
-                    </Link>
-                </div>
-            )}
+                {assignment.can_log && (
+                    <div className="flex flex-col gap-4 sm:flex-row">
+                        <Link href={route('exercise-logs.form', assignment.id)}>
+                            <Button className="flex items-center gap-2 rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                            >
+                                Log Exercise
+                            </Button>
+                        </Link>
+                    </div>
+                )}
                 {/* PROGRAM INFO CARD */}
                 <div className="space-y-1 rounded-xl border bg-white p-5 shadow-sm">
                     <p>
@@ -159,11 +160,10 @@ export default function View({ assignment }: Props) {
                                     {exercise.sets.map((set) => (
                                         <tr
                                             key={set.id}
-                                            className={`${
-                                                set.marked_as_done
+                                            className={`${set.marked_as_done
                                                     ? 'bg-green-50'
                                                     : 'bg-white'
-                                            } transition`}
+                                                } transition`}
                                         >
                                             <td className="border px-3 py-2 font-medium">
                                                 {set.order + 1}
@@ -172,7 +172,7 @@ export default function View({ assignment }: Props) {
                                             {set.fields.map((fieldObj) => {
                                                 const raw =
                                                     set.values?.[
-                                                        fieldObj.name
+                                                    fieldObj.name
                                                     ] ?? '-';
                                                 const { num, unit } =
                                                     parseValue(raw);
@@ -196,11 +196,10 @@ export default function View({ assignment }: Props) {
 
                                             <td className="border px-3 py-2 text-center">
                                                 <span
-                                                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
-                                                        set.marked_as_done
+                                                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${set.marked_as_done
                                                             ? 'bg-green-600'
                                                             : 'bg-gray-300'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <CheckIcon className="h-4 w-4 text-white" />
                                                 </span>
