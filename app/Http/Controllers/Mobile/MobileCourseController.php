@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Mobile;
 
 use App\Models\Course;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\CourseSection;
+use App\Http\Controllers\Controller;
+use App\Models\StudentCourseSection;
 use Illuminate\Support\Facades\Auth;
 
 class MobileCourseController extends Controller
@@ -12,20 +14,33 @@ class MobileCourseController extends Controller
 
     public function getCoursesBySchool()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $schoolId = $user->school_id;
+        $userId = $user->id;
 
-        $courses = CourseSection::with([
+        $query = CourseSection::with([
             'course.school',
-            'section.school',
+            'section',
             'classSchedule',
-            'professors.school',
-            'students.school',
-            'studentEnrollments',
-            'professorAssignments',
+            'professors',
+            'students'
         ])
-            ->where('school_id', $schoolId)
-            ->get();
+            ->where('school_id', $schoolId);
+
+        if ($user->hasRole('Professor')) {
+            $query->whereHas('professors', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            });
+        }
+
+        if ($user->hasRole('Student')) {
+            $query->whereHas('students', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            });
+        }
+
+        $courses = $query->get();
 
         return response()->json([
             'success' => true,
@@ -36,6 +51,14 @@ class MobileCourseController extends Controller
                 'name' => $user->name,
                 'school_id' => $schoolId,
             ],
+        ]);
+    }
+    public function getStudentsByCourse(CourseSection $courseSection)
+    {
+        $courseSection->load(['students', 'course']);
+
+        return response()->json([
+            'data' => $courseSection
         ]);
     }
 }

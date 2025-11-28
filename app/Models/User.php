@@ -183,6 +183,16 @@ class User extends Authenticatable
         return $this->hasMany(PersonalBest::class, 'student_id');
     }
 
+    public function assignedSchedules()
+    {
+        return $this->belongsToMany(
+            CalendarSchedule::class,
+            'calendar_assignments',
+            'student_id',
+            'calendar_id'
+        )->withTimestamps();
+    }
+    
     public function isAssignedToProgram(Program $program)
     {
         return $this->receivedProgramAssignments()

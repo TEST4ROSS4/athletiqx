@@ -44,23 +44,29 @@ export default function Create({ roles }: { roles: string[] }) {
             <Head title="Add User" />
             <div className="p-3">
                 <div className="p-3">
-                    <h1 className="mb-4 text-2xl font-bold">CRUD App</h1>
+                    {/* Heading */}
+                    <h1 className="mb-4 font-heading text-2xl font-semibold text-[#102d4e]">
+                        Add User
+                    </h1>
 
+                    {/* Back Button */}
                     <Link
                         href={route('users.index')}
-                        className="mb-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none"
+                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                     >
                         Back
                     </Link>
 
+                    {/* Form */}
                     <form
                         onSubmit={submit}
-                        className="mx-auto mt-4 max-w-md space-y-6"
+                        className="mx-auto mt-4 max-w-md space-y-6 font-sans"
                     >
+                        {/* Name */}
                         <div className="grid gap-2">
                             <label
                                 htmlFor="name"
-                                className="text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                                className="font-heading text-sm text-[#102d4e]"
                             >
                                 Name:
                             </label>
@@ -71,7 +77,7 @@ export default function Create({ roles }: { roles: string[] }) {
                                     setData('name', e.target.value)
                                 }
                                 name="name"
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                                 placeholder="Enter your name"
                             />
                             {errors.name && (
@@ -81,10 +87,11 @@ export default function Create({ roles }: { roles: string[] }) {
                             )}
                         </div>
 
+                        {/* Email */}
                         <div className="grid gap-2">
                             <label
                                 htmlFor="email"
-                                className="text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                                className="font-heading text-sm text-[#102d4e]"
                             >
                                 Email:
                             </label>
@@ -96,7 +103,7 @@ export default function Create({ roles }: { roles: string[] }) {
                                 }
                                 name="email"
                                 type="email"
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                                 placeholder="Enter your email"
                             />
                             {errors.email && (
@@ -106,10 +113,11 @@ export default function Create({ roles }: { roles: string[] }) {
                             )}
                         </div>
 
+                        {/* Password */}
                         <div className="grid gap-2">
                             <label
                                 htmlFor="password"
-                                className="text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                                className="font-heading text-sm text-[#102d4e]"
                             >
                                 Password:
                             </label>
@@ -121,7 +129,7 @@ export default function Create({ roles }: { roles: string[] }) {
                                 }
                                 name="password"
                                 type="password"
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                                 placeholder="Enter your password"
                             />
                             {errors.password && (
@@ -131,10 +139,11 @@ export default function Create({ roles }: { roles: string[] }) {
                             )}
                         </div>
 
+                        {/* Roles */}
                         <div className="grid gap-2">
                             <label
                                 htmlFor="roles"
-                                className="text-sm leading-none font-medium select-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                                className="font-heading text-sm text-[#102d4e]"
                             >
                                 Roles:
                             </label>
@@ -153,9 +162,9 @@ export default function Create({ roles }: { roles: string[] }) {
                                                 e.target.checked,
                                             )
                                         }
-                                        className="form-checkbox h-5 w-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                        className="form-checkbox h-5 w-5 rounded text-[#102d4e] focus:ring-2 focus:ring-[#102d4e]"
                                     />
-                                    <span className="text-gray-800 capitalize">
+                                    <span className="font-sans text-gray-800 capitalize">
                                         {role}
                                     </span>
                                 </label>
@@ -167,9 +176,10 @@ export default function Create({ roles }: { roles: string[] }) {
                             )}
                         </div>
 
+                        {/* Submit */}
                         <button
                             type="submit"
-                            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700"
+                            className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                         >
                             Submit
                         </button>

@@ -1,21 +1,24 @@
-// AppLogo.tsx
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDumbbell } from '@fortawesome/free-solid-svg-icons';
-
 export default function AppLogo() {
   return (
-    <>
-      <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-        <FontAwesomeIcon
-          icon={faDumbbell}
-          className="size-5 text-white dark:text-black"
+    <div className="flex items-center gap-3">
+      {/* Logo Image */}
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg">
+        <img
+          src="/images/logo.png"
+          alt="App Logo"
+          className="object-contain"
         />
       </div>
-      <div className="ml-1 grid flex-1 text-left text-sm">
-        <span className="mb-0.5 truncate leading-tight font-semibold">
+
+      {/* App Name */}
+      <div className="flex flex-col">
+        <span className="text-lg font-bold font-heading tracking-wide text-brand dark:text-white">
           AthletiQX
         </span>
+        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+          Train smarter. Perform better
+        </span>
       </div>
-    </>
+    </div>
   );
 }

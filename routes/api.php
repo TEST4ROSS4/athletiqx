@@ -3,17 +3,71 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileCalendarAssignmentController;
+use App\Http\Controllers\Mobile\MobileCalendarScheduleController;
 use App\Http\Controllers\Mobile\MobileCourseController;
+use App\Http\Controllers\Mobile\MobileExerciseLogsController;
+use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
+use App\Http\Controllers\Mobile\MobileProgramsController;
+use App\Http\Controllers\Mobile\MobileProgramStudentController;
 use App\Http\Controllers\Mobile\MobileSportsController;
 
-
+//AUTH AND USERS
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
 Route::get('/users', [MobileAuthController::class, 'getAllUsers']);
+Route::middleware('auth:sanctum')->get('/user/permissions', [MobileAuthController::class, 'getCurrentUserPermissions']);
+
+//ACADEMICS MODULE
 Route::middleware('auth:sanctum')->get('/my-courses', [MobileCourseController::class, 'getCoursesBySchool']);
+Route::middleware('auth:sanctum')->get('/my-courses/students/{courseSection}', [MobileCourseController::class, 'getStudentsByCourse']);
+
+//COACH:TEAM MODULE
 Route::middleware('auth:sanctum')->get('/my-sports', [MobileSportsController::class, 'getAssignedSportsToCoach']);
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}', [MobileSportsController::class, 'getPlayers']);
 Route::middleware('auth:sanctum')->get('/my-sports/players/{sportTeam}/create', [MobileSportsController::class, 'fetchTeamMembersCreate']);
+Route::middleware('auth:sanctum')->put('/my-sports/players/{studentSportTeam}/update', [MobileSportsController::class, 'update']);
 Route::middleware('auth:sanctum')->post('/my-sports/players/{sportTeam}/store', [MobileSportsController::class, 'store']);
+Route::middleware('auth:sanctum')->delete('/my-sports/players/{studentSportTeam}/delete', [MobileSportsController::class, 'destroy']);
+
+
+//COACH:TRANING MODULE
+Route::middleware('auth:sanctum')->get('/my-programs', [MobileProgramsController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/my-programs/{program}', [MobileProgramsController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/my-programs', [MobileProgramsController::class, 'store']);
+Route::middleware('auth:sanctum')->delete('/my-programs/{program}', [MobileProgramsController::class, 'destroy']);
+Route::middleware('auth:sanctum')->put('/my-programs/{id}', [MobileProgramsController::class, 'update']);
+
+//COACH PROGRAM ASSIGNMENT
+Route::middleware('auth:sanctum')->get('/program-assignments', [MobileProgramAssignmentController::class, 'allProgramAssignments']);
+Route::middleware('auth:sanctum')->get('/program-assignments/students', [MobileProgramAssignmentController::class, 'getTeamsAssignedToCoach']);
+Route::middleware('auth:sanctum')->post('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'fetchAssignments']);
+Route::middleware('auth:sanctum')->put('/program-assignments/{program}/assignments', [MobileProgramAssignmentController::class, 'update']);
+
+//STUDENT PROGRAM ASSIGNMENT
+Route::middleware('auth:sanctum')->get('/my-assigned-programs', [MobileProgramStudentController::class, 'programsAssignedToMe']);
+
+//SCHEUDLE MODULE
+Route::middleware('auth:sanctum')->get('/schedules', [MobileCalendarScheduleController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/schedules/{id}', [MobileCalendarScheduleController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/schedules', [MobileCalendarScheduleController::class, 'store']);
+Route::middleware('auth:sanctum')->put('/schedules/{id}', [MobileCalendarScheduleController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/schedules/{id}', [MobileCalendarScheduleController::class, 'destroy']);
+Route::middleware('auth:sanctum')->get('/coach-teams', [MobileCalendarScheduleController::class, 'coachTeams']);
+
+Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarScheduleController::class, 'professorCourseSections']);
+
+//EXERCISE LOGS
+Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/student/{studentId?}/fetch', [MobileExerciseLogsController::class, 'show']);
+
+
+
+
+
+
+
+
 Route::post('/mobile-logout', function (Request $request) {
     $user = $request->user();
     // Optional: Check if user has the correct role before allowing logout
@@ -32,7 +86,3 @@ Route::middleware('auth:sanctum')->get('/token', function (Request $request) {
         'user' => $request->user(),
     ]);
 });
-
-
-
-

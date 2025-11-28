@@ -1,39 +1,47 @@
 import AppLayout from '@/layouts/app-layout';
-import password from '@/routes/password';
 import { type BreadcrumbItem, User } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';  
+import { Head, Link } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
- 
-
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'View User',
-        href: '/users',
-    },
+  {
+    title: 'View User',
+    href: '/users',
+  },
 ];
 
 export default function Show({ user }: { user: User }) {
+  return (
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="View User" />
+      <div className="p-6">
+        <div className="max-w-lg mx-auto space-y-6">
+          {/* Heading */}
+          <h1 className="text-2xl font-heading font-semibold text-[#102d4e]">
+            User Details
+          </h1>
 
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="View User" />
-            <div className='p-3'>
-                <div className="p-3">
-                    <h1 className="text-2xl font-bold mb-4">CRUD App</h1>
-                    
-                    <Link href={route('users.index')} className="mb-4 px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                        Back
-                    </Link>
+          {/* Back Button */}
+          <Link
+            href={route('users.index')}
+            className="inline-block rounded-lg bg-[#102d4e] px-4 py-2 text-sm font-heading font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+          >
+            Back
+          </Link>
 
-                    <div>
-                        <p><strong>Name: </strong>{user.name}</p>
-                        <p><strong>Email: </strong>{user.email}</p>
-                    </div>
-
-
-                </div>
+          {/* User Info Card */}
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+            <div>
+              <p className="text-sm font-heading text-[#102d4e]">Name</p>
+              <p className="text-base font-sans text-gray-800">{user.name}</p>
             </div>
-        </AppLayout>
-    );
+            <div>
+              <p className="text-sm font-heading text-[#102d4e]">Email</p>
+              <p className="text-base font-sans text-gray-800">{user.email}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }
