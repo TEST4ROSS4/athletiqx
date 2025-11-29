@@ -188,6 +188,7 @@ class MobileProgramAssignmentController extends Controller
                 [
                     'assigned_by' => $request->user()->id,
                     'notes' => $validated['notes'] ?? null,
+                    'assigned_at' => now(),
                 ]
             );
         }

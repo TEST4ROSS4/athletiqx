@@ -7,6 +7,7 @@ use App\Http\Controllers\Mobile\MobileCalendarAssignmentController;
 use App\Http\Controllers\Mobile\MobileCalendarScheduleController;
 use App\Http\Controllers\Mobile\MobileCourseController;
 use App\Http\Controllers\Mobile\MobileExerciseLogsController;
+use App\Http\Controllers\Mobile\MobileHomeController;
 use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
 use App\Http\Controllers\Mobile\MobileProgramsController;
 use App\Http\Controllers\Mobile\MobileProgramStudentController;
@@ -60,6 +61,14 @@ Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarSch
 //EXERCISE LOGS
 Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/student/{studentId?}/fetch', [MobileExerciseLogsController::class, 'show']);
+Route::middleware('auth:sanctum')->post('/exercise-logs/{assignmentId}/complete', [MobileExerciseLogsController::class, 'markAsCompleted']);
+
+//HOME APIS
+Route::middleware('auth:sanctum')->get('/students/{studentId}/logs', [MobileHomeController::class, 'getStudentLogs']);
+Route::middleware('auth:sanctum')->get('/students/{studentId}/program', [MobileHomeController::class, 'getStudentProgramName']);
+Route::middleware('auth:sanctum')->get('/coach/{coachId}/program', [MobileHomeController::class, 'getCoachProgramName']);
+
+
 
 
 
