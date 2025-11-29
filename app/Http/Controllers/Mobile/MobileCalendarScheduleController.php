@@ -106,8 +106,8 @@ class MobileCalendarScheduleController extends Controller
 
             // Separate date and times
             'date'        => 'required|date',
-            'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'start_time'  => 'nullable|date_format:H:i',
+            'end_time'    => 'nullable|date_format:H:i|after:start_time',
             'student_ids' => 'nullable|array',
             'student_ids' => 'array|exists:users,id',
         ]);
@@ -150,8 +150,8 @@ class MobileCalendarScheduleController extends Controller
 
             // Separate date and times
             'date'        => 'required|date',
-            'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'start_time'  => 'nullable|date_format:H:i',
+            'end_time'    => 'nullable|date_format:H:i|after:start_time',
 
             'student_ids' => 'array|exists:users,id',
         ]);

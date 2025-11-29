@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('type');
             $table->text('description')->nullable();
             $table->date('date');
-            $table->time('start_time');
-            $table->time('end_time');
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
             $table->timestamps();
         });
     }
