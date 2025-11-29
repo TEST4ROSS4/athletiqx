@@ -13,6 +13,12 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+
+            ['name' => 'news.view',   'module' => 'news'],
+            ['name' => 'news.create', 'module' => 'news'],
+            ['name' => 'news.edit',   'module' => 'news'],
+            ['name' => 'news.delete', 'module' => 'news'],
+
             // USERS
             ['name' => 'users.create', 'module' => 'school'],
             ['name' => 'users.view', 'module' => 'school'],
@@ -101,9 +107,9 @@ class PermissionSeeder extends Seeder
             // -------------------------------------- SCHOOL ADMIN ONLY --------------------------------------
 
             // ROLES
-            ['name' => 'scholarships.create', 'module' => 'school-admin'],
-            ['name' => 'scholarships.view',   'module' => 'school-admin'],
-            ['name' => 'scholarships.edit',   'module' => 'school-admin'],
+            ['name' => 'scholarships.create', 'module' => 'school'],
+            ['name' => 'scholarships.view',   'module' => 'school'],
+            ['name' => 'scholarships.edit',   'module' => 'school'],
             ['name' => 'scholarships.delete', 'module' => 'school-admin'],
 
 
@@ -126,6 +132,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'school-admins.view', 'module' => 'super'],
             ['name' => 'school-admins.edit', 'module' => 'super'],
             ['name' => 'school-admins.delete', 'module' => 'super'],
+
+            // Dashboard
+            ['name' => 'super-admin.view', 'module' => 'super'],
+
         ];
 
         foreach ($permissions as $item) {

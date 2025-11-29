@@ -45,6 +45,11 @@ class SuperAdminSeeder extends Seeder
             'roles.create',
             'roles.edit',
             'roles.delete',
+
+            // Dashboard access
+            'super-admin.view',
+
+
         ];
 
         // ✅ Assign permissions to the role

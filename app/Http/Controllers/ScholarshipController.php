@@ -61,15 +61,30 @@ class ScholarshipController extends Controller
                         'code'  => $enrollment->courseSection->course->code ?? 'Unknown',
                     ],
                     'section'     => ['code' => $enrollment->courseSection->section->code ?? 'Unknown'],
+                    'units'       => $enrollment->courseSection->units ?? 0,
                     'final_grade' => $enrollment->final_grade,
                     'eligible'    => $eligible,
                 ];
             });
 
+            // Compute GWA (exclude subjects with 0 units)
+            $validEnrollments = $enrollments->filter(function ($e) {
+                return $e->final_grade !== null && $e->courseSection->units > 0;
+            });
+
+            $totalUnits = $validEnrollments->sum(fn($e) => $e->courseSection->units);
+            $weightedSum = $validEnrollments->sum(fn($e) => $e->final_grade * $e->courseSection->units);
+
+            $gwa = $totalUnits > 0 ? round($weightedSum / $totalUnits, 2) : null;
+
+            $overallEligible = $gwa !== null && $setting && $gwa >= $setting->min_grade_percentage;
+
             return inertia('ScholarshipsPage/StudentView', [
-                'minGrade'    => $setting?->min_grade_percentage ?? 0,
-                'studentName' => $user->name,
-                'enrollments' => $results,
+                'minGrade'       => $setting?->min_grade_percentage ?? 0,
+                'studentName'    => $user->name,
+                'enrollments'    => $results,
+                'gwa'            => $gwa ?? '—',
+                'overallEligible' => $overallEligible,
             ]);
         }
 

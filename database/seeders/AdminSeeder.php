@@ -92,6 +92,11 @@ class AdminSeeder extends Seeder
             'exercise-logs.edit',
             'exercise-logs.delete',
 
+            'news.view',
+            'news.create',
+            'news.edit',
+            'news.delete',
+
         ];
 
         // ✅ Assign permissions to the role

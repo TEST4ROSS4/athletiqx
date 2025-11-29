@@ -32,6 +32,8 @@ import {
     UserCog,
     UserPlus,
     Users,
+    LayoutDashboard,
+    Newspaper,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -72,9 +74,15 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         {
+            title: 'News Feed',
+            href: '/news',
+            icon: Newspaper,
+        },
+        {
             title: 'Dashboard',
             href: dashboard(),
             icon: LayoutGrid,
+            hidden: true,
         },
         can('users.view') && {
             title: 'Users',
@@ -164,6 +172,12 @@ export function AppSidebar() {
         },
 
         // ------------------------------ SUPER ADMIN ------------------------------
+        isSuperAdmin &&
+            can('super-admin.view') && {
+                title: 'Super Admin Dashboard',
+                href: '/super-admin/dashboard',
+                icon: LayoutDashboard, 
+            },
 
         isSuperAdmin &&
             can('schools.view') && {

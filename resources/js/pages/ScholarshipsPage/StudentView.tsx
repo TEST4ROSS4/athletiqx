@@ -6,8 +6,9 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Scholarship Status', href: '/sc
 
 interface Enrollment {
   id: number;
-  course: { title: string; code: string }; // include course code
+  course: { title: string; code: string };
   section: { code: string };
+  units: number;
   final_grade: number | null;
   eligible: boolean;
 }
@@ -15,10 +16,14 @@ interface Enrollment {
 export default function StudentView({
   minGrade,
   studentName,
+  gwa,
+  overallEligible,
   enrollments = [],
 }: {
   minGrade: number;
   studentName: string;
+  gwa: string | number;
+  overallEligible: boolean;
   enrollments?: Enrollment[];
 }) {
   return (
@@ -35,6 +40,17 @@ export default function StudentView({
           <p className="mb-2 text-sm text-gray-600">
             Minimum Required Grade: <span className="font-semibold">{minGrade}%</span>
           </p>
+          <p className="mb-2 text-sm text-gray-600">
+            General Weighted Average (GWA): <span className="font-semibold">{gwa}</span>
+          </p>
+          <p className="mb-2 text-sm text-gray-600">
+            Overall Scholarship Eligibility:{' '}
+            {overallEligible ? (
+              <span className="font-semibold text-green-700">✅ Eligible</span>
+            ) : (
+              <span className="font-semibold text-red-700">❌ Not Eligible</span>
+            )}
+          </p>
         </div>
 
         {/* Enrolled Subjects */}
@@ -42,10 +58,10 @@ export default function StudentView({
           <table className="w-full text-left text-sm text-gray-700">
             <thead className="bg-gray-50 text-xs uppercase">
               <tr>
-                <th className="px-6 py-3">Course Code</th>
                 <th className="px-6 py-3">Subject</th>
-                
+                <th className="px-6 py-3">Course Code</th>
                 <th className="px-6 py-3">Section</th>
+                <th className="px-6 py-3">Units</th>
                 <th className="px-6 py-3">Final Grade (%)</th>
                 <th className="px-6 py-3">Eligible?</th>
               </tr>
@@ -53,10 +69,10 @@ export default function StudentView({
             <tbody>
               {enrollments.map((enrollment) => (
                 <tr key={enrollment.id} className="border-b odd:bg-white even:bg-gray-50">
-                  <td className="px-6 py-2">{enrollment.course.code}</td>
                   <td className="px-6 py-2 font-medium">{enrollment.course.title}</td>
-                  
+                  <td className="px-6 py-2">{enrollment.course.code}</td>
                   <td className="px-6 py-2">{enrollment.section.code}</td>
+                  <td className="px-6 py-2">{enrollment.units}</td>
                   <td className="px-6 py-2">{enrollment.final_grade ?? '—'}</td>
                   <td className="px-6 py-2">
                     {enrollment.eligible ? (

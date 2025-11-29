@@ -9,6 +9,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\SectionController;
+use App\Http\Controllers\NewsPostController;
 use App\Http\Controllers\SportTeamController;
 use App\Http\Controllers\ExerciseLogController;
 use App\Http\Controllers\ScholarshipController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\CourseSectionController;
 use App\Http\Controllers\CoachAssignmentController;
 use App\Http\Controllers\StudentSportTeamController;
 use App\Http\Controllers\ProgramAssignmentController;
+use App\Http\Controllers\SuperAdminDashboardController;
 use App\Http\Controllers\StudentCourseSectionController;
 use App\Http\Controllers\ProfessorCourseSectionController;
 
@@ -186,6 +188,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('scholarships/check/{studentCourseSection}', [ScholarshipController::class, 'checkEligibility'])->name('scholarships.check')->middleware('permission:scholarships.view');
     Route::get('scholarships/check-course/{courseSection}', [ScholarshipController::class, 'checkEligibilityForCourseSection'])->name('scholarships.checkCourse')->middleware('permission:scholarships.view');
     Route::get('scholarships/student', [ScholarshipController::class, 'studentView'])->name('scholarships.student')->middleware('permission:scholarships.view');
+
+    Route::get('super-admin/dashboard', [SuperAdminDashboardController::class, 'index'])->name('super-admin.dashboard')->middleware('permission:super-admin.view');
+
+
+    Route::get('news', [NewsPostController::class, 'index'])->name('news.index');
+    Route::get('news/create', [NewsPostController::class, 'create'])->name('news.create')->middleware('role:Admin');
+    Route::post('news', [NewsPostController::class, 'store'])->name('news.store')->middleware('role:Admin');
+    Route::get('news/{newsPost}', [NewsPostController::class, 'show'])->name('news.show');
+    Route::get('news/{newsPost}/edit', [NewsPostController::class, 'edit'])->name('news.edit')->middleware('role:Admin');
+    Route::put('news/{newsPost}', [NewsPostController::class, 'update'])->name('news.update')->middleware('role:Admin');
+    Route::delete('news/{newsPost}', [NewsPostController::class, 'destroy'])->name('news.destroy')->middleware('role:Admin');
 });
 
 require __DIR__ . '/settings.php';
