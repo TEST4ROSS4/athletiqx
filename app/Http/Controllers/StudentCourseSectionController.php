@@ -12,15 +12,34 @@ use App\Models\StudentCourseSection;
 class StudentCourseSectionController extends Controller
 {
     public function index()
-    {
-        $assignments = StudentCourseSection::with(['student', 'courseSection.course', 'courseSection.section'])
-            ->where('school_id', Auth::user()->school_id)
-            ->get();
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        return Inertia::render('EnrollStudentsPage/Index', [
-            'assignments' => $assignments,
-        ]);
+    $query = StudentCourseSection::with(['student', 'courseSection.course', 'courseSection.section'])
+        ->where('school_id', $user->school_id);
+
+    if ($user->hasRole('Student')) {
+        // ✅ Students only see their own enrollments
+        $query->where('student_id', $user->id);
+    } elseif ($user->hasRole('Professor')) {
+        // ✅ Professors only see students in their assigned course sections
+        $query->whereIn('course_section_id', function ($sub) use ($user) {
+            $sub->select('course_section_id')
+                ->from('professor_course_section')
+                ->where('professor_id', $user->id)
+                ->where('school_id', $user->school_id);
+        });
     }
+    // Admins / super_admins → see everything by default
+
+    $assignments = $query->get();
+
+    return Inertia::render('EnrollStudentsPage/Index', [
+        'assignments' => $assignments,
+        'sort' => request('sort', 'created'),
+    ]);
+}
 
     public function create()
     {

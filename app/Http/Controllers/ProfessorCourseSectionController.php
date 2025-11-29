@@ -12,15 +12,25 @@ use App\Models\ProfessorCourseSection;
 class ProfessorCourseSectionController extends Controller
 {
     public function index()
-    {
-        $assignments = ProfessorCourseSection::with(['professor', 'courseSection.course', 'courseSection.section'])
-            ->where('school_id', Auth::user()->school_id)
-            ->get();
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        return Inertia::render('AssignProfessorsPage/Index', [
-            'assignments' => $assignments,
-        ]);
+    $query = ProfessorCourseSection::with(['professor', 'courseSection.course', 'courseSection.section'])
+        ->where('school_id', $user->school_id);
+
+    if ($user->hasRole('Professor')) {
+        // ✅ Professors only see their own assignments
+        $query->where('professor_id', $user->id);
     }
+    // Admins / super_admins → see everything by default
+
+    $assignments = $query->get();
+
+    return Inertia::render('AssignProfessorsPage/Index', [
+        'assignments' => $assignments,
+    ]);
+}
 
     public function create()
     {

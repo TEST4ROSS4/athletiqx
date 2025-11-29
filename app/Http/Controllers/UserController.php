@@ -36,9 +36,11 @@ class UserController extends Controller
     public function create()
     {
         return Inertia::render("UsersPage/Add", [
-            "roles" => Role::pluck("name"),
+            // ✅ Only include Student, Coach, Professor
+            "roles" => Role::whereIn('name', ['Student', 'Coach', 'Professor'])->pluck("name"),
         ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -96,9 +98,11 @@ class UserController extends Controller
         return Inertia::render("UsersPage/Edit", [
             "user" => $user,
             "userRole" => $user->roles()->pluck("name"),
-            "roles" => Role::pluck("name"),
+            // ✅ Only include Student, Coach, Professor
+            "roles" => Role::whereIn('name', ['Student', 'Coach', 'Professor'])->pluck("name"),
         ]);
     }
+
 
     /**
      * Update the specified resource in storage.
