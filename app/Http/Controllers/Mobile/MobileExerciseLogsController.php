@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ExerciseLog;
 use App\Models\ProgramAssignment;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -155,7 +156,23 @@ class MobileExerciseLogsController extends Controller
         return response()->json([
             'assignment_id' => $assignment->id,
             'assignment_status' => $assignment->status,
+            'marked_done_at' => $assignment->marked_done_at,
             'exercise_logs' => $exerciseLogs,
+        ]);
+    }
+
+    public function markAsCompleted($assignmentId)
+    {
+        $assignment = ProgramAssignment::findOrFail($assignmentId);
+        $assignment->marked_done_at = now();
+        // $assignment->status = 'Approved';
+        $assignment->save();
+
+        return response()->json([
+            'message' => 'Program assignment marked as completed.',
+            'marked_done_at' => $assignment->marked_done_at, // ✅ return this
+            'assignment_id' => $assignment->id,
+            'assignment_status' => $assignment->status,
         ]);
     }
 }
