@@ -71,7 +71,6 @@ class MobileHomeController extends Controller
         // Fetch a single assignment with status 'Assigned'
         $assignment = ProgramAssignment::with('program')
             ->where('assigned_by', $coachId)
-            ->where('status', 'Assigned')
             ->orderBy('created_at', 'desc')
             ->first();
 

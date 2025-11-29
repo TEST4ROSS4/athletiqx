@@ -126,7 +126,7 @@ export default function Welcome() {
                         )}
 
                         <a
-                            href="#"
+                            href="https://athletiqxapp.com/AthletiQX.apk"
                             onClick={scrollToDemo}
                             className="mt-6 inline-block rounded-md bg-[#102d4e] px-6 py-2 text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                         >
