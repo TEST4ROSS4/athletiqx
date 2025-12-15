@@ -12,6 +12,11 @@ use App\Http\Controllers\Mobile\MobileProgramAssignmentController;
 use App\Http\Controllers\Mobile\MobileProgramsController;
 use App\Http\Controllers\Mobile\MobileProgramStudentController;
 use App\Http\Controllers\Mobile\MobileSportsController;
+use App\Http\Controllers\Api\FileUploadController;
+use App\Http\Controllers\Api\EmailController;
+use App\Http\Controllers\Api\KpiController;
+use App\Http\Controllers\Api\WellnessController;
+use App\Http\Controllers\Api\TrainingComplianceController;
 
 //AUTH AND USERS
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
@@ -58,6 +63,9 @@ Route::middleware('auth:sanctum')->get('/coach-teams', [MobileCalendarScheduleCo
 
 Route::middleware('auth:sanctum')->get('/professor-sections', [MobileCalendarScheduleController::class, 'professorCourseSections']);
 
+// Mobile News Feed (Student/Coach, school-scoped + global)
+Route::middleware('auth:sanctum')->get('/news-feed', [\App\Http\Controllers\NewsPostController::class, 'mobileIndex']);
+
 //EXERCISE LOGS
 Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/student/{studentId?}/fetch', [MobileExerciseLogsController::class, 'show']);
@@ -68,8 +76,47 @@ Route::middleware('auth:sanctum')->get('/students/{studentId}/logs', [MobileHome
 Route::middleware('auth:sanctum')->get('/students/{studentId}/program', [MobileHomeController::class, 'getStudentProgramName']);
 Route::middleware('auth:sanctum')->get('/coach/{coachId}/program', [MobileHomeController::class, 'getCoachProgramName']);
 
+//FILE UPLOAD SYSTEM (Phase 1)
+Route::middleware('auth:sanctum')->post('/trainings/{trainingId}/proof', [FileUploadController::class, 'uploadProof']);
+Route::middleware('auth:sanctum')->get('/trainings/{trainingId}/proofs', [FileUploadController::class, 'getProofs']);
+Route::middleware('auth:sanctum')->put('/trainings/{trainingId}/proof/{proofId}', [FileUploadController::class, 'approveRejectProof']);
+Route::middleware('auth:sanctum')->delete('/trainings/{trainingId}/proof/{proofId}', [FileUploadController::class, 'deleteProof']);
 
+//EMAIL NOTIFICATION SYSTEM (Phase 1)
+Route::post('/newsletter/subscribe', [EmailController::class, 'subscribe']);
+Route::middleware('auth:sanctum')->get('/newsletter/preferences', [EmailController::class, 'getPreferences']);
+Route::middleware('auth:sanctum')->put('/newsletter/preferences', [EmailController::class, 'updatePreferences']);
+Route::middleware('auth:sanctum')->get('/notifications/email-history', [EmailController::class, 'getEmailHistory']);
 
+// Demo Requests
+Route::post('/demo-requests', [\App\Http\Controllers\Api\DemoRequestController::class, 'store']);
+
+//KPI DASHBOARD (Phase 2)
+Route::middleware('auth:sanctum')->get('/students/{studentId}/kpis', [KpiController::class, 'getKpiSummary']);
+Route::middleware('auth:sanctum')->get('/students/{studentId}/kpis/trends', [KpiController::class, 'getKpiTrends']);
+Route::middleware('auth:sanctum')->get('/students/{studentId}/kpis/comparison', [KpiController::class, 'getKpiComparison']);
+Route::middleware('auth:sanctum')->get('/teams/{teamId}/analytics', [KpiController::class, 'getTeamAnalytics']);
+Route::middleware('auth:sanctum')->get('/school/kpis', [KpiController::class, 'getSchoolKpis']);
+Route::middleware('auth:sanctum')->get('/school/kpis/trends', [KpiController::class, 'getSchoolKpiTrends']);
+Route::middleware('auth:sanctum')->get('/kpi/schools', [KpiController::class, 'listSchools']);
+Route::middleware('auth:sanctum')->get('/kpi/teams', [KpiController::class, 'listTeams']);
+Route::middleware('auth:sanctum')->get('/teams/{teamId}/students', [KpiController::class, 'listTeamStudents']);
+
+//WELLNESS TRACKING (Phase 2)
+Route::middleware('auth:sanctum')->post('/wellness/log', [WellnessController::class, 'logWellness']);
+Route::middleware('auth:sanctum')->get('/wellness/history', [WellnessController::class, 'getWellnessHistory']);
+Route::middleware('auth:sanctum')->get('/wellness/trends', [WellnessController::class, 'getWellnessTrends']);
+Route::middleware('auth:sanctum')->get('/wellness/recommendations', [WellnessController::class, 'getWellnessRecommendations']);
+Route::middleware('auth:sanctum')->get('/wellness/check-today', [WellnessController::class, 'checkTodayWellness']);
+Route::middleware('auth:sanctum')->put('/wellness/latest', [WellnessController::class, 'updateLatestWellness']);
+Route::middleware('auth:sanctum')->get('/teams/{teamId}/wellness', [WellnessController::class, 'getTeamWellnessStatus']);
+
+//TRAINING COMPLIANCE TRACKING (Phase 3)
+Route::middleware('auth:sanctum')->post('/trainings/{trainingId}/log-completion', [TrainingComplianceController::class, 'logTrainingCompletion']);
+Route::middleware('auth:sanctum')->get('/trainings/{trainingId}/compliance', [TrainingComplianceController::class, 'getTrainingCompliance']);
+Route::middleware('auth:sanctum')->get('/students/{studentId}/compliance-report', [TrainingComplianceController::class, 'getStudentComplianceReport']);
+Route::middleware('auth:sanctum')->get('/teams/{teamId}/compliance-analytics', [TrainingComplianceController::class, 'getTeamComplianceAnalytics']);
+Route::middleware('auth:sanctum')->put('/trainings/{trainingId}/log/{logId}', [TrainingComplianceController::class, 'updateTrainingLog']);
 
 
 

@@ -27,8 +27,21 @@ class ProfessorCourseSectionController extends Controller
 
     $assignments = $query->get();
 
+    $schoolId = $user->school_id;
+
+    $professors = User::role('professor')
+        ->where('school_id', $schoolId)
+        ->select('id', 'name', 'email')
+        ->get();
+
+    $courseSections = CourseSection::with(['course', 'section'])
+        ->where('school_id', $schoolId)
+        ->get();
+
     return Inertia::render('AssignProfessorsPage/Index', [
         'assignments' => $assignments,
+        'professors' => $professors,
+        'courseSections' => $courseSections,
     ]);
 }
 

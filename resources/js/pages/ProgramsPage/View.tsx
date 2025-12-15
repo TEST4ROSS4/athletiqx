@@ -81,7 +81,7 @@ export default function View({ program, exercises, assignments }: Props) {
         >
             <Head title={`View Program - ${program.name}`} />
 
-            <div className="mx-auto max-w-5xl space-y-8 px-4 sm:px-6 lg:px-8 py-6">
+            <div className="space-y-8 px-4 sm:px-6 lg:px-10 xl:px-12 py-6">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <Link href={route('programs.index')}>

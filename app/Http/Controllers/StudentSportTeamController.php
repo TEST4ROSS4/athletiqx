@@ -35,9 +35,14 @@ class StudentSportTeamController extends Controller
             ->where('sport_team_id', $sportTeam->id)
             ->get();
 
+        $students = User::role('student')
+            ->where('school_id', Auth::user()->school_id)
+            ->get();
+
         return Inertia::render('ManageTeamMembersPage/Index', [
             'sportTeam' => $sportTeam,
             'assignments' => $assignments,
+            'students' => $students,
         ]);
     }
 

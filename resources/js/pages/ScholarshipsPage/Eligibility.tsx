@@ -84,7 +84,7 @@ export default function Eligibility({
             id="courseSection"
             value={courseSection ?? ''}
             onChange={handleSectionChange}
-            className="rounded border px-2 py-1"
+            className="rounded border px-2 py-1 text-gray-900 bg-white"
           >
             <option value="">-- Choose Section --</option>
             {courseSections.map((cs) => (

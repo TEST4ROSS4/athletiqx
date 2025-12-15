@@ -60,7 +60,7 @@ export default function Index({
                             id="student"
                             value={studentId}
                             onChange={handleStudentChange}
-                            className="rounded-lg border-gray-300 bg-white px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm"
+                            className="rounded-lg border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm"
                         >
                             <option value="">-- Select Student --</option>
                             {students.map((s) => (

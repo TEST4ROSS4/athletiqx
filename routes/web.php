@@ -20,8 +20,15 @@ use App\Http\Controllers\CoachAssignmentController;
 use App\Http\Controllers\StudentSportTeamController;
 use App\Http\Controllers\ProgramAssignmentController;
 use App\Http\Controllers\SuperAdminDashboardController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\CoachDashboardController;
 use App\Http\Controllers\StudentCourseSectionController;
 use App\Http\Controllers\ProfessorCourseSectionController;
+use App\Http\Controllers\KpiDashboardController;
+use App\Http\Controllers\SuperAdminWellnessController;
+use App\Http\Controllers\AdminWellnessController;
+use App\Http\Controllers\CoachWellnessController;
+use App\Http\Controllers\DemoRequestAdminController;
 
 
 
@@ -190,15 +197,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('scholarships/student', [ScholarshipController::class, 'studentView'])->name('scholarships.student')->middleware('permission:scholarships.view');
 
     Route::get('super-admin/dashboard', [SuperAdminDashboardController::class, 'index'])->name('super-admin.dashboard')->middleware('permission:super-admin.view');
+    Route::get('super-admin/wellness-logs', [SuperAdminWellnessController::class, 'index'])->name('super-admin.wellness-logs')->middleware('permission:super-admin.view');
+    Route::get('admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard')->middleware('role:Admin|school-admin|super_admin');
+    Route::get('coach/dashboard', [CoachDashboardController::class, 'index'])->name('coach.dashboard')->middleware('role:Coach|Admin|super_admin');
+    Route::get('admin/wellness-logs', [AdminWellnessController::class, 'index'])->name('admin.wellness-logs')->middleware('role:Admin');
+    Route::get('coach/wellness-logs', [CoachWellnessController::class, 'index'])->name('coach.wellness-logs')->middleware('role:Coach|Admin|super_admin');
+    Route::get('kpi-dashboard', [KpiDashboardController::class, 'index'])->name('kpi-dashboard.index');
+    Route::get('kpi-dashboard/team', [KpiDashboardController::class, 'teamLanding'])->name('kpi-dashboard.team.landing')->middleware('role:Coach|Admin|super_admin');
+    Route::get('kpi-dashboard/team/{teamId}', [KpiDashboardController::class, 'teamKpi'])->name('kpi-dashboard.team')->middleware('role:Coach|Admin|super_admin');
+    Route::get('kpi-dashboard/school', [KpiDashboardController::class, 'schoolKpi'])->name('kpi-dashboard.school')->middleware('role:Admin|super_admin');
+
+    // Demo Requests (Super Admin only)
+    Route::middleware(['role:super_admin'])->prefix('super-admin')->group(function () {
+        Route::get('demo-requests', [DemoRequestAdminController::class, 'index'])->name('demo-requests.index');
+        Route::post('demo-requests/{demoRequest}/accept', [DemoRequestAdminController::class, 'accept'])->name('demo-requests.accept');
+        Route::post('demo-requests/{demoRequest}/decline', [DemoRequestAdminController::class, 'decline'])->name('demo-requests.decline');
+    });
 
 
-    Route::get('news', [NewsPostController::class, 'index'])->name('news.index');
-    Route::get('news/create', [NewsPostController::class, 'create'])->name('news.create')->middleware('role:Admin');
-    Route::post('news', [NewsPostController::class, 'store'])->name('news.store')->middleware('role:Admin');
-    Route::get('news/{newsPost}', [NewsPostController::class, 'show'])->name('news.show');
-    Route::get('news/{newsPost}/edit', [NewsPostController::class, 'edit'])->name('news.edit')->middleware('role:Admin');
-    Route::put('news/{newsPost}', [NewsPostController::class, 'update'])->name('news.update')->middleware('role:Admin');
-    Route::delete('news/{newsPost}', [NewsPostController::class, 'destroy'])->name('news.destroy')->middleware('role:Admin');
+    Route::get('news', [NewsPostController::class, 'index'])->name('news.index')->middleware('role:Admin|super_admin');
+    Route::get('news/create', [NewsPostController::class, 'create'])->name('news.create')->middleware('role:Admin|super_admin');
+    Route::post('news', [NewsPostController::class, 'store'])->name('news.store')->middleware('role:Admin|super_admin');
+    Route::get('news/{newsPost}', [NewsPostController::class, 'show'])->name('news.show')->middleware('role:Admin|super_admin');
+    Route::get('news/{newsPost}/edit', [NewsPostController::class, 'edit'])->name('news.edit')->middleware('role:Admin|super_admin');
+    Route::put('news/{newsPost}', [NewsPostController::class, 'update'])->name('news.update')->middleware('role:Admin|super_admin');
+    Route::delete('news/{newsPost}', [NewsPostController::class, 'destroy'])->name('news.destroy')->middleware('role:Admin|super_admin');
+
+    Route::get('wellness/log', function () {
+        return Inertia::render('WellnessPage/LogForm');
+    })->name('wellness.log');
 });
 
 require __DIR__ . '/settings.php';

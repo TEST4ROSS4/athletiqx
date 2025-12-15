@@ -54,34 +54,37 @@ export default function Edit({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Role" />
-            <div className="p-3">
-                <div className="p-3">
-                    {/* Heading */}
-                    <h1 className="mb-4 font-heading text-2xl font-semibold text-[#102d4e]">
-                        Edit Role
-                    </h1>
-
+            <div className="mx-auto max-w-5xl space-y-6 px-6 py-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                        <h1 className="font-heading text-3xl font-semibold text-[#102d4e]">
+                            Edit Role
+                        </h1>
+                        <p className="text-sm text-gray-600">Update role name and permissions.</p>
+                    </div>
                     <Link
                         href={route('roles.index')}
-                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                        className="rounded-lg bg-gray-100 px-4 py-2 font-heading text-sm font-semibold text-[#102d4e] shadow-sm transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-[#102d4e]"
                     >
                         Back
                     </Link>
+                </div>
 
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <form
                         onSubmit={submit}
-                        className="mx-auto mt-4 max-w-md space-y-6 font-sans"
+                        className="grid gap-6 p-6 font-sans"
                     >
                         <div className="grid gap-2">
                             <label htmlFor="name" className="font-heading text-sm text-[#102d4e]">
-                                Role Name:
+                                Role Name
                             </label>
                             <input
                                 id="name"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 name="name"
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                                 placeholder="Enter role name"
                             />
                             {errors.name && (
@@ -89,57 +92,65 @@ export default function Edit({
                             )}
                         </div>
 
-                        <div className="grid gap-4">
-                            <label htmlFor="permissions" className="font-heading text-sm text-[#102d4e]">
-                                Permissions:
-                            </label>
+                        <div className="grid gap-3">
+                            <div className="flex items-center justify-between">
+                                <label className="font-heading text-sm text-[#102d4e]">
+                                    Permissions
+                                </label>
+                                {errors.permissions && (
+                                    <span className="text-sm text-red-500">{errors.permissions}</span>
+                                )}
+                            </div>
 
-                            {Object.entries(grouped).map(([group, perms]) => (
-                                <div key={group}>
-                                    <h3 className="mb-2 text-sm font-semibold capitalize text-gray-600">
-                                        {group} permissions
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {perms.map((permission) => (
-                                            <label
-                                                key={`permission-${permission.name}`}
-                                                className="flex items-center space-x-2"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    value={permission.name}
-                                                    id={permission.name}
-                                                    checked={data.permissions.includes(permission.name)}
-                                                    onChange={(e) =>
-                                                        handleCheckboxSelect(
-                                                            permission.name,
-                                                            e.target.checked,
-                                                        )
-                                                    }
-                                                    className="form-checkbox h-5 w-5 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-                                                />
-                                                <span className="text-gray-800 capitalize">
-                                                    {permission.name}
-                                                </span>
-                                            </label>
-                                        ))}
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {Object.entries(grouped).map(([group, perms]) => (
+                                    <div key={group} className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                                        <h3 className="mb-3 text-sm font-semibold capitalize text-gray-700">
+                                            {group} permissions
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {perms.map((permission) => (
+                                                <label
+                                                    key={`permission-${permission.name}`}
+                                                    className="flex items-start gap-2 rounded-md bg-white px-3 py-2 shadow-sm ring-1 ring-gray-100"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        value={permission.name}
+                                                        id={permission.name}
+                                                        checked={data.permissions.includes(permission.name)}
+                                                        onChange={(e) =>
+                                                            handleCheckboxSelect(
+                                                                permission.name,
+                                                                e.target.checked,
+                                                            )
+                                                        }
+                                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-[#102d4e] focus:ring-[#102d4e]"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm font-medium text-gray-800">
+                                                            {permission.name}
+                                                        </span>
+                                                        <p className="text-xs text-gray-500">
+                                                            Module: {permission.module}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-
-                            {errors.permissions && (
-                                <p className="mt-1 text-sm text-red-500">
-                                    {errors.permissions}
-                                </p>
-                            )}
+                                ))}
+                            </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
-                        >
-                            Submit
-                        </button>
+                        <div className="flex justify-end">
+                            <button
+                                type="submit"
+                                className="rounded-lg bg-[#102d4e] px-6 py-2.5 font-heading text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d243d] focus:outline-none focus:ring-2 focus:ring-[#102d4e]"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

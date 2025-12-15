@@ -5,17 +5,34 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AuthLayout from '@/layouts/auth-layout';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
+    isLocalhost?: boolean;
+    testAccounts?: Array<{ email: string; password: string; name: string }>;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status, canResetPassword, isLocalhost, testAccounts }: LoginProps) {
+    const handleAccountSelect = (value: string) => {
+        const account = testAccounts?.find(acc => acc.email === value);
+        if (account) {
+            const emailInput = document.getElementById('email') as HTMLInputElement;
+            const passwordInput = document.getElementById('password') as HTMLInputElement;
+            
+            if (emailInput && passwordInput) {
+                emailInput.value = account.email;
+                passwordInput.value = account.password;
+            }
+        }
+    };
+
     return (
         <AuthLayout
             title="Welcome Back"
@@ -30,6 +47,35 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             >
                 {({ processing, errors }) => (
                     <>
+                        {isLocalhost && testAccounts && testAccounts.length > 0 && (
+                            <div className="grid gap-2">
+                                <Label
+                                    htmlFor="test-account"
+                                    className="font-heading text-sm text-[#102d4e]"
+                                >
+                                    🧪 Test Accounts (Development Mode)
+                                </Label>
+                                <Select onValueChange={handleAccountSelect}>
+                                    <SelectTrigger
+                                        id="test-account"
+                                        className="border-gray-300 font-sans focus:border-[#102d4e] focus:ring-[#102d4e]"
+                                    >
+                                        <SelectValue placeholder="Select a test account..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {testAccounts.map((account) => (
+                                            <SelectItem key={account.email} value={account.email}>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{account.name}</span>
+                                                    <span className="text-xs text-gray-500">{account.email}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
                         <div className="grid gap-6">
                             {/* Email */}
                             <div className="grid gap-2">

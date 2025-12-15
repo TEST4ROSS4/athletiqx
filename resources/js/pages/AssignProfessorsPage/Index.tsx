@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { FormModal } from '@/components/form-modal';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowUpDown } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { can } from '@/lib/can';
@@ -10,11 +11,44 @@ const breadcrumbs = [{ title: 'Professor Assignments', href: '/professor-course-
 export default function Index({
     assignments,
     sort,
+    professors = [],
+    courseSections = [],
 }: {
     assignments: any[];
     sort: string;
+    professors?: { id: number; name: string; email: string }[];
+    courseSections?: {
+        id: number;
+        term: string;
+        course: { title: string };
+        section: { code: string };
+    }[];
 }) {
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const professorOptions = professors.map((p) => ({
+        label: `${p.name} (${p.email})`,
+        value: p.id,
+    }));
+    const courseSectionOptions = courseSections.map((cs) => ({
+        label: `${cs.course.title} - ${cs.section.code} (${cs.term})`,
+        value: cs.id,
+    }));
+
+    const { data, setData, post, reset, processing, errors } = useForm({
+        professor_id: null as number | null,
+        course_section_id: null as number | null,
+    });
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        post(route('professor-course-sections.store'), {
+            onSuccess: () => {
+                reset();
+                setShowModal(false);
+            },
+        });
+    }
 
     function handleSortToggle() {
         const nextSort = sort === 'alpha' ? 'created' : 'alpha';
@@ -45,12 +79,13 @@ export default function Index({
                     {/* Top Controls */}
                     <div className="flex items-center justify-between gap-4">
                         {can('professor-course-sections.create') && (
-                            <Link
-                                href={route('professor-course-sections.create')}
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(true)}
                                 className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                             >
                                 Assign Professor
-                            </Link>
+                            </button>
                         )}
 
                         {/* Search Bar */}
@@ -158,6 +193,88 @@ export default function Index({
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-2 py-6 backdrop-blur-sm">
+                    <FormModal
+                        title="Assign Professor to Course Section"
+                        backHref={route('professor-course-sections.index')}
+                        backLabel="Close"
+                        onBack={() => {
+                            reset();
+                            setShowModal(false);
+                        }}
+                    >
+                        <form onSubmit={submit} className="space-y-6 font-sans">
+                            <div className="grid gap-2">
+                                <label htmlFor="professor_id" className="font-heading text-sm text-[#102d4e]">
+                                    Professor:
+                                </label>
+                                <select
+                                    id="professor_id"
+                                    value={data.professor_id ?? ''}
+                                    onChange={(e) => setData('professor_id', e.target.value ? Number(e.target.value) : null)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                    required
+                                >
+                                    <option value="">Select professor</option>
+                                    {professorOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.professor_id && <p className="mt-1 text-sm text-red-500">{errors.professor_id}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label htmlFor="course_section_id" className="font-heading text-sm text-[#102d4e]">
+                                    Course Section:
+                                </label>
+                                <select
+                                    id="course_section_id"
+                                    value={data.course_section_id ?? ''}
+                                    onChange={(e) =>
+                                        setData('course_section_id', e.target.value ? Number(e.target.value) : null)
+                                    }
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                    required
+                                >
+                                    <option value="">Select course section</option>
+                                    {courseSectionOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.course_section_id && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none disabled:opacity-60"
+                                >
+                                    Submit
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        reset();
+                                        setShowModal(false);
+                                    }}
+                                    className="rounded-md border border-gray-300 px-4 py-2 font-heading text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </FormModal>
                 </div>
             )}
         </AppLayout>

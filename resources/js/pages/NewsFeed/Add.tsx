@@ -1,45 +1,84 @@
 import AppLayout from '@/layouts/app-layout';
+import { FormModal } from '@/components/form-modal';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Add() {
+type School = { id: number; name: string };
+
+export default function Add({
+  schools = [],
+  canSelectSchool = false,
+  defaultSchoolId = null,
+}: {
+  schools?: School[];
+  canSelectSchool?: boolean;
+  defaultSchoolId?: number | null;
+}) {
   const { data, setData, post, reset } = useForm({
     title: '',
     description: '',
-    is_global: false,
+    image: null as File | null,
+    school_id: defaultSchoolId,
   });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/news', { onSuccess: () => reset() });
+    post('/news', {
+      forceFormData: true,
+      onSuccess: () => reset(),
+    });
   };
 
   return (
     <AppLayout>
       <Head title="Create News Post" />
-      <div className="p-8 bg-white">
-        <h1 className="text-2xl font-bold text-[#102d4e] mb-6">Create News Post</h1>
-        <form onSubmit={submit} className="space-y-4">
+      <FormModal title="Create News Post" backHref="/news">
+        <form onSubmit={submit} className="space-y-4" encType="multipart/form-data">
           <input
             type="text"
             placeholder="Title"
             value={data.title}
             onChange={(e) => setData('title', e.target.value)}
             className="w-full border rounded p-2"
+            required
           />
+
           <textarea
             placeholder="Description"
             value={data.description}
             onChange={(e) => setData('description', e.target.value)}
             className="w-full border rounded p-2 h-24"
+            required
           />
-          <label className="flex items-center space-x-2">
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Image (optional, max 5MB)</label>
             <input
-              type="checkbox"
-              checked={data.is_global}
-              onChange={(e) => setData('is_global', e.target.checked)}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
+              className="w-full"
             />
-            <span>Share to all schools</span>
-          </label>
+          </div>
+
+          {canSelectSchool && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">School</label>
+              <select
+                value={data.school_id ?? ''}
+                onChange={(e) => setData('school_id', e.target.value ? Number(e.target.value) : null)}
+                className="w-full border rounded p-2"
+                required
+              >
+                <option value="">Select a school</option>
+                {schools.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <button
             type="submit"
             className="bg-[#102d4e] text-white px-4 py-2 rounded hover:bg-[#0d243d]"
@@ -47,7 +86,7 @@ export default function Add() {
             Save
           </button>
         </form>
-      </div>
+      </FormModal>
     </AppLayout>
   );
 }

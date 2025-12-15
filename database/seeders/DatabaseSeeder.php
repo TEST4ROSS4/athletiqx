@@ -30,7 +30,10 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             SuperAdminSeeder::class,
             AdminSeeder::class,
+            CoachSeeder::class,
             RoleSeeder::class,
+            TestAccountsSeeder::class,
+            KpiTestDataSeeder::class,
         ]);
     }
 }

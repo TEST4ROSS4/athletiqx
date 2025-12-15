@@ -12,6 +12,7 @@ class Program extends Model
     protected $fillable = [
         'created_by',
         'school_id',
+        'sport_team_id',
         'name',
         'note',
     ];
@@ -19,6 +20,7 @@ class Program extends Model
     protected $casts = [
         'school_id' => 'integer',
         'created_by' => 'integer',
+        'sport_team_id' => 'integer',
     ];
 
     protected $appends = ['is_assigned'];
@@ -33,6 +35,11 @@ class Program extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function sportTeam()
+    {
+        return $this->belongsTo(SportTeam::class);
     }
 
     public function exercises()

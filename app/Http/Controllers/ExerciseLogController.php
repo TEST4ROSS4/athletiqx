@@ -24,13 +24,13 @@ class ExerciseLogController extends Controller
             $query->where('student_id', $user->id);
         } elseif ($user->hasRole('Coach') && ! $user->hasRole('Admin')) {
             if ($studentId) {
-                $query->whereHas('program', fn($q) => $q->where('created_by', $user->id))
+                $query->where('assigned_by', $user->id)
                     ->where('student_id', $studentId);
             } else {
                 // No student selected → return empty
                 $assignments = collect([]);
                 $students = ProgramAssignment::with('student:id,name')
-                    ->whereHas('program', fn($q) => $q->where('created_by', $user->id))
+                    ->where('assigned_by', $user->id)
                     ->get()
                     ->pluck('student')
                     ->unique('id')
@@ -77,7 +77,7 @@ class ExerciseLogController extends Controller
             $students = ProgramAssignment::query()
                 ->when(
                     $user->hasRole('Coach') && ! $user->hasRole('Admin'),
-                    fn($q) => $q->whereHas('program', fn($q2) => $q2->where('created_by', $user->id))
+                    fn($q) => $q->where('assigned_by', $user->id)
                 )
                 ->with('student:id,name')
                 ->get()

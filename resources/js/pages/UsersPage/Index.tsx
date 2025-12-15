@@ -1,7 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { can } from '@/lib/can';
+import { FormModal } from '@/components/form-modal';
 import { type BreadcrumbItem, User } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { useState } from 'react';
 
@@ -12,12 +13,20 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function Index({ users }: { users: User[] }) {
+export default function Index({ users, roles = [] }: { users: User[]; roles?: string[] }) {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const { data, setData, post, processing, reset, errors } = useForm({
+    name: '',
+    email: '',
+    password: '',
+    role: '',
+    roles: [] as string[],
+  });
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 9;
 
   // Filter users by search
   const filteredUsers = users.filter(
@@ -45,6 +54,18 @@ export default function Index({ users }: { users: User[] }) {
     }
   }
 
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const nextRoles = data.role ? [data.role] : [];
+    setData('roles', nextRoles);
+    post(route('users.store'), {
+      onSuccess: () => {
+        reset();
+        setShowModal(false);
+      },
+    });
+  }
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Users" />
@@ -58,12 +79,13 @@ export default function Index({ users }: { users: User[] }) {
           {/* Top Controls */}
           <div className="flex items-center justify-between gap-4">
             {can('users.create') && (
-              <Link
-                href={route('users.create')}
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
                 className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
               >
                 Add User
-              </Link>
+              </button>
             )}
 
             {/* Search Bar */}
@@ -93,13 +115,16 @@ export default function Index({ users }: { users: User[] }) {
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {paginatedUsers.length > 0 ? (
-                  paginatedUsers.map(({ id, name, email, roles }) => (
-                    <tr key={id} className="transition hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{id}</td>
-                      <td className="px-6 py-4">{name}</td>
-                      <td className="px-6 py-4">{email}</td>
+                  paginatedUsers.map((u) => (
+                    <tr
+                      key={u.id}
+                      className="transition hover:bg-[#0d243d] hover:text-white"
+                    >
+                      <td className="px-6 py-4 font-medium text-gray-900">{u.id}</td>
+                      <td className="px-6 py-4">{u.name}</td>
+                      <td className="px-6 py-4">{u.email}</td>
                       <td className="px-6 py-4">
-                        {roles.map((role) => (
+                        {u.roles.map((role) => (
                           <span
                             key={role.name}
                             className="mr-2 inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 font-heading text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300"
@@ -111,7 +136,7 @@ export default function Index({ users }: { users: User[] }) {
                       <td className="space-x-2 px-6 py-4">
                         {can('users.edit') && (
                           <Link
-                            href={route('users.edit', id)}
+                            href={route('users.edit', u.id)}
                             className="inline-flex items-center rounded-md bg-[#102d4e] px-3 py-1.5 font-heading text-xs font-semibold text-white shadow-sm hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                           >
                             Edit
@@ -119,7 +144,7 @@ export default function Index({ users }: { users: User[] }) {
                         )}
                         {can('users.view') && (
                           <Link
-                            href={route('users.show', id)}
+                            href={route('users.show', u.id)}
                             className="inline-flex items-center rounded-md bg-green-600 px-3 py-1.5 font-heading text-xs font-semibold text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-400 focus:outline-none"
                           >
                             View
@@ -127,7 +152,7 @@ export default function Index({ users }: { users: User[] }) {
                         )}
                         {can('users.delete') && (
                           <button
-                            onClick={() => confirmDelete(id)}
+                            onClick={() => confirmDelete(u.id)}
                             className="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 font-heading text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-400 focus:outline-none"
                           >
                             Delete
@@ -202,6 +227,115 @@ export default function Index({ users }: { users: User[] }) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-2 py-6 backdrop-blur-sm">
+          <FormModal
+            title="Add User"
+            backHref={route('users.index')}
+            backLabel="Close"
+            onBack={() => {
+              reset();
+              setShowModal(false);
+            }}
+          >
+            <form onSubmit={submit} className="space-y-6 font-sans">
+              <div className="grid gap-2">
+                <label htmlFor="name" className="font-heading text-sm text-[#102d4e]">
+                  Name:
+                </label>
+                <input
+                  id="name"
+                  value={data.name}
+                  onChange={(e) => setData('name', e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  placeholder="Enter name"
+                  required
+                />
+                {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <label htmlFor="email" className="font-heading text-sm text-[#102d4e]">
+                  Email:
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => setData('email', e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  placeholder="Enter email"
+                  required
+                />
+                {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <label htmlFor="password" className="font-heading text-sm text-[#102d4e]">
+                  Password:
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={data.password}
+                  onChange={(e) => setData('password', e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  placeholder="Enter password"
+                  required
+                />
+                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <label htmlFor="role" className="font-heading text-sm text-[#102d4e]">
+                  Role:
+                </label>
+                <select
+                  id="role"
+                  value={data.role}
+                  onChange={(e) => {
+                    setData('role', e.target.value);
+                    setData('roles', e.target.value ? [e.target.value] : []);
+                  }}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  required
+                >
+                  <option value="">Select role</option>
+                  {roles.map((role) => (
+                    <option key={`role-${role}`} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                {(errors.roles || errors.role) && (
+                  <p className="mt-1 text-sm text-red-500">{errors.roles || errors.role}</p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={processing}
+                  className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none disabled:opacity-60"
+                >
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reset();
+                    setShowModal(false);
+                  }}
+                  className="rounded-md border border-gray-300 px-4 py-2 font-heading text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </FormModal>
         </div>
       )}
     </AppLayout>

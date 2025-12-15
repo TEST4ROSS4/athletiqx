@@ -30,6 +30,8 @@ type Exercise = {
     sets: Set[];
 };
 
+type Team = { id: number; name: string };
+
 const predefinedFields: FieldMeta[] = [
     { name: 'Reps', type: 'number' },
     { name: 'Weight', type: 'number' },
@@ -112,14 +114,16 @@ function normalizeDuration(input: string): string {
     return formatted;
 }
 
-export default function Add() {
+export default function Add({ teams = [] }: { teams: Team[] }) {
     const { data, setData, post } = useForm<{
         name: string;
         note: string;
+        sport_team_id: number | null;
         exercises: Exercise[];
     }>({
         name: '',
         note: '',
+        sport_team_id: null,
         exercises: [],
     });
 
@@ -340,6 +344,32 @@ export default function Add() {
                                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                                 placeholder="Optional Note"
                             />
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-[#102d4e]">
+                                    Limit to Team (optional)
+                                </label>
+                                <select
+                                    value={data.sport_team_id ?? ''}
+                                    onChange={(e) =>
+                                        setData(
+                                            'sport_team_id',
+                                            e.target.value ? Number(e.target.value) : null,
+                                        )
+                                    }
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none bg-white"
+                                >
+                                    <option value="">All teams (shared)</option>
+                                    {teams.map((team) => (
+                                        <option key={team.id} value={team.id}>
+                                            {team.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500">
+                                    Set a team to restrict visibility and assignment to that team.
+                                    Leave empty to make the program available across your teams.
+                                </p>
+                            </div>
                         </div>
 
                         {/* Exercises */}
@@ -480,7 +510,7 @@ export default function Add() {
                                                                         field.type,
                                                                     );
                                                                 }}
-                                                                className="rounded border px-3 py-2 text-sm"
+                                                                className="rounded border px-3 py-2 text-sm text-gray-900 bg-white"
                                                             >
                                                                 <option value="">
                                                                     Select Field
@@ -556,7 +586,7 @@ export default function Add() {
                                                                                 .value,
                                                                         )
                                                                     }
-                                                                    className="rounded border px-3 py-2 text-sm"
+                                                                    className="rounded border px-3 py-2 text-sm text-gray-900 bg-white"
                                                                 >
                                                                     {units.map(
                                                                         (u) => (

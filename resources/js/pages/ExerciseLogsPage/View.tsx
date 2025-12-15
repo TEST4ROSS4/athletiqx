@@ -80,21 +80,21 @@ export default function View({ assignment }: Props) {
                     </div>
                 )}
                 {/* PROGRAM INFO CARD */}
-                <div className="space-y-1 rounded-xl border bg-white p-5 shadow-sm">
-                    <p>
-                        <strong>Program:</strong> {program.name}
+                <div className="space-y-1 rounded-xl border border-slate-800 bg-[#0d1524] p-5 shadow-sm text-slate-100">
+                    <p className="text-sm text-slate-300">
+                        <strong className="text-slate-50">Program:</strong> {program.name}
                     </p>
-                    <p>
-                        <strong>Coach:</strong>{' '}
+                    <p className="text-sm text-slate-300">
+                        <strong className="text-slate-50">Coach:</strong>{' '}
                         {program.creator?.name ?? 'System'}
                     </p>
-                    <p>
-                        <strong>Assigned:</strong>{' '}
+                    <p className="text-sm text-slate-300">
+                        <strong className="text-slate-50">Assigned:</strong>{' '}
                         {new Date(assignment.assigned_at).toLocaleDateString()}
                     </p>
-                    <p>
-                        <strong>Status:</strong>{' '}
-                        <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
+                    <p className="text-sm text-slate-300">
+                        <strong className="text-slate-50">Status:</strong>{' '}
+                        <span className="inline-block rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-100">
                             {assignment.status}
                         </span>
                     </p>
@@ -116,26 +116,26 @@ export default function View({ assignment }: Props) {
                 {program.exercises.map((exercise) => (
                     <div
                         key={exercise.id}
-                        className="space-y-4 rounded-xl border bg-white p-5 shadow-sm"
+                        className="space-y-4 rounded-xl border border-slate-800 bg-[#0b1120] p-5 shadow-sm"
                     >
                         {/* HEADER */}
                         <div>
-                            <p className="text-xl font-semibold text-gray-900">
+                            <p className="text-xl font-semibold text-slate-50">
                                 {exercise.name}
                             </p>
                             {exercise.description && (
-                                <p className="mt-1 text-gray-500">
+                                <p className="mt-1 text-slate-300">
                                     {exercise.description}
                                 </p>
                             )}
                         </div>
 
                         {/* TABLE */}
-                        <div className="overflow-x-auto rounded-lg border">
+                        <div className="overflow-x-auto rounded-lg border border-slate-800 bg-[#0d1524]">
                             <table className="w-full border-collapse">
-                                <thead className="sticky top-0 bg-gray-100">
+                                <thead className="sticky top-0 bg-slate-900 text-slate-100">
                                     <tr>
-                                        <th className="border px-3 py-2 text-left text-sm font-semibold">
+                                        <th className="border border-slate-800 px-3 py-2 text-left text-sm font-semibold">
                                             Set
                                         </th>
 
@@ -143,29 +143,30 @@ export default function View({ assignment }: Props) {
                                             (field) => (
                                                 <th
                                                     key={field.name}
-                                                    className="border px-3 py-2 text-left text-sm font-semibold"
+                                                    className="border border-slate-800 px-3 py-2 text-left text-sm font-semibold"
                                                 >
                                                     {field.name}
                                                 </th>
                                             ),
                                         )}
 
-                                        <th className="border px-3 py-2 text-center text-sm font-semibold">
+                                        <th className="border border-slate-800 px-3 py-2 text-center text-sm font-semibold">
                                             Done
                                         </th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody className="bg-[#0b1120] text-slate-100">
                                     {exercise.sets.map((set) => (
                                         <tr
                                             key={set.id}
-                                            className={`${set.marked_as_done
-                                                    ? 'bg-green-50'
-                                                    : 'bg-white'
-                                                } transition`}
+                                            className={`transition ${
+                                                    set.marked_as_done
+                                                        ? 'bg-emerald-900/30'
+                                                        : 'hover:bg-slate-800'
+                                                }`}
                                         >
-                                            <td className="border px-3 py-2 font-medium">
+                                            <td className="border border-slate-800 px-3 py-2 font-medium">
                                                 {set.order + 1}
                                             </td>
 
@@ -180,13 +181,13 @@ export default function View({ assignment }: Props) {
                                                 return (
                                                     <td
                                                         key={fieldObj.name}
-                                                        className="border px-3 py-2"
+                                                        className="border border-slate-800 px-3 py-2"
                                                     >
-                                                        <span className="font-medium">
+                                                        <span className="font-medium text-slate-50">
                                                             {num}
                                                         </span>
                                                         {unit && (
-                                                            <span className="ml-1 text-xs text-gray-500">
+                                                            <span className="ml-1 text-xs text-slate-300">
                                                                 {unit}
                                                             </span>
                                                         )}
@@ -194,11 +195,11 @@ export default function View({ assignment }: Props) {
                                                 );
                                             })}
 
-                                            <td className="border px-3 py-2 text-center">
+                                            <td className="border border-slate-800 px-3 py-2 text-center">
                                                 <span
                                                     className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${set.marked_as_done
-                                                            ? 'bg-green-600'
-                                                            : 'bg-gray-300'
+                                                            ? 'bg-emerald-500'
+                                                            : 'bg-slate-600'
                                                         }`}
                                                 >
                                                     <CheckIcon className="h-4 w-4 text-white" />
@@ -216,7 +217,7 @@ export default function View({ assignment }: Props) {
                 <button
                     type="button"
                     onClick={() => history.back()}
-                    className="rounded-lg bg-gray-200 px-4 py-2 shadow transition hover:bg-gray-300"
+                    className="rounded-lg bg-slate-800 px-4 py-2 text-slate-100 shadow transition hover:bg-slate-700"
                 >
                     Back
                 </button>

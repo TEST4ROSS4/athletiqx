@@ -35,9 +35,20 @@ class StudentCourseSectionController extends Controller
 
     $assignments = $query->get();
 
+    $students = User::role('Student')
+        ->where('school_id', $user->school_id)
+        ->select('id', 'name', 'email')
+        ->get();
+
+    $courseSections = CourseSection::with(['course', 'section'])
+        ->where('school_id', $user->school_id)
+        ->get();
+
     return Inertia::render('EnrollStudentsPage/Index', [
         'assignments' => $assignments,
         'sort' => request('sort', 'created'),
+        'students' => $students,
+        'courseSections' => $courseSections,
     ]);
 }
 
@@ -45,7 +56,7 @@ class StudentCourseSectionController extends Controller
     {
         $schoolId = Auth::user()->school_id;
 
-        $students = User::role('student')
+        $students = User::role('Student')
             ->where('school_id', $schoolId)
             ->select('id', 'name', 'email')
             ->get();

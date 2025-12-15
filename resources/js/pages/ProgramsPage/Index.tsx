@@ -11,6 +11,8 @@ interface Program {
   id: number;
   name: string;
   note?: string;
+  sport_team_id?: number | null;
+  sport_team?: { id: number; name: string } | null;
   exercises_count: number;
   assignments_count: number;
 }
@@ -219,6 +221,16 @@ export default function Index({ programs, filters }: Props) {
                   <h2 className="truncate text-lg font-bold text-gray-900">{program.name}</h2>
                   {program.note && (
                     <p className="line-clamp-2 text-sm text-gray-500">{program.note}</p>
+                  )}
+                  {program.sport_team && (
+                    <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
+                      Team: {program.sport_team.name}
+                    </span>
+                  )}
+                  {program.sport_team_id === null && (
+                    <span className="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
+                      All teams
+                    </span>
                   )}
                 </div>
 

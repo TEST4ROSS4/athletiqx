@@ -21,9 +21,14 @@ class CourseSectionController extends Controller
             ->when($sort === 'created', fn($q) => $q->orderBy('id'))
             ->get();
 
+        $courses = Course::where('school_id', Auth::user()->school_id)->get(['id', 'title']);
+        $sections = Section::where('school_id', Auth::user()->school_id)->get(['id', 'code']);
+
         return Inertia::render('CourseSectionPage/Index', [
             'courseSections' => $courseSections,
             'sort' => $sort,
+            'courses' => $courses,
+            'sections' => $sections,
         ]);
     }
 

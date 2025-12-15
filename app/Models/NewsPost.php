@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class NewsPost extends Model
 {
-    protected $fillable = ['school_id', 'user_id', 'title', 'description', 'is_global'];
+    protected $fillable = ['school_id', 'user_id', 'title', 'description', 'is_global', 'image_path'];
+    protected $appends = ['image_url'];
 
     public function school()
     {
@@ -16,5 +17,10 @@ class NewsPost extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? asset('storage/' . ltrim($this->image_path, '/')) : null;
     }
 }

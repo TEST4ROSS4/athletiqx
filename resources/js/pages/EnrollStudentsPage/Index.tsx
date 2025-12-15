@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { FormModal } from '@/components/form-modal';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowUpDown } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { can } from '@/lib/can';
@@ -10,6 +11,8 @@ const breadcrumbs = [{ title: 'Enrollments', href: '/student-course-sections' }]
 export default function Index({
   assignments,
   sort,
+  students = [],
+  courseSections = [],
 }: {
   assignments: {
     id: number;
@@ -22,8 +25,44 @@ export default function Index({
     };
   }[];
   sort: string;
+  students?: { id: number; name: string }[];
+  courseSections?: {
+    id: number;
+    term: string;
+    course: { title: string };
+    section: { code: string };
+  }[];
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const studentOptions = students.map((s) => ({ label: s.name, value: s.id }));
+  const courseSectionOptions = courseSections.map((cs) => ({
+    label: `${cs.course.title} - ${cs.section.code} (${cs.term})`,
+    value: cs.id,
+  }));
+
+  const { data, setData, post, reset, processing, errors } = useForm({
+    student_id: null as number | null,
+    course_section_id: null as number | null,
+  });
+
+  const itemsPerPage = 9;
+  const totalPages = Math.ceil(assignments.length / itemsPerPage) || 1;
+  const paginatedAssignments = assignments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    post(route('student-course-sections.store'), {
+      onSuccess: () => {
+        reset();
+        setShowModal(false);
+      },
+    });
+  }
 
   function handleSortToggle() {
     const nextSort = sort === 'alpha' ? 'created' : 'alpha';
@@ -55,12 +94,13 @@ export default function Index({
           {/* Top Controls */}
           <div className="flex items-center justify-between gap-4">
             {can('student-course-sections.create') && (
-              <Link
-                href={route('student-course-sections.create')}
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
                 className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
               >
                 Enroll Student
-              </Link>
+              </button>
             )}
 
             {/* Search Bar */}
@@ -102,8 +142,11 @@ export default function Index({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {assignments.map((a) => (
-                  <tr key={a.id} className="transition hover:bg-gray-50">
+                {paginatedAssignments.map((a) => (
+                  <tr
+                    key={a.id}
+                    className="transition hover:bg-[#0d243d] hover:text-white"
+                  >
                     <td className="px-6 py-4 font-medium text-gray-900">{a.id}</td>
                     <td className="px-6 py-4">{a.student?.name}</td>
                     <td className="px-6 py-4">{a.course_section?.course?.title}</td>
@@ -141,6 +184,31 @@ export default function Index({
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {assignments.length > 0 && (
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-sm font-sans text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <div className="space-x-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-sm font-heading text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-sm font-heading text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -169,6 +237,86 @@ export default function Index({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-2 py-6 backdrop-blur-sm">
+          <FormModal
+            title="Enroll Student in Course Section"
+            backHref={route('student-course-sections.index')}
+            backLabel="Close"
+            onBack={() => {
+              reset();
+              setShowModal(false);
+            }}
+          >
+            <form onSubmit={submit} className="space-y-6 font-sans">
+              <div className="grid gap-2">
+                <label htmlFor="student_id" className="font-heading text-sm text-[#102d4e]">
+                  Student:
+                </label>
+                <select
+                  id="student_id"
+                  value={data.student_id ?? ''}
+                  onChange={(e) => setData('student_id', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  required
+                >
+                  <option value="">Select student</option>
+                  {studentOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.student_id && <p className="mt-1 text-sm text-red-500">{errors.student_id}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <label htmlFor="course_section_id" className="font-heading text-sm text-[#102d4e]">
+                  Course Section:
+                </label>
+                <select
+                  id="course_section_id"
+                  value={data.course_section_id ?? ''}
+                  onChange={(e) => setData('course_section_id', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  required
+                >
+                  <option value="">Select course section</option>
+                  {courseSectionOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.course_section_id && (
+                  <p className="mt-1 text-sm text-red-500">{errors.course_section_id}</p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={processing}
+                  className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none disabled:opacity-60"
+                >
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reset();
+                    setShowModal(false);
+                  }}
+                  className="rounded-md border border-gray-300 px-4 py-2 font-heading text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </FormModal>
         </div>
       )}
     </AppLayout>

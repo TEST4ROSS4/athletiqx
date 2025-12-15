@@ -7,6 +7,7 @@ type NewsPost = {
   description: string;
   is_global: boolean;
   created_at: string;
+  image_url?: string | null;
   user?: { name: string; school?: { name: string } };
   school?: { name: string };
 };
@@ -54,6 +55,15 @@ export default function View({
               <h1 className="text-2xl font-bold text-[#102d4e] mb-2">
                 {post.title}
               </h1>
+              {post.image_url && (
+                <div className="mb-3">
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="w-full max-h-80 object-cover rounded"
+                  />
+                </div>
+              )}
               <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
                 {post.description}
               </p>

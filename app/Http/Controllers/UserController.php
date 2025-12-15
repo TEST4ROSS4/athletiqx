@@ -25,8 +25,14 @@ class UserController extends Controller
             $query->where('school_id', $user->school_id);
         }
 
+        $rolesQuery = Role::query();
+        if ($user && $user->hasRole('Admin')) {
+            $rolesQuery->whereNotIn('name', ['Admin', 'super_admin']);
+        }
+
         return Inertia::render("UsersPage/Index", [
             "users" => $query->get(),
+            "roles" => $rolesQuery->pluck('name'),
         ]);
     }
 

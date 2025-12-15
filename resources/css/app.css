@@ -154,4 +154,77 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    /* Dark mode fallbacks for legacy utility usage across pages */
+    .dark .bg-white {
+        background-color: var(--card) !important;
+    }
+
+    .dark .bg-gray-50,
+    .dark .bg-\[\#f5f7fa\] {
+        background-color: var(--muted) !important;
+    }
+
+    .dark .bg-gray-100 {
+        background-color: color-mix(in oklab, var(--muted) 70%, var(--background)) !important;
+    }
+
+    .dark .border-gray-200,
+    .dark .border-gray-300 {
+        border-color: var(--border) !important;
+    }
+
+    .dark .text-gray-900,
+    .dark .text-gray-800,
+    .dark .text-\[\#102d4e\] {
+        color: var(--foreground) !important;
+    }
+
+    .dark .text-gray-700 {
+        color: color-mix(in oklab, var(--foreground) 80%, var(--muted-foreground)) !important;
+    }
+
+    .dark .text-gray-600,
+    .dark .text-gray-500 {
+        color: var(--muted-foreground) !important;
+    }
+
+    .dark .bg-\[\#102d4e\],
+    .dark .hover\:bg-\[\#0d243d\]:hover {
+        background-color: var(--primary) !important;
+        color: var(--primary-foreground) !important;
+    }
+
+    /* Common badge/button utility overrides for dark surfaces */
+    .dark .bg-green-100 {
+        background-color: color-mix(in oklab, var(--primary) 25%, var(--card)) !important;
+    }
+
+    .dark .text-green-800 {
+        color: color-mix(in oklab, var(--primary) 80%, var(--foreground)) !important;
+    }
+
+    .dark .bg-green-600 {
+        background-color: var(--primary) !important;
+        color: var(--primary-foreground) !important;
+    }
+
+    .dark .bg-red-600 {
+        background-color: var(--destructive) !important;
+        color: var(--destructive-foreground) !important;
+    }
+
+    .dark .bg-gray-200,
+    .dark .bg-gray-300 {
+        background-color: color-mix(in oklab, var(--muted) 60%, var(--card)) !important;
+        color: var(--foreground) !important;
+    }
+
+    .dark input,
+    .dark textarea,
+    .dark select {
+        background-color: var(--card);
+        color: var(--foreground);
+        border-color: var(--border);
+    }
 }

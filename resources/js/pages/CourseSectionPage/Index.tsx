@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { FormModal } from '@/components/form-modal';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowUpDown } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { can } from '@/lib/can';
@@ -10,11 +11,45 @@ const breadcrumbs = [{ title: 'Course Sections', href: '/course-sections' }];
 export default function Index({
     courseSections,
     sort,
+    courses = [],
+    sections = [],
 }: {
     courseSections: any[];
     sort: string;
+    courses?: { id: number; title: string }[];
+    sections?: { id: number; code: string }[];
 }) {
+    const [currentPage, setCurrentPage] = useState(1);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const { data, setData, post, reset, processing, errors } = useForm<{
+        course_id: number | '';
+        section_id: number | '';
+        term: string;
+        units: number | '';
+    }>({
+        course_id: '',
+        section_id: '',
+        term: '',
+        units: '',
+    });
+
+    const itemsPerPage = 9;
+    const totalPages = Math.ceil(courseSections.length / itemsPerPage) || 1;
+    const paginatedCourseSections = courseSections.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        post(route('course-sections.store'), {
+            onSuccess: () => {
+                reset();
+                setShowModal(false);
+            },
+        });
+    }
 
     function handleSortToggle() {
         const nextSort = sort === 'alpha' ? 'created' : 'alpha';
@@ -45,12 +80,13 @@ export default function Index({
                     {/* Top Controls */}
                     <div className="flex items-center justify-between gap-4">
                         {can('course-sections.create') && (
-                            <Link
-                                href={route('course-sections.create')}
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(true)}
                                 className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
                             >
                                 Add Course Section
-                            </Link>
+                            </button>
                         )}
 
                         {/* Search Bar */}
@@ -92,8 +128,11 @@ export default function Index({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
-                                {courseSections.map((cs) => (
-                                    <tr key={cs.id} className="border-b odd:bg-white even:bg-gray-50">
+                                {paginatedCourseSections.map((cs) => (
+                                    <tr
+                                        key={cs.id}
+                                        className="transition hover:bg-[#0d243d] hover:text-white"
+                                    >
                                         <td className="px-6 py-4 font-medium text-gray-900">{cs.id}</td>
                                         <td className="px-6 py-4">{cs.course?.title}</td>
                                         <td className="px-6 py-4">{cs.section?.code}</td>
@@ -131,6 +170,31 @@ export default function Index({
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination */}
+                    {courseSections.length > 0 && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <span className="text-sm font-sans text-gray-600">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <div className="space-x-2">
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage((p) => p - 1)}
+                                    className="rounded-md border border-gray-300 px-3 py-1 text-sm font-heading text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage((p) => p + 1)}
+                                    className="rounded-md border border-gray-300 px-3 py-1 text-sm font-heading text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -159,6 +223,113 @@ export default function Index({
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-3 py-6 backdrop-blur-sm">
+                    <FormModal
+                        title="Add Course Section"
+                        backHref={route('course-sections.index')}
+                        backLabel="Close"
+                        onBack={() => {
+                            reset();
+                            setShowModal(false);
+                        }}
+                    >
+                        <form onSubmit={submit} className="space-y-5 font-sans">
+                            <div className="grid gap-2">
+                                <label htmlFor="course_id" className="font-heading text-sm text-[#102d4e]">
+                                    Course:
+                                </label>
+                                <select
+                                    id="course_id"
+                                    value={data.course_id}
+                                    onChange={(e) => setData('course_id', e.target.value ? Number(e.target.value) : '')}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                >
+                                    <option value="">Select course</option>
+                                    {courses.map((course) => (
+                                        <option key={course.id} value={course.id}>
+                                            {course.title}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.course_id && <p className="mt-1 text-sm text-red-500">{errors.course_id}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label htmlFor="section_id" className="font-heading text-sm text-[#102d4e]">
+                                    Section:
+                                </label>
+                                <select
+                                    id="section_id"
+                                    value={data.section_id}
+                                    onChange={(e) => setData('section_id', e.target.value ? Number(e.target.value) : '')}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                >
+                                    <option value="">Select section</option>
+                                    {sections.map((section) => (
+                                        <option key={section.id} value={section.id}>
+                                            {section.code}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.section_id && <p className="mt-1 text-sm text-red-500">{errors.section_id}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label htmlFor="term" className="font-heading text-sm text-[#102d4e]">
+                                    Term:
+                                </label>
+                                <input
+                                    id="term"
+                                    value={data.term}
+                                    onChange={(e) => setData('term', e.target.value)}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                    placeholder="e.g. 1st Term 2025–2026"
+                                />
+                                {errors.term && <p className="mt-1 text-sm text-red-500">{errors.term}</p>}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label htmlFor="units" className="font-heading text-sm text-[#102d4e]">
+                                    Units:
+                                </label>
+                                <input
+                                    id="units"
+                                    type="number"
+                                    min={0}
+                                    max={10}
+                                    value={data.units}
+                                    onChange={(e) => setData('units', e.target.value === '' ? '' : parseInt(e.target.value))}
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                    placeholder="e.g. 3"
+                                />
+                                {errors.units && <p className="mt-1 text-sm text-red-500">{errors.units}</p>}
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        reset();
+                                        setShowModal(false);
+                                    }}
+                                    className="rounded-md border border-gray-300 px-4 py-2 font-heading text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none disabled:opacity-70"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </FormModal>
                 </div>
             )}
         </AppLayout>

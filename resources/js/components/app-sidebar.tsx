@@ -34,6 +34,9 @@ import {
     Users,
     LayoutDashboard,
     Newspaper,
+    BarChart3,
+    Heart,
+    Mail,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -50,18 +53,7 @@ type PageProps = {
     };
 };
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     const { props } = usePage<PageProps>();
@@ -70,10 +62,43 @@ export function AppSidebar() {
 
     const isSuperAdmin = roles.includes('super_admin');
     const isSchoolAdmin =
-        roles.includes('admin') || roles.includes('school-admin');
+        roles.includes('Admin') || roles.includes('school-admin');
+    const isCoach = roles.includes('Coach');
 
     const mainNavItems: NavItem[] = [
-        {
+        // ------------------------------ TOP PRIORITY: KPI & WELLNESS ------------------------------
+        isSuperAdmin && {
+            title: 'KPI Dashboard',
+            href: '/kpi-dashboard',
+            icon: BarChart3,
+        },
+
+        isCoach && {
+            title: 'Team KPI',
+            href: '/kpi-dashboard/team',
+            icon: BarChart3,
+        },
+
+        isSchoolAdmin && {
+            title: 'School KPI',
+            href: '/kpi-dashboard/school',
+            icon: BarChart3,
+        },
+
+        isCoach && {
+            title: 'Coach Dashboard',
+            href: '/coach/dashboard',
+            icon: LayoutDashboard,
+        },
+
+        isSchoolAdmin && {
+            title: 'Admin Dashboard',
+            href: '/admin/dashboard',
+            icon: LayoutDashboard,
+        },
+
+
+        (isSuperAdmin || isSchoolAdmin) && {
             title: 'News Feed',
             href: '/news',
             icon: Newspaper,
@@ -171,12 +196,40 @@ export function AppSidebar() {
             icon: PencilLine,
         },
 
+        // ------------------------------ ADMIN ONLY ------------------------------
+        isSchoolAdmin && !isSuperAdmin && {
+            title: 'Wellness Logs',
+            href: '/admin/wellness-logs',
+            icon: Heart,
+        },
+
+        // ------------------------------ COACH ONLY ------------------------------
+        isCoach && {
+            title: 'Wellness Logs',
+            href: '/coach/wellness-logs',
+            icon: Heart,
+        },
+
         // ------------------------------ SUPER ADMIN ------------------------------
         isSuperAdmin &&
             can('super-admin.view') && {
                 title: 'Super Admin Dashboard',
                 href: '/super-admin/dashboard',
                 icon: LayoutDashboard, 
+            },
+
+        isSuperAdmin &&
+            can('super-admin.view') && {
+                title: 'Wellness Logs',
+                href: '/super-admin/wellness-logs',
+                icon: Heart,
+            },
+
+        isSuperAdmin &&
+            can('super-admin.view') && {
+                title: 'Demo Requests',
+                href: '/super-admin/demo-requests',
+                icon: Mail,
             },
 
         isSuperAdmin &&
@@ -218,7 +271,7 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto hidden" />
+                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

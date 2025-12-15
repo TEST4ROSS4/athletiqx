@@ -2,14 +2,41 @@ import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
+import axios from 'axios';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
     const demoRef = useRef<HTMLDivElement>(null);
 
     const scrollToDemo = () => {
         demoRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleDemoRequest = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage('');
+
+        try {
+            const response = await axios.post('/api/demo-requests', {
+                email: email,
+            });
+
+            if (response.data.success) {
+                setMessage('✅ Thanks! We\'ll be in touch shortly.');
+                setEmail('');
+                setTimeout(() => setMessage(''), 5000);
+            }
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.message || 'Failed to submit request. Please try again.';
+            setMessage('❌ ' + errorMsg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -207,9 +234,9 @@ export default function Welcome() {
                         </div>
 
                         {/* Grid Layout: Cards + Form */}
-                        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                             {/* Left: Feature Cards */}
-                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2">
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 {[
                                     {
                                         title: '🎯 Tailored Walkthroughs',
@@ -242,64 +269,72 @@ export default function Welcome() {
                                 ))}
                             </div>
 
-                            {/* Right: Contact Info */}
-                            <div className="rounded-xl border border-[#eaeaea] bg-white p-6 text-left shadow-sm transition hover:shadow-md dark:border-[#2a2a2a] dark:bg-[#121212] flex flex-col lg:h-full justify-between">
-                                <h3 className="mb-2 text-xl font-semibold text-[#102d4e]">
-                                    Let’s get you started
-                                </h3>
-                                <p className="mb-6 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
-                                    For all inquiries, you can reach us directly at:
-                                </p>
+                            {/* Right: Contact Info + Demo Form */}
+                            <div className="flex flex-col gap-8">
+                                {/* Contact Info */}
+                                <div className="rounded-xl border border-[#eaeaea] bg-white p-6 text-left shadow-sm transition hover:shadow-md dark:border-[#2a2a2a] dark:bg-[#121212]">
+                                    <h3 className="mb-2 text-xl font-semibold text-[#102d4e]">
+                                        Let's get you started
+                                    </h3>
+                                    <p className="mb-6 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
+                                        For all inquiries, you can reach us directly at:
+                                    </p>
 
-                                <div className="mb-6 text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC]">
-                                    📧 <a href="mailto:visioncorewebworks@gmail.com" className="hover:underline">
-                                        visioncorewebworks@gmail.com
-                                    </a>
+                                    <div className="mb-6 text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC]">
+                                        📧 <a href="mailto:visioncorewebworks@gmail.com" className="hover:underline">
+                                            visioncorewebworks@gmail.com
+                                        </a>
+                                    </div>
+
+                                    <div className="text-xs text-[#7a7a75] dark:text-[#a5a5a0]">
+                                        🤝 We're excited to connect with you.
+                                    </div>
                                 </div>
 
-                                <div className="text-xs text-[#7a7a75] dark:text-[#a5a5a0]">
-                                    🤝 We’re excited to connect with you.
+                                {/* Demo Form */}
+                                <div className="rounded-2xl border border-[#eaeaea] bg-white p-8 shadow-lg dark:border-[#2a2a2a] dark:bg-[#181818]">
+                                    <h3 className="mb-2 text-xl font-semibold text-[#102d4e]">
+                                        Request a Demo
+                                    </h3>
+                                    <p className="mb-6 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
+                                        Enter your work email and we'll reach out
+                                        with a tailored demo experience.
+                                    </p>
+
+                                    <form
+                                        onSubmit={handleDemoRequest}
+                                        className="space-y-4"
+                                    >
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="you@university.edu"
+                                            className="w-full rounded-md border border-[#ccc] bg-[#FDFDFC] px-4 py-2 text-[#1b1b18] focus:ring-2 focus:ring-[#1b1b18] focus:outline-none dark:border-[#444] dark:bg-[#0f0f0f] dark:text-[#EDEDEC] dark:focus:ring-[#EDEDEC]"
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full rounded-md bg-[#102d4e] py-2 font-medium text-white transition hover:bg-[#0d243d] disabled:opacity-50 disabled:cursor-not-allowed dark:bg-[#EDEDEC] dark:text-[#0a0a0a] dark:hover:bg-[#d6d6d4]"
+                                        >
+                                            {loading ? 'Submitting...' : 'Request Demo'}
+                                        </button>
+                                    </form>
+
+                                    {message && (
+                                        <div className="mt-4 rounded-md bg-[#f0f0f0] p-3 text-sm text-[#1b1b18] dark:bg-[#2a2a2a] dark:text-[#EDEDEC]">
+                                            {message}
+                                        </div>
+                                    )}
+
+                                    <div className="mt-6 text-xs text-[#7a7a75] dark:text-[#a5a5a0]">
+                                        🔒 Your information is secure. We'll only
+                                        use it to schedule your demo.
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Right: Demo Form */}
-                            {/* <div className="rounded-2xl border border-[#eaeaea] bg-white p-8 shadow-lg dark:border-[#2a2a2a] dark:bg-[#181818]">
-                                <h3 className="mb-2 text-xl font-semibold">
-                                    Let’s get you started
-                                </h3>
-                                <p className="mb-6 text-sm text-[#4a4a45] dark:text-[#bcbcb7]">
-                                    Enter your work email and we’ll reach out
-                                    with a tailored demo experience.
-                                </p>
-
-                                <form
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        alert(
-                                            '✅ Thanks! We’ll be in touch shortly.',
-                                        );
-                                    }}
-                                    className="space-y-4"
-                                >
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="you@university.edu"
-                                        className="w-full rounded-md border border-[#ccc] bg-[#FDFDFC] px-4 py-2 text-[#1b1b18] focus:ring-2 focus:ring-[#1b1b18] focus:outline-none dark:border-[#444] dark:bg-[#0f0f0f] dark:text-[#EDEDEC] dark:focus:ring-[#EDEDEC]"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="w-full rounded-md bg-[#1b1b18] py-2 font-medium text-white transition hover:bg-[#2a2a25] dark:bg-[#EDEDEC] dark:text-[#0a0a0a] dark:hover:bg-[#d6d6d4]"
-                                    >
-                                        Request Demo
-                                    </button>
-                                </form>
-
-                                <div className="mt-6 text-xs text-[#7a7a75] dark:text-[#a5a5a0]">
-                                    🔒 Your information is secure. We’ll only
-                                    use it to schedule your demo.
-                                </div>
-                            </div> */}
                         </div>
                     </div>
                 </section>

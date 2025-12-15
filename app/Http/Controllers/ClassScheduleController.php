@@ -19,8 +19,14 @@ class ClassScheduleController extends Controller
             ->where('school_id', Auth::user()->school_id)
             ->get();
 
+        $courseSections = CourseSection::with(['course', 'section'])
+            ->where('school_id', Auth::user()->school_id)
+            ->doesntHave('classSchedule')
+            ->get();
+
         return Inertia::render('ClassSchedulePage/Index', [
             'schedules' => $schedules,
+            'courseSections' => $courseSections,
         ]);
     }
 

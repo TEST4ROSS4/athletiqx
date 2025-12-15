@@ -19,9 +19,23 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
+        $isLocalhost = in_array($request->getHost(), ['localhost', '127.0.0.1', '::1']);
+        
+        $testAccounts = [];
+        if ($isLocalhost) {
+            $testAccounts = [
+                ['email' => 'admin@athletiqx.com', 'password' => 'admin', 'name' => 'Super Admin'],
+                ['email' => 'admin@fit.com', 'password' => 'admin', 'name' => 'School Admin'],
+                ['email' => 'test@example.com', 'password' => 'password', 'name' => 'Test User'],
+                ['email' => 'coach@test.com', 'password' => 'password', 'name' => 'Coach - Sarah Coach'],
+            ];
+        }
+        
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
+            'isLocalhost' => $isLocalhost,
+            'testAccounts' => $testAccounts,
         ]);
     }
 
@@ -31,6 +45,13 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $user = $request->validateCredentials();
+
+        // ⛔ Block coaches without any assigned team
+        if ($user->hasRole('Coach') && $user->assignedTeams()->isEmpty()) {
+            return back()->withErrors([
+                'email' => "You don't have a team assigned yet. Please contact your team admin.",
+            ])->onlyInput('email');
+        }
 
         if (Features::enabled(Features::twoFactorAuthentication()) && $user->hasEnabledTwoFactorAuthentication()) {
             $request->session()->put([
@@ -45,7 +66,19 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('news.index', absolute: false));
+        // Role-aware landing to send users to their dashboards
+        $userRoles = $user->getRoleNames()->toArray();
+        $defaultRoute = route('dashboard', absolute: false);
+
+        if (in_array('super_admin', $userRoles)) {
+            $defaultRoute = route('super-admin.dashboard', absolute: false);
+        } elseif (in_array('Admin', $userRoles) || in_array('school-admin', $userRoles)) {
+            $defaultRoute = route('admin.dashboard', absolute: false);
+        } elseif (in_array('Coach', $userRoles)) {
+            $defaultRoute = route('coach.dashboard', absolute: false);
+        }
+
+        return redirect()->intended($defaultRoute);
 
     }
 

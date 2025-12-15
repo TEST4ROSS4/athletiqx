@@ -13,14 +13,39 @@ use Inertia\Inertia;
 
 class CoachAssignmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $sort = $request->query('sort', 'created');
+
         $assignments = CoachAssignment::with(['coach', 'sport', 'sportTeam'])
             ->where('school_id', Auth::user()->school_id)
+            ->get()
+            ->when($sort === 'alpha', fn ($collection) => $collection->sortBy(fn ($a) => strtolower($a->coach?->name ?? '')))
+            ->when($sort !== 'alpha', fn ($collection) => $collection->sortByDesc('created_at'))
+            ->values();
+
+        $schoolId = Auth::user()->school_id;
+
+        $coaches = User::where('school_id', $schoolId)
+            ->whereHas('roles.permissions', fn($q) => $q->where('name', 'student-sport-teams.view'))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'Admin'))
+            ->select('id', 'name', 'email')
+            ->get();
+
+        $sports = Sport::where('school_id', $schoolId)
+            ->select('id', 'name')
+            ->get();
+
+        $sportTeams = SportTeam::with('sport')
+            ->where('school_id', $schoolId)
             ->get();
 
         return Inertia::render('AssignCoachesPage/Index', [
             'assignments' => $assignments,
+            'sort' => $sort,
+            'coaches' => $coaches,
+            'sports' => $sports,
+            'sportTeams' => $sportTeams,
         ]);
     }
 

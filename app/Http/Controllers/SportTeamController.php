@@ -24,9 +24,14 @@ class SportTeamController extends Controller
             ->when($sort === 'created', fn($q) => $q->orderBy('id'))
             ->get();
 
+        $sports = Sport::where('school_id', Auth::user()->school_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return Inertia::render('SportTeamsPage/Index', [
             'teams' => $teams,
             'sort' => $sort,
+            'sports' => $sports,
         ]);
     }
 

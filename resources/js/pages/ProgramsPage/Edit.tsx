@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { FormModal } from '@/components/form-modal';
+import { Head, useForm } from '@inertiajs/react';
 import { PlusCircle, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { ReactSortable } from 'react-sortablejs';
@@ -30,13 +31,17 @@ type Exercise = {
     sets: Set[];
 };
 
+type Team = { id: number; name: string };
+
 type Props = {
     program: {
         id: number;
         name: string;
         note: string;
+        sport_team_id?: number | null;
         exercises: Exercise[];
     };
+    teams: Team[];
 };
 
 const predefinedFields: FieldMeta[] = [
@@ -117,14 +122,16 @@ function normalizeDuration(input: string): string {
     return formatted;
 }
 
-export default function Edit({ program }: Props) {
+export default function Edit({ program, teams }: Props) {
     const { data, setData, put } = useForm<{
         name: string;
         note: string;
+        sport_team_id: number | null;
         exercises: Exercise[];
     }>({
         name: program.name,
         note: program.note,
+        sport_team_id: program.sport_team_id ?? null,
         exercises: program.exercises.map((ex) => ({
             ...ex,
             sets: ex.sets.map((s) => ({
@@ -325,34 +332,51 @@ export default function Edit({ program }: Props) {
     return (
         <AppLayout>
             <Head title={`Edit Program: ${program.name}`} />
-            <div className="p-3">
-                <div className="p-3">
-                    <h1 className="mb-4 font-heading text-2xl font-semibold text-[#102d4e]">
-                        ✏️ Edit Training Program
-                    </h1>
-
-                    <Link
-                        href={route('programs.index')}
-                        className="mb-4 inline-block rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
-                    >
-                        Back to Programs
-                    </Link>
-
-                    <form onSubmit={submit} className="mx-auto mt-4 max-w-3xl space-y-6 font-sans">
+            <div className="fixed inset-0 z-40 overflow-y-auto bg-black/40 px-4 py-10 backdrop-blur-sm">
+                <FormModal
+                    title="✏️ Edit Training Program"
+                    description="Update program details, exercises, and sets without leaving the page."
+                    backHref={route('programs.show', program.id)}
+                    backLabel="Close"
+                >
+                    <form onSubmit={submit} className="mx-auto w-full max-w-5xl space-y-6 font-sans">
                         <div className="space-y-2">
                             <input
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/60 focus:outline-none"
                                 placeholder="Program Name"
                             />
                             <textarea
                                 value={data.note}
                                 onChange={(e) => setData('note', e.target.value)}
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/60 focus:outline-none"
                                 placeholder="Optional Note"
                             />
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-foreground">
+                                    Limit to Team (optional)
+                                </label>
+                                <select
+                                    value={data.sport_team_id ?? ''}
+                                    onChange={(e) =>
+                                        setData('sport_team_id', e.target.value ? Number(e.target.value) : null)
+                                    }
+                                    className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/60 focus:outline-none"
+                                >
+                                    <option value="">All teams (shared)</option>
+                                    {teams.map((team) => (
+                                        <option key={team.id} value={team.id}>
+                                            {team.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-muted-foreground">
+                                    Set a team to restrict visibility and assignment to that team.
+                                    Leave empty to make the program available across your teams.
+                                </p>
+                            </div>
                         </div>
 
                         {/* Exercises */}
@@ -394,7 +418,7 @@ export default function Edit({ program }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                        className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/60 focus:outline-none"
                                         placeholder="Exercise Name"
                                     />
                                     <textarea
@@ -406,7 +430,7 @@ export default function Edit({ program }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-sm transition focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                                        className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/60 focus:outline-none"
                                         placeholder="Optional Description"
                                     />
 
@@ -428,10 +452,10 @@ export default function Edit({ program }: Props) {
                                         {ex.sets.map((set, j) => (
                                             <div
                                                 key={set.id}
-                                                className="space-y-2 rounded-md border p-3 shadow-sm"
+                                                className="space-y-2 rounded-md border border-border bg-muted/30 p-3 shadow-sm"
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <label className="font-heading text-sm text-[#102d4e]">
+                                                    <label className="font-heading text-sm text-foreground">
                                                         Set {j + 1}
                                                     </label>
                                                     <button
@@ -491,7 +515,7 @@ export default function Edit({ program }: Props) {
                                                                         field.type,
                                                                     );
                                                                 }}
-                                                                className="rounded border px-3 py-2 text-sm"
+                                                                className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
                                                             >
                                                                 <option value="">
                                                                     Select Field
@@ -518,7 +542,7 @@ export default function Edit({ program }: Props) {
                                                                 type="text"
                                                                 value={f.type}
                                                                 readOnly
-                                                                className="rounded border bg-gray-100 px-3 py-2 text-sm"
+                                                                className="rounded border border-border bg-muted px-3 py-2 text-sm text-foreground"
                                                             />
 
                                                             <input
@@ -540,7 +564,7 @@ export default function Edit({ program }: Props) {
                                                                             .value,
                                                                     )
                                                                 }
-                                                                className="rounded border px-3 py-2 text-sm"
+                                                                className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
                                                                 placeholder={
                                                                     f.type ===
                                                                         'duration'
@@ -567,7 +591,7 @@ export default function Edit({ program }: Props) {
                                                                                 .value,
                                                                         )
                                                                     }
-                                                                    className="rounded border px-3 py-2 text-sm"
+                                                                    className="rounded border px-3 py-2 text-sm text-gray-900 bg-white"
                                                                 >
                                                                     {units.map(
                                                                         (u) => (
@@ -626,7 +650,7 @@ export default function Edit({ program }: Props) {
                                                             updated,
                                                         );
                                                     }}
-                                                    className="text-sm text-blue-700 hover:underline"
+                                                    className="text-sm text-primary hover:underline"
                                                 >
                                                     + Add Field
                                                 </button>
@@ -638,9 +662,9 @@ export default function Edit({ program }: Props) {
                                         <button
                                             type="button"
                                             onClick={() => addSet(i)}
-                                            className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+                                            className="flex items-center gap-2 text-sm text-primary hover:underline"
                                         >
-                                            <PlusCircle className="h-5 w-5 text-blue-700" />
+                                            <PlusCircle className="h-5 w-5 text-primary" />
                                             <span>Add Set</span>
                                         </button>
                                     </div>
@@ -651,9 +675,9 @@ export default function Edit({ program }: Props) {
                         <button
                             type="button"
                             onClick={addExercise}
-                            className="flex items-center gap-2 text-sm text-blue-700 hover:underline"
+                            className="flex items-center gap-2 text-sm text-primary hover:underline"
                         >
-                            <PlusCircle className="h-5 w-5 text-blue-700" />
+                            <PlusCircle className="h-5 w-5 text-primary" />
                             <span>Add Exercise</span>
                         </button>
 
@@ -667,15 +691,17 @@ export default function Edit({ program }: Props) {
                         )}
 
                         {/* Submit */}
-                        <button
-                            type="submit"
-                            className="rounded-md bg-[#102d4e] px-4 py-2 font-heading font-semibold text-white transition hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
-                            disabled={data.exercises.length === 0}
-                        >
-                            Update Program
-                        </button>
+                        <div className="flex items-center justify-end">
+                            <button
+                                type="submit"
+                                className="rounded-md bg-primary px-5 py-2.5 font-heading font-semibold text-primary-foreground transition hover:bg-primary/90 focus:ring-2 focus:ring-primary/60 focus:outline-none"
+                                disabled={data.exercises.length === 0}
+                            >
+                                Update Program
+                            </button>
+                        </div>
                     </form>
-                </div>
+                </FormModal>
             </div>
         </AppLayout>
     );
