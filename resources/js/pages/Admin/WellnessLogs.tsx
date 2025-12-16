@@ -50,21 +50,21 @@ export default function WellnessLogs({
   const [selectedDays, setSelectedDays] = useState(days);
 
   const getQualityColor = (value: number) => {
-    if (value >= 8) return 'bg-emerald-500/15 text-emerald-200';
+    if (value >= 8) return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200';
     if (value >= 6) return 'bg-primary/15 text-primary';
-    if (value >= 4) return 'bg-amber-500/15 text-amber-200';
+    if (value >= 4) return 'bg-amber-500/15 text-amber-700 dark:text-amber-200';
     return 'bg-destructive/20 text-destructive-foreground';
   };
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, string> = {
-      excellent: 'bg-emerald-500/15 text-emerald-200',
+      excellent: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200',
       good: 'bg-primary/15 text-primary',
-      fair: 'bg-amber-500/15 text-amber-200',
+      fair: 'bg-amber-500/15 text-amber-700 dark:text-amber-200',
       poor: 'bg-destructive/20 text-destructive-foreground',
-      none: 'bg-emerald-500/15 text-emerald-200',
-      minor: 'bg-amber-500/15 text-amber-200',
-      moderate: 'bg-orange-500/15 text-orange-200',
+      none: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200',
+      minor: 'bg-amber-500/15 text-amber-700 dark:text-amber-200',
+      moderate: 'bg-orange-500/15 text-orange-700 dark:text-orange-200',
       severe: 'bg-destructive/20 text-destructive-foreground',
     };
     return statusMap[status] || 'bg-muted text-foreground';

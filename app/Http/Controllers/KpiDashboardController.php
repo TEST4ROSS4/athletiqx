@@ -7,6 +7,7 @@ use App\Models\TeamKpiCache;
 use App\Models\SchoolKpiCache;
 use App\Models\TrainingLog;
 use App\Models\User;
+use App\Models\WellnessLog;
 use App\Models\SportTeam;
 use App\Models\School;
 use Illuminate\Http\Request;
@@ -317,9 +318,19 @@ class KpiDashboardController extends Controller
         return round((($thisWeekAvg - $lastWeekAvg) / $lastWeekAvg) * 100, 2);
     }
 
-    private function calculateAttendanceRate($studentId)
+    private function calculateAttendanceRate($studentId, $days = 7)
     {
-        return 88.0;
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+
+        $uniqueDays = WellnessLog::where('student_id', $studentId)
+            ->where('logged_at', '>=', $windowStart)
+            ->get()
+            ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
+            ->filter()
+            ->unique()
+            ->count();
+
+        return $days > 0 ? round(($uniqueDays / $days) * 100, 2) : 0;
     }
 
     private function calculateAvgSessionDuration($studentId)
@@ -330,12 +341,16 @@ class KpiDashboardController extends Controller
 
     private function getMaxWeight($studentId)
     {
-        return TrainingLog::where('student_id', $studentId)->max('weight_actual') ?? 0;
+        return TrainingLog::where('student_id', $studentId)
+            ->whereNotNull('weight_actual')
+            ->max('weight_actual') ?? 0;
     }
 
     private function getMaxDuration($studentId)
     {
-        return TrainingLog::where('student_id', $studentId)->max('duration_actual') ?? 0;
+        return TrainingLog::where('student_id', $studentId)
+            ->whereNotNull('duration_actual')
+            ->max('duration_actual') ?? 0;
     }
 
     private function getAvgSleepQuality($studentId)
@@ -455,9 +470,18 @@ class KpiDashboardController extends Controller
         return round((($thisWeekAvg - $lastWeekAvg) / $lastWeekAvg) * 100, 2);
     }
 
-    private function calculateTeamAttendanceRate($studentIds)
+    private function calculateTeamAttendanceRate($studentIds, $days = 7)
     {
-        return 88.0;
+        if (empty($studentIds)) {
+            return 0;
+        }
+
+        $rates = array_map(
+            fn ($studentId) => $this->calculateAttendanceRate($studentId, $days),
+            $studentIds
+        );
+
+        return round(array_sum($rates) / count($rates), 2);
     }
 
     private function calculateTeamAvgSessionDuration($studentIds)

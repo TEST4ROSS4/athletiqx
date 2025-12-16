@@ -15,7 +15,7 @@ class AdminDashboardController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if (!$user || (!$user->hasRole('Admin') && !$user->hasRole('school-admin') && !$user->hasRole('super_admin'))) {
+        if (!$user || (!$user->hasRole('Admin') && !$user->hasRole('school-admin'))) {
             abort(403);
         }
 
@@ -41,7 +41,8 @@ class AdminDashboardController extends Controller
             ->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])
             ->count();
 
-        $roles = Role::all()->pluck('name');
+        // Exclude platform-level roles from school admin view
+        $roles = Role::whereNotIn('name', ['super_admin', 'Admin'])->pluck('name');
         $roleDistribution = $roles->mapWithKeys(function ($role) use ($schoolId) {
             return [$role => User::role($role)->where('school_id', $schoolId)->count()];
         });
