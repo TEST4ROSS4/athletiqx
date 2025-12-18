@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             AdminSeeder::class,
             CoachSeeder::class,
+            ProfessorSeeder::class,
+            StudentSeeder::class,
             RoleSeeder::class,
             TestAccountsSeeder::class,
             KpiTestDataSeeder::class,

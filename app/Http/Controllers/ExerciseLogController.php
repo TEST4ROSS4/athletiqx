@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\ExerciseLog;
 use App\Models\ProgramAssignment;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ExerciseLogController extends Controller
@@ -19,22 +22,27 @@ class ExerciseLogController extends Controller
         $user = Auth::user();
 
         $query = ProgramAssignment::with(['program.creator', 'program.exercises.sets', 'logs']);
+        $coachTeamIds = $user->hasRole('Coach')
+            ? $user->assignedTeams()->pluck('id')
+            : collect();
 
         if ($user->hasRole('Student')) {
             $query->where('student_id', $user->id);
         } elseif ($user->hasRole('Coach') && ! $user->hasRole('Admin')) {
             if ($studentId) {
-                $query->where('assigned_by', $user->id)
-                    ->where('student_id', $studentId);
+                $query->where('student_id', $studentId)
+                    ->where(function ($q) use ($user, $coachTeamIds) {
+                        $q->where('assigned_by', $user->id);
+
+                        if ($coachTeamIds->isNotEmpty()) {
+                            $q->orWhereHas('program', fn($p) => $p->whereIn('sport_team_id', $coachTeamIds))
+                                ->orWhereHas('student.sportTeamAssignments', fn($s) => $s->whereIn('sport_team_id', $coachTeamIds));
+                        }
+                    });
             } else {
-                // No student selected → return empty
+                // No student selected → still return empty, but provide coach's team students
                 $assignments = collect([]);
-                $students = ProgramAssignment::with('student:id,name')
-                    ->where('assigned_by', $user->id)
-                    ->get()
-                    ->pluck('student')
-                    ->unique('id')
-                    ->values();
+                $students = $this->collectCoachStudents($user, $coachTeamIds);
 
                 return Inertia::render('ExerciseLogsPage/Index', [
                     'assignments' => $assignments,
@@ -74,16 +82,7 @@ class ExerciseLogController extends Controller
         // Fetch students for dropdown
         $students = [];
         if ($user->hasRole('Admin') || $user->hasRole('Coach')) {
-            $students = ProgramAssignment::query()
-                ->when(
-                    $user->hasRole('Coach') && ! $user->hasRole('Admin'),
-                    fn($q) => $q->where('assigned_by', $user->id)
-                )
-                ->with('student:id,name')
-                ->get()
-                ->pluck('student')
-                ->unique('id')
-                ->values();
+            $students = $this->collectCoachStudents($user, $coachTeamIds);
         }
 
         return Inertia::render('ExerciseLogsPage/Index', [
@@ -135,6 +134,9 @@ class ExerciseLogController extends Controller
                                 'values' => $log?->inputs ?? [],
                                 'suggested_values' => $set->suggested_values ?? [],
                                 'marked_as_done' => $log?->marked_as_done ?? false,
+                                'proof_url' => $log?->proof_url,
+                                'proof_name' => $log?->proof_name,
+                                'proof_size' => $log?->proof_size,
                             ];
                         })->values(),
                     ];
@@ -155,9 +157,10 @@ class ExerciseLogController extends Controller
             'logs.*.set_id' => 'required|integer|exists:exercise_sets,id',
             'logs.*.inputs' => 'nullable|array', // <-- allow empty sets
             'logs.*.marked_as_done' => 'boolean',
+            'logs.*.proof' => 'nullable|file|max:51200|mimes:jpg,jpeg,png,mp4,mov,pdf',
         ]);
 
-        foreach ($validated['logs'] as $logData) {
+        foreach ($validated['logs'] as $index => $logData) {
             $set = \App\Models\ExerciseSet::find($logData['set_id']);
             if (!$set) continue;
 
@@ -184,13 +187,30 @@ class ExerciseLogController extends Controller
                 }
             }
 
-            ExerciseLog::updateOrCreate(
-                ['assignment_id' => $assignment->id, 'set_id' => $set->id],
-                [
-                    'inputs' => $finalInputs,
-                    'marked_as_done' => $logData['marked_as_done'] ?? false,
-                ]
-            );
+            $log = ExerciseLog::firstOrNew(['assignment_id' => $assignment->id, 'set_id' => $set->id]);
+            $log->inputs = $finalInputs;
+            $log->marked_as_done = $logData['marked_as_done'] ?? false;
+
+            $fileKey = "logs.$index.proof";
+            if ($request->hasFile($fileKey)) {
+                $file = $request->file($fileKey);
+
+                // Delete old proof if exists
+                if ($log->proof_url) {
+                    $existingPath = str_replace(Storage::disk('public')->url(''), '', $log->proof_url);
+                    if ($existingPath !== $log->proof_url) {
+                        Storage::disk('public')->delete($existingPath);
+                    }
+                }
+
+                $fileName = Str::uuid() . '.' . strtolower($file->getClientOriginalExtension());
+                $path = Storage::disk('public')->putFileAs('exercise-proofs', $file, $fileName);
+                $log->proof_url = Storage::disk('public')->url($path);
+                $log->proof_name = $file->getClientOriginalName();
+                $log->proof_size = $file->getSize();
+            }
+
+            $log->save();
         }
 
         // Reload logs and update assignment status
@@ -233,23 +253,23 @@ class ExerciseLogController extends Controller
                 'program' => [
                     'name' => $assignment->program->name,
                     'note' => $assignment->program->note ?? null,
-                    'creator' => [
-                        'name' => $assignment->program->creator?->name ?? 'System',
-                    ],
                     'exercises' => $assignment->program->exercises->map(function ($exercise) use ($assignment) {
                         return [
                             'id' => $exercise->id,
                             'name' => $exercise->name,
-                            'description' => $exercise->description ?? null,
-                            'sets' => $exercise->sets->map(function ($set) use ($assignment, $exercise) {
+                            'description' => $exercise->description,
+                            'sets' => $exercise->sets->map(function ($set) use ($assignment) {
                                 $log = $assignment->logs->firstWhere('set_id', $set->id);
                                 return [
                                     'id' => $set->id,
-                                    'program_exercise_id' => $exercise->id,
                                     'order' => $set->order,
                                     'fields' => $set->fields ?? [],
                                     'values' => $log?->inputs ?? [],
+                                    'suggested_values' => $set->suggested_values ?? [],
                                     'marked_as_done' => $log?->marked_as_done ?? false,
+                                    'proof_url' => $log?->proof_url,
+                                    'proof_name' => $log?->proof_name,
+                                    'proof_size' => $log?->proof_size,
                                 ];
                             })->values(),
                         ];
@@ -267,12 +287,71 @@ class ExerciseLogController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if (
-            ! $user->can($permission) ||
-            ($user->hasRole('Student') && $assignment->student_id !== $user->id) ||
-            ($user->hasRole('Coach') && $assignment->program->created_by !== $user->id)
-        ) {
+        if (! $user->can($permission)) {
             abort(403, 'Unauthorized access to this assignment.');
         }
+
+        if ($user->hasRole('Student') && $assignment->student_id !== $user->id) {
+            abort(403, 'Unauthorized access to this assignment.');
+        }
+
+        if ($user->hasRole('Coach')) {
+            $isCreator = $assignment->program->created_by === $user->id;
+            $teamIds = $user->assignedTeams()->pluck('id');
+            $programTeamAllowed = $teamIds->isNotEmpty() && $assignment->program->sport_team_id
+                ? $teamIds->contains($assignment->program->sport_team_id)
+                : false;
+            $studentTeamAllowed = $teamIds->isNotEmpty()
+                ? $assignment->student?->sportTeamAssignments()->whereIn('sport_team_id', $teamIds)->exists()
+                : false;
+
+            if (! $isCreator && ! $programTeamAllowed && ! $studentTeamAllowed) {
+                abort(403, 'Unauthorized access to this assignment.');
+            }
+        }
+    }
+
+    /**
+     * Collect students visible to the coach (assigned by them or within their teams).
+     */
+    protected function collectCoachStudents($user, Collection $coachTeamIds): Collection
+    {
+        if ($user->hasRole('Admin')) {
+            return ProgramAssignment::with('student:id,name')
+                ->get()
+                ->pluck('student')
+                ->unique('id')
+                ->values();
+        }
+
+        $students = ProgramAssignment::query()
+            ->when(
+                $user->hasRole('Coach') && ! $user->hasRole('Admin'),
+                fn($q) => $q->where(function ($sub) use ($user, $coachTeamIds) {
+                    $sub->where('assigned_by', $user->id);
+                    if ($coachTeamIds->isNotEmpty()) {
+                        $sub->orWhereHas('program', fn($p) => $p->whereIn('sport_team_id', $coachTeamIds))
+                            ->orWhereHas('student.sportTeamAssignments', fn($s) => $s->whereIn('sport_team_id', $coachTeamIds));
+                    }
+                })
+            )
+            ->with('student:id,name')
+            ->get()
+            ->pluck('student')
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        // Fallback: add students directly from team assignments if none via programs
+        if ($coachTeamIds->isNotEmpty()) {
+            $teamStudents = \App\Models\StudentSportTeam::with('student:id,name')
+                ->whereIn('sport_team_id', $coachTeamIds)
+                ->get()
+                ->pluck('student')
+                ->filter();
+            $students = $students->merge($teamStudents)->unique('id')->values();
+        }
+
+        return $students;
     }
 }

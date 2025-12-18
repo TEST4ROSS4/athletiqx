@@ -74,17 +74,17 @@ export default function Eligibility({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Scholarship Eligibility" />
-      <div className="p-3">
-        <h1 className="mb-4 text-2xl font-bold">Scholarship Eligibility</h1>
+      <div className="p-6 text-gray-900 dark:text-slate-100">
+        <h1 className="mb-4 text-2xl font-bold text-[#102d4e] dark:text-slate-100">Scholarship Eligibility</h1>
 
         {/* Dropdown of professor’s taughtCourseSections */}
         <div className="mb-4">
-          <label htmlFor="courseSection" className="mr-2 font-medium">Select Course Section:</label>
+          <label htmlFor="courseSection" className="mr-2 font-heading text-sm text-[#102d4e] dark:text-slate-100">Select Course Section:</label>
           <select
             id="courseSection"
             value={courseSection ?? ''}
             onChange={handleSectionChange}
-            className="rounded border px-2 py-1 text-gray-900 bg-white"
+            className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 shadow-sm focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           >
             <option value="">-- Choose Section --</option>
             {courseSections.map((cs) => (
@@ -97,9 +97,9 @@ export default function Eligibility({
 
         {/* List of students with editable grade */}
         {students.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-700">
-              <thead className="bg-gray-50 text-xs uppercase">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full text-left text-sm text-gray-700 dark:text-slate-100">
+              <thead className="bg-gray-50 text-xs uppercase dark:bg-slate-800 dark:text-slate-200">
                 <tr>
                   <th className="px-6 py-3">Student</th>
                   <th className="px-6 py-3">Final Grade (%)</th>
@@ -107,9 +107,9 @@ export default function Eligibility({
                   <th className="px-6 py-3">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                 {students.map((student) => (
-                  <tr key={student.id} className="border-b odd:bg-white even:bg-gray-50">
+                  <tr key={student.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-50 dark:border-slate-800 dark:odd:bg-slate-900 dark:even:bg-slate-950">
                     <td className="px-6 py-2 font-medium">{student.name}</td>
                     <td className="px-6 py-2">
                       <input
@@ -117,20 +117,20 @@ export default function Eligibility({
                         step="0.01"
                         value={grades[student.id] ?? ''}
                         onChange={(e) => handleInputChange(student.id, e.target.value)}
-                        className="w-20 rounded border px-2 py-1 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-24 rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 shadow-sm focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                       />
                     </td>
                     <td className="px-6 py-2">
                       {student.eligible ? (
-                        <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">Yes</span>
+                        <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700 dark:bg-green-900/40 dark:text-green-200">Yes</span>
                       ) : (
-                        <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700">No</span>
+                        <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 dark:bg-red-900/40 dark:text-red-200">No</span>
                       )}
                     </td>
                     <td className="px-6 py-2">
                       <button
                         onClick={() => handleGradeUpdate(student.id)}
-                        className="rounded bg-blue-700 px-3 py-2 text-xs text-white hover:bg-blue-800"
+                        className="rounded bg-[#102d4e] px-3 py-2 text-xs font-heading text-white shadow-sm transition hover:bg-[#0d243d] focus:outline-none focus:ring-2 focus:ring-[#102d4e] dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                       >
                         Save
                       </button>

@@ -88,23 +88,52 @@ class MobileProgramAssignmentController extends Controller
 
     public function fetchAssignments(Program $program)
     {
-        $ssts = StudentSportTeam::with(['student', 'sportTeam'])->get();
+        $user = Auth::user();
 
-        $teams = $ssts->pluck('sportTeam')->unique('id')->values()->map(function ($t) {
-            return [
-                'id' => $t->id,
-                'name' => $t->name,
-                'sport' => [
-                    'id' => $t->sport->id ?? null,
-                    'name' => $t->sport->name ?? null,
-                    'category' => $t->sport->category ?? null,
-                    'is_active' => $t->sport->is_active ?? null,
-                    'division' => $t->sport->division ?? null,
-                ],
-            ];
-        });
+        // Limit teams to those assigned to this coach (direct or via sport)
+        $directTeamIds = CoachAssignment::where('coach_id', $user->id)
+            ->where('school_id', $user->school_id)
+            ->whereNotNull('sport_team_id')
+            ->pluck('sport_team_id');
+
+        $sportIds = CoachAssignment::where('coach_id', $user->id)
+            ->where('school_id', $user->school_id)
+            ->whereNotNull('sport_id')
+            ->pluck('sport_id');
+
+        $viaSportTeamIds = SportTeam::whereIn('sport_id', $sportIds)
+            ->where('school_id', $user->school_id)
+            ->pluck('id');
+
+        $allowedTeamIds = $directTeamIds->merge($viaSportTeamIds)->unique();
+
+        $ssts = StudentSportTeam::with(['student', 'sportTeam.sport'])
+            ->where('school_id', $user->school_id)
+            ->when($allowedTeamIds->isNotEmpty(), fn ($q) => $q->whereIn('sport_team_id', $allowedTeamIds))
+            ->get();
+
+        $teams = $ssts->pluck('sportTeam')
+            ->filter() // guard nulls
+            ->unique('id')
+            ->values()
+            ->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'sport' => [
+                        'id' => $t->sport->id ?? null,
+                        'name' => $t->sport->name ?? null,
+                        'category' => $t->sport->category ?? null,
+                        'is_active' => $t->sport->is_active ?? null,
+                        'division' => $t->sport->division ?? null,
+                    ],
+                ];
+            });
+
+        $allowedStudentIds = $ssts->pluck('student_id')->unique();
 
         $assignedStudents = $program->assignments()
+            ->when($allowedStudentIds->isNotEmpty(), fn ($q) => $q->whereIn('student_id', $allowedStudentIds))
             ->with('student.sportTeamAssignments.sportTeam')
             ->get()
             ->map(function ($assignment) {

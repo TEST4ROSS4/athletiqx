@@ -153,19 +153,19 @@ export default function Form({ assignment }: Props) {
                 <p className="text-sm text-gray-500">{exercise.description}</p>
               )}
 
-              <table className="w-full table-auto border-collapse border border-gray-300">
+              <table className="w-full table-auto border-collapse border border-gray-300 dark:border-slate-700 text-sm">
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-300">
-                    <th className="border px-2 py-1">SET</th>
+                  <tr className="bg-gray-100 border-b border-gray-300 dark:bg-slate-800 dark:border-slate-700">
+                    <th className="border px-2 py-2 dark:border-slate-700 text-left">SET</th>
                     {exercise.sets[0]?.fields.map((field, idx) => {
                       const unit = exercise.sets[0]?.suggested_values?.[idx]?.unit;
                       return (
-                        <th key={field.name} className="border px-2 py-1">
+                        <th key={field.name} className="border px-2 py-2 dark:border-slate-700 text-left">
                           {unit ? `${field.name.toUpperCase()} (${unit})` : field.name.toUpperCase()}
                         </th>
                       );
                     })}
-                    <th className="border px-2 py-1">Mark as Done</th>
+                    <th className="border px-2 py-2 text-center dark:border-slate-700">Mark as Done</th>
                   </tr>
                 </thead>
 
@@ -173,9 +173,13 @@ export default function Form({ assignment }: Props) {
                   {exercise.sets.map((set) => (
                     <tr
                       key={set.id}
-                      className={set.marked_as_done ? 'bg-green-100 transition-colors duration-300' : ''}
+                      className={`transition-colors duration-300 ${
+                        set.marked_as_done
+                          ? 'bg-emerald-50 ring-1 ring-emerald-200 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-50 dark:ring-emerald-500/60'
+                          : 'hover:bg-gray-50 dark:hover:bg-slate-800'
+                      }`}
                     >
-                      <td className="border px-2 py-1 text-center">{set.order + 1}</td>
+                      <td className="border px-2 py-2 text-center dark:border-slate-700">{set.order + 1}</td>
 
                       {set.fields.map((field, idx) => {
                         const fieldName = field.name;
@@ -189,7 +193,7 @@ export default function Form({ assignment }: Props) {
                             : rawValue;
 
                         return (
-                          <td key={fieldName} className="border px-2 py-1">
+                          <td key={fieldName} className="border px-2 py-1 dark:border-slate-700">
                             <input
                               type="text"
                               value={displayValue}
@@ -197,18 +201,18 @@ export default function Form({ assignment }: Props) {
                               onChange={(e) =>
                                 handleInputChange(exercise.id, set.id, fieldName, e.target.value)
                               }
-                              className="w-full border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary transition"
+                              className="w-full border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary transition dark:border-slate-600 dark:bg-slate-900 dark:text-slate-50"
                             />
                           </td>
                         );
                       })}
 
-                      <td className="border px-2 py-1 text-center">
+                      <td className="border px-2 py-1 text-center dark:border-slate-700">
                         <input
                           type="checkbox"
                           checked={set.marked_as_done}
                           onChange={() => handleToggleDone(exercise.id, set.id)}
-                          className="cursor-pointer"
+                          className="cursor-pointer accent-emerald-600"
                         />
                       </td>
                     </tr>

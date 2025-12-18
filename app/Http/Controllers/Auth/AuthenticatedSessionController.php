@@ -28,6 +28,7 @@ class AuthenticatedSessionController extends Controller
                 ['email' => 'admin@fit.com', 'password' => 'admin', 'name' => 'School Admin'],
                 ['email' => 'test@example.com', 'password' => 'password', 'name' => 'Test User'],
                 ['email' => 'coach@test.com', 'password' => 'password', 'name' => 'Coach - Sarah Coach'],
+                ['email' => 'professor@test.com', 'password' => 'password', 'name' => 'Professor - Dr. Academic'],
             ];
         }
         

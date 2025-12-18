@@ -4,7 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowUpDown } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { can } from '@/lib/can';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const breadcrumbs = [{ title: 'Enrollments', href: '/student-course-sections' }];
 
@@ -18,7 +18,7 @@ export default function Index({
     id: number;
     student: { name: string };
     course_section: {
-      course: { title: string };
+      course: { id: number; title: string };
       section: { code: string };
       term: string;
       status: string;
@@ -36,20 +36,42 @@ export default function Index({
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [courseFilter, setCourseFilter] = useState<string>('');
   const studentOptions = students.map((s) => ({ label: s.name, value: s.id }));
   const courseSectionOptions = courseSections.map((cs) => ({
     label: `${cs.course.title} - ${cs.section.code} (${cs.term})`,
     value: cs.id,
   }));
 
+  const courseFilterOptions = useMemo(() => {
+    const uniqueCourses = new Map<number, string>();
+    courseSections.forEach((cs) => {
+      if (cs.course?.id) {
+        uniqueCourses.set(cs.course.id, cs.course.title);
+      }
+    });
+    return Array.from(uniqueCourses.entries()).map(([id, title]) => ({
+      label: title,
+      value: id,
+    }));
+  }, [courseSections]);
+
   const { data, setData, post, reset, processing, errors } = useForm({
     student_id: null as number | null,
     course_section_id: null as number | null,
   });
 
+  const filteredAssignments = useMemo(
+    () =>
+      assignments.filter((a) =>
+        courseFilter ? a.course_section?.course?.id === Number(courseFilter) : true
+      ),
+    [assignments, courseFilter]
+  );
+
   const itemsPerPage = 9;
-  const totalPages = Math.ceil(assignments.length / itemsPerPage) || 1;
-  const paginatedAssignments = assignments.slice(
+  const totalPages = Math.ceil(filteredAssignments.length / itemsPerPage) || 1;
+  const paginatedAssignments = filteredAssignments.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -92,28 +114,48 @@ export default function Index({
           </h1>
 
           {/* Top Controls */}
-          <div className="flex items-center justify-between gap-4">
-            {can('student-course-sections.create') && (
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
-              >
-                Enroll Student
-              </button>
-            )}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {can('student-course-sections.create') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    className="rounded-lg bg-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-white hover:bg-[#0d243d] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  >
+                    Enroll Student
+                  </button>
+                  <Link
+                    href={route('student-course-sections.create')}
+                    className="rounded-lg border border-[#102d4e] px-4 py-2 font-heading text-sm font-semibold text-[#102d4e] transition hover:bg-[#102d4e] hover:text-white focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+                  >
+                    Add
+                  </Link>
+                </>
+              )}
+            </div>
 
-            {/* Search Bar */}
-            {/* <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1); // reset to first page when searching
-              }}
-              placeholder="Search students..."
-              className="w-64 rounded-md border border-gray-300 px-3 py-2 font-sans text-sm shadow-sm focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
-            /> */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="courseFilter" className="font-heading text-sm text-[#102d4e]">
+                Filter by course:
+              </label>
+              <select
+                id="courseFilter"
+                value={courseFilter}
+                onChange={(e) => {
+                  setCourseFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#102d4e] focus:ring-2 focus:ring-[#102d4e] focus:outline-none"
+              >
+                <option value="">All courses</option>
+                {courseFilterOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Table */}

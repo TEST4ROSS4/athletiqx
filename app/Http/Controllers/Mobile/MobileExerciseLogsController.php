@@ -9,6 +9,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MobileExerciseLogsController extends Controller
 {
@@ -20,6 +22,9 @@ class MobileExerciseLogsController extends Controller
             'logs.*.set_id' => 'required|integer|exists:exercise_sets,id',
             'logs.*.inputs' => 'nullable|array',
             'logs.*.marked_as_done' => 'boolean',
+            'logs.*.proof_url' => 'nullable|string',
+            'logs.*.proof_name' => 'nullable|string',
+            'logs.*.proof_size' => 'nullable|integer',
         ]);
 
         foreach ($validated['logs'] as $logData) {
@@ -57,6 +62,9 @@ class MobileExerciseLogsController extends Controller
                 [
                     'inputs' => $finalInputs,
                     'marked_as_done' => $logData['marked_as_done'] ?? false,
+                    'proof_url' => $logData['proof_url'] ?? null,
+                    'proof_name' => $logData['proof_name'] ?? null,
+                    'proof_size' => $logData['proof_size'] ?? null,
                 ]
             );
         }
@@ -148,6 +156,8 @@ class MobileExerciseLogsController extends Controller
                         'suggested_values' => $set->suggested_values,
                         'logged_values' => $log->inputs ?? [],
                         'marked_as_done' => $log->marked_as_done ?? false,
+                        'proof_url' => $log->proof_url ?? null,
+                        'proof_name' => $log->proof_name ?? null,
                     ];
                 }),
             ];
@@ -174,5 +184,44 @@ class MobileExerciseLogsController extends Controller
             'assignment_id' => $assignment->id,
             'assignment_status' => $assignment->status,
         ]);
+    }
+
+    /**
+     * Upload proof file for exercise log
+     */
+    public function uploadProof(Request $request, ProgramAssignment $assignment)
+    {
+        $request->validate([
+            'file' => 'required|file|max:51200', // 50MB
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'avi'];
+
+            if (!in_array($extension, $allowedExtensions)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File type not allowed. Allowed: ' . implode(', ', $allowedExtensions),
+                ], 400);
+            }
+
+            $fileName = Str::uuid() . '.' . $extension;
+            $path = Storage::disk('public')->putFileAs('exercise-proofs', $file, $fileName);
+            $fileUrl = Storage::disk('public')->url($path);
+
+            return response()->json([
+                'success' => true,
+                'proof_url' => $fileUrl,
+                'proof_name' => $file->getClientOriginalName(),
+                'proof_size' => $file->getSize(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File upload failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

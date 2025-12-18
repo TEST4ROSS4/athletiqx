@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\EmailController;
 use App\Http\Controllers\Api\KpiController;
 use App\Http\Controllers\Api\WellnessController;
 use App\Http\Controllers\Api\TrainingComplianceController;
+use App\Http\Controllers\Api\ScholarshipAlertController;
 
 //AUTH AND USERS
 Route::post('/mobile-login', [MobileAuthController::class, 'mobileLogin']);
@@ -70,6 +71,7 @@ Route::middleware('auth:sanctum')->get('/news-feed', [\App\Http\Controllers\News
 Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}', [MobileExerciseLogsController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/exercise-logs/{assignment}/student/{studentId?}/fetch', [MobileExerciseLogsController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/exercise-logs/{assignmentId}/complete', [MobileExerciseLogsController::class, 'markAsCompleted']);
+Route::middleware('auth:sanctum')->post('/exercise-logs/{assignment}/upload-proof', [MobileExerciseLogsController::class, 'uploadProof']);
 
 //HOME APIS
 Route::middleware('auth:sanctum')->get('/students/{studentId}/logs', [MobileHomeController::class, 'getStudentLogs']);
@@ -81,6 +83,9 @@ Route::middleware('auth:sanctum')->post('/trainings/{trainingId}/proof', [FileUp
 Route::middleware('auth:sanctum')->get('/trainings/{trainingId}/proofs', [FileUploadController::class, 'getProofs']);
 Route::middleware('auth:sanctum')->put('/trainings/{trainingId}/proof/{proofId}', [FileUploadController::class, 'approveRejectProof']);
 Route::middleware('auth:sanctum')->delete('/trainings/{trainingId}/proof/{proofId}', [FileUploadController::class, 'deleteProof']);
+
+//SCHOLARSHIP SETTINGS ALERT (Mobile)
+Route::middleware('auth:sanctum')->get('/scholarships/latest', [ScholarshipAlertController::class, 'latest']);
 
 //EMAIL NOTIFICATION SYSTEM (Phase 1)
 Route::post('/newsletter/subscribe', [EmailController::class, 'subscribe']);

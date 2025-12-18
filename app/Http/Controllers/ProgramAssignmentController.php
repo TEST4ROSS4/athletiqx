@@ -12,9 +12,18 @@ class ProgramAssignmentController extends Controller
     /**
      * Show the assign program page (create mode).
      */
-    public function create(Program $program)
+    public function create(Request $request, Program $program)
     {
-        $ssts = StudentSportTeam::with(['student', 'sportTeam'])->get();
+        $user = $request->user();
+        $allowedTeamIds = null;
+
+        if ($user && $user->hasRole('Coach')) {
+            $allowedTeamIds = $user->assignedTeams()->pluck('id');
+        }
+
+        $ssts = StudentSportTeam::with(['student', 'sportTeam'])
+            ->when($allowedTeamIds, fn ($q) => $q->whereIn('sport_team_id', $allowedTeamIds))
+            ->get();
 
         $teams = $ssts->pluck('sportTeam')->unique('id')->values()->map(fn($t) => [
             'id' => $t->id,
@@ -32,9 +41,18 @@ class ProgramAssignmentController extends Controller
     /**
      * Show the assign program page (edit mode).
      */
-    public function edit(Program $program)
+    public function edit(Request $request, Program $program)
     {
-        $ssts = StudentSportTeam::with(['student', 'sportTeam'])->get();
+        $user = $request->user();
+        $allowedTeamIds = null;
+
+        if ($user && $user->hasRole('Coach')) {
+            $allowedTeamIds = $user->assignedTeams()->pluck('id');
+        }
+
+        $ssts = StudentSportTeam::with(['student', 'sportTeam'])
+            ->when($allowedTeamIds, fn ($q) => $q->whereIn('sport_team_id', $allowedTeamIds))
+            ->get();
 
         $teams = $ssts->pluck('sportTeam')->unique('id')->values()->map(fn($t) => [
             'id' => $t->id,
@@ -133,7 +151,15 @@ class ProgramAssignmentController extends Controller
     {
         $q = $request->get('q', '');
 
+        $user = $request->user();
+        $allowedTeamIds = null;
+
+        if ($user && $user->hasRole('Coach')) {
+            $allowedTeamIds = $user->assignedTeams()->pluck('id');
+        }
+
         $teams = StudentSportTeam::with('sportTeam')
+            ->when($allowedTeamIds, fn ($query) => $query->whereIn('sport_team_id', $allowedTeamIds))
             ->get()
             ->pluck('sportTeam')
             ->unique('id')
@@ -158,8 +184,20 @@ class ProgramAssignmentController extends Controller
         $excludeStudentIds = collect($request->get('exclude_student_ids', []))->map(fn($id) => (int)$id);
         $excludeTeamIds = collect($request->get('exclude_team_ids', []))->map(fn($id) => (int)$id);
 
+        $user = $request->user();
+        $allowedTeamIds = null;
+
+        if ($user && $user->hasRole('Coach')) {
+            $allowedTeamIds = $user->assignedTeams()->pluck('id');
+        }
+
+        if ($allowedTeamIds && $teamId && ! $allowedTeamIds->contains((int) $teamId)) {
+            return response()->json([]);
+        }
+
         $students = StudentSportTeam::with(['student', 'sportTeam'])
             ->when($teamId, fn($query) => $query->where('sport_team_id', $teamId))
+            ->when($allowedTeamIds, fn ($query) => $query->whereIn('sport_team_id', $allowedTeamIds))
             ->when($excludeStudentIds->isNotEmpty(), fn($q) => $q->whereNotIn('student_id', $excludeStudentIds))
             ->when($excludeTeamIds->isNotEmpty(), fn($q) => $q->whereNotIn('sport_team_id', $excludeTeamIds))
             ->when(

@@ -13,6 +13,9 @@ class ExerciseLog extends Model
         'assignment_id',
         'set_id',
         'inputs',
+        'proof_url',
+        'proof_name',
+        'proof_size',
         'notes',
         'marked_as_done',
     ];
@@ -21,6 +24,7 @@ class ExerciseLog extends Model
         'assignment_id' => 'integer',
         'set_id' => 'integer',
         'inputs' => 'array',
+        'proof_size' => 'integer',
         'marked_as_done' => 'boolean',
     ];
 

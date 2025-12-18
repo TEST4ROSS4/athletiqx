@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -22,10 +22,17 @@ interface Props {
 }
 
 export default function Assign({ program, assignedStudents: initialAssigned }: Props) {
+  const { auth } = usePage().props as {
+    auth?: { user?: { roles?: string[] } };
+  };
+
+  const isCoach = Array.isArray(auth?.user?.roles) && auth.user.roles.includes('Coach');
+  const defaultType: 'team' | 'individual' = isCoach ? 'individual' : 'team';
+
   const isEdit = initialAssigned.length > 0;
 
   const { data, setData, post, put, processing, errors } = useForm({
-    type: 'team' as 'team' | 'individual',
+    type: defaultType,
     team_ids: [] as number[],
     student_ids: [] as number[],
     excluded_student_ids: [] as number[],
@@ -171,31 +178,33 @@ export default function Assign({ program, assignedStudents: initialAssigned }: P
             </div>
           </div>
 
-          <div>
-            <label className="font-heading text-sm text-[#102d4e]">Assign To:</label>
-            <div className="mt-1 flex items-center gap-4">
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="type"
-                  value="team"
-                  checked={data.type === 'team'}
-                  onChange={() => setData('type', 'team')}
-                />
-                Team
-              </label>
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="type"
-                  value="individual"
-                  checked={data.type === 'individual'}
-                  onChange={() => setData('type', 'individual')}
-                />
-                Individual
-              </label>
+          {!isCoach && (
+            <div>
+              <label className="font-heading text-sm text-[#102d4e]">Assign To:</label>
+              <div className="mt-1 flex items-center gap-4">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="team"
+                    checked={data.type === 'team'}
+                    onChange={() => setData('type', 'team')}
+                  />
+                  Team
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="individual"
+                    checked={data.type === 'individual'}
+                    onChange={() => setData('type', 'individual')}
+                  />
+                  Individual
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="font-heading text-sm text-[#102d4e]">

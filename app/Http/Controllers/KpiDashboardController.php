@@ -65,13 +65,13 @@ class KpiDashboardController extends Controller
             abort(404, 'Student not found');
         }
 
-        $kpiCache = KpiCache::where('student_id', $studentId)
-            ->where('date', now()->toDateString())
-            ->first();
-
-        if (!$kpiCache) {
-            $kpiCache = $this->calculateKpis($studentId);
-        }
+        // Calculate directly from source data - NO CACHE
+        $completionRate = $this->calculateCompletionRate($studentId);
+        $complianceScore = $this->calculateComplianceScore($studentId);
+        $consistencyIndex = $this->calculateConsistencyIndex($studentId);
+        $performanceTrend = $this->calculatePerformanceTrend($studentId);
+        $attendanceRate = $this->calculateAttendanceRate($studentId);
+        $avgDuration = $this->calculateAvgSessionDuration($studentId);
 
         $trends = $this->getKpiTrends($studentId, 7);
         $comparison = $this->getKpiComparison($studentId);
@@ -79,12 +79,12 @@ class KpiDashboardController extends Controller
         return Inertia::render('KpiDashboard/Index', [
             'student' => $student,
             'kpis' => [
-                'trainingCompletionRate' => $kpiCache->completion_rate ?? 0,
-                'complianceScore' => $kpiCache->compliance_score ?? 0,
-                'consistencyIndex' => $kpiCache->consistency_index ?? 0,
-                'performanceTrend' => $kpiCache->performance_trend ?? 0,
-                'attendanceRate' => $kpiCache->attendance_rate ?? 0,
-                'averageSessionDuration' => $kpiCache->avg_session_duration ?? 0,
+                'trainingCompletionRate' => $completionRate,
+                'complianceScore' => $complianceScore,
+                'consistencyIndex' => $consistencyIndex,
+                'performanceTrend' => $performanceTrend,
+                'attendanceRate' => $attendanceRate,
+                'averageSessionDuration' => $avgDuration,
                 'personalRecords' => [
                     'maxWeight' => $this->getMaxWeight($studentId),
                     'maxTime' => $this->getMaxDuration($studentId),
@@ -96,7 +96,7 @@ class KpiDashboardController extends Controller
             ],
             'trends' => $trends,
             'comparison' => $comparison,
-            'lastUpdated' => $kpiCache->updated_at?->toIso8601String(),
+            'lastUpdated' => now()->toIso8601String(),
         ]);
     }
 
@@ -140,13 +140,15 @@ class KpiDashboardController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $teamKpiCache = TeamKpiCache::where('sport_team_id', $teamId)
-            ->where('date', now()->toDateString())
-            ->first();
-
-        if (!$teamKpiCache) {
-            $teamKpiCache = $this->calculateTeamKpis($teamId);
-        }
+        $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
+        
+        // Calculate directly from source data - NO CACHE
+        $completionRate = $this->calculateTeamCompletionRate($studentIds);
+        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
+        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
+        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
+        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
+        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
 
         $trends = $this->getTeamKpiTrends($teamId, 7);
         $studentMetrics = $this->getTeamStudentMetrics($teamId);
@@ -154,17 +156,17 @@ class KpiDashboardController extends Controller
         return Inertia::render('KpiDashboard/TeamKpi', [
             'team' => $team,
             'kpis' => [
-                'completionRate' => $teamKpiCache->completion_rate ?? 0,
-                'complianceScore' => $teamKpiCache->compliance_score ?? 0,
-                'consistencyIndex' => $teamKpiCache->consistency_index ?? 0,
-                'performanceTrend' => $teamKpiCache->performance_trend ?? 0,
-                'attendanceRate' => $teamKpiCache->attendance_rate ?? 0,
-                'averageSessionDuration' => $teamKpiCache->avg_session_duration ?? 0,
-                'totalMembers' => $teamKpiCache->total_members ?? 0,
+                'completionRate' => $completionRate,
+                'complianceScore' => $complianceScore,
+                'consistencyIndex' => $consistencyIndex,
+                'performanceTrend' => $performanceTrend,
+                'attendanceRate' => $attendanceRate,
+                'averageSessionDuration' => $avgDuration,
+                'totalMembers' => count($studentIds),
             ],
             'trends' => $trends,
             'studentMetrics' => $studentMetrics,
-            'lastUpdated' => $teamKpiCache->updated_at?->toIso8601String(),
+            'lastUpdated' => now()->toIso8601String(),
         ]);
     }
 
@@ -224,13 +226,16 @@ class KpiDashboardController extends Controller
             abort(404, 'School not found');
         }
 
-        $schoolKpiCache = SchoolKpiCache::where('school_id', $schoolId)
-            ->where('date', now()->toDateString())
-            ->first();
-
-        if (!$schoolKpiCache) {
-            $schoolKpiCache = $this->calculateSchoolKpis($schoolId);
-        }
+        // Calculate directly from source data - NO CACHE
+        $studentIds = User::where('school_id', $schoolId)->pluck('id')->toArray();
+        $teamCount = SportTeam::where('school_id', $schoolId)->count();
+        
+        $completionRate = $this->calculateTeamCompletionRate($studentIds);
+        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
+        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
+        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
+        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
+        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
 
         $trends = $this->getSchoolKpiTrends($schoolId, 7);
         $teamMetrics = $this->getSchoolTeamMetrics($schoolId);
@@ -238,18 +243,18 @@ class KpiDashboardController extends Controller
         return Inertia::render('KpiDashboard/SchoolKpi', [
             'school' => $school,
             'kpis' => [
-                'completionRate' => $schoolKpiCache->completion_rate ?? 0,
-                'complianceScore' => $schoolKpiCache->compliance_score ?? 0,
-                'consistencyIndex' => $schoolKpiCache->consistency_index ?? 0,
-                'performanceTrend' => $schoolKpiCache->performance_trend ?? 0,
-                'attendanceRate' => $schoolKpiCache->attendance_rate ?? 0,
-                'averageSessionDuration' => $schoolKpiCache->avg_session_duration ?? 0,
-                'totalStudents' => $schoolKpiCache->total_students ?? 0,
-                'totalTeams' => $schoolKpiCache->total_teams ?? 0,
+                'completionRate' => $completionRate,
+                'complianceScore' => $complianceScore,
+                'consistencyIndex' => $consistencyIndex,
+                'performanceTrend' => $performanceTrend,
+                'attendanceRate' => $attendanceRate,
+                'averageSessionDuration' => $avgDuration,
+                'totalStudents' => count($studentIds),
+                'totalTeams' => $teamCount,
             ],
             'trends' => $trends,
             'teamMetrics' => $teamMetrics,
-            'lastUpdated' => $schoolKpiCache->updated_at?->toIso8601String(),
+            'lastUpdated' => now()->toIso8601String(),
         ]);
     }
 
@@ -318,7 +323,7 @@ class KpiDashboardController extends Controller
         return round((($thisWeekAvg - $lastWeekAvg) / $lastWeekAvg) * 100, 2);
     }
 
-    private function calculateAttendanceRate($studentId, $days = 7)
+    private function calculateAttendanceRate($studentId, $days = 7, $baselineStudentIds = null)
     {
         $windowStart = now()->subDays($days - 1)->startOfDay();
 
@@ -330,7 +335,31 @@ class KpiDashboardController extends Controller
             ->unique()
             ->count();
 
-        return $days > 0 ? round(($uniqueDays / $days) * 100, 2) : 0;
+        $maxAttendanceDays = $this->getMaxAttendanceDays($days, $baselineStudentIds);
+
+        return $maxAttendanceDays > 0 ? round(($uniqueDays / $maxAttendanceDays) * 100, 2) : 0;
+    }
+
+    private function getMaxAttendanceDays($days = 7, $studentIds = null)
+    {
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+
+        $query = WellnessLog::query()->where('logged_at', '>=', $windowStart);
+
+        if (is_array($studentIds) && !empty($studentIds)) {
+            $query->whereIn('student_id', $studentIds);
+        }
+
+        $attendanceCounts = $query->get()
+            ->groupBy('student_id')
+            ->map(fn ($logs) => $logs
+                ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
+                ->filter()
+                ->unique()
+                ->count()
+            );
+
+        return $attendanceCounts->max() ?? 0;
     }
 
     private function calculateAvgSessionDuration($studentId)
@@ -353,14 +382,26 @@ class KpiDashboardController extends Controller
             ->max('duration_actual') ?? 0;
     }
 
-    private function getAvgSleepQuality($studentId)
+    private function getAvgSleepQuality($studentId, $days = 30)
     {
-        return 7.5;
+        $windowStart = now()->subDays($days);
+        
+        $avg = WellnessLog::where('student_id', $studentId)
+            ->where('logged_at', '>=', $windowStart)
+            ->avg('sleep_quality');
+        
+        return $avg ? round($avg, 1) : 0;
     }
 
-    private function getAvgSoreness($studentId)
+    private function getAvgSoreness($studentId, $days = 30)
     {
-        return 3.2;
+        $windowStart = now()->subDays($days);
+        
+        $avg = WellnessLog::where('student_id', $studentId)
+            ->where('logged_at', '>=', $windowStart)
+            ->avg('recovery_soreness');
+        
+        return $avg ? round($avg, 1) : 0;
     }
 
     private function calculateTeamKpis($teamId)
@@ -477,7 +518,7 @@ class KpiDashboardController extends Controller
         }
 
         $rates = array_map(
-            fn ($studentId) => $this->calculateAttendanceRate($studentId, $days),
+            fn ($studentId) => $this->calculateAttendanceRate($studentId, $days, $studentIds),
             $studentIds
         );
 
@@ -568,43 +609,51 @@ class KpiDashboardController extends Controller
         $team = SportTeam::find($teamId);
         $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
 
-        $metrics = KpiCache::whereIn('student_id', $studentIds)
-            ->where('date', now()->toDateString())
-            ->with('student:id,name')
-            ->orderByDesc('compliance_score')
-            ->get();
+        // Calculate directly from source data - NO CACHE
+        $metrics = [];
+        foreach ($studentIds as $studentId) {
+            $student = User::find($studentId);
+            $metrics[] = [
+                'student_id' => $studentId,
+                'name' => $student?->name ?? 'Unknown',
+                'completionRate' => $this->calculateCompletionRate($studentId),
+                'complianceScore' => $this->calculateComplianceScore($studentId),
+                'consistencyIndex' => $this->calculateConsistencyIndex($studentId),
+                'attendanceRate' => $this->calculateAttendanceRate($studentId),
+                'trend' => $this->calculatePerformanceTrend($studentId),
+            ];
+        }
 
-        return $metrics->map(fn($metric) => [
-            'student_id' => $metric->student_id,
-            'name' => $metric->student?->name ?? 'Unknown',
-            'completionRate' => $metric->completion_rate ?? 0,
-            'complianceScore' => $metric->compliance_score ?? 0,
-            'consistencyIndex' => $metric->consistency_index ?? 0,
-            'attendanceRate' => $metric->attendance_rate ?? 0,
-            'trend' => $metric->performance_trend ?? 0,
-        ])->toArray();
+        // Sort by compliance score descending
+        usort($metrics, fn($a, $b) => $b['complianceScore'] <=> $a['complianceScore']);
+
+        return $metrics;
     }
 
     private function getSchoolTeamMetrics($schoolId)
     {
         $teams = SportTeam::where('school_id', $schoolId)->get();
 
-        $metrics = TeamKpiCache::whereIn('sport_team_id', $teams->pluck('id'))
-            ->where('date', now()->toDateString())
-            ->with('sportTeam:id,name')
-            ->orderByDesc('compliance_score')
-            ->get();
+        // Calculate directly from source data - NO CACHE
+        $metrics = [];
+        foreach ($teams as $team) {
+            $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
+            $metrics[] = [
+                'team_id' => $team->id,
+                'name' => $team->name ?? 'Unknown',
+                'completionRate' => $this->calculateTeamCompletionRate($studentIds),
+                'complianceScore' => $this->calculateTeamComplianceScore($studentIds),
+                'consistencyIndex' => $this->calculateTeamConsistencyIndex($studentIds),
+                'attendanceRate' => $this->calculateTeamAttendanceRate($studentIds),
+                'trend' => $this->calculateTeamPerformanceTrend($studentIds),
+                'totalMembers' => count($studentIds),
+            ];
+        }
 
-        return $metrics->map(fn($metric) => [
-            'team_id' => $metric->sport_team_id,
-            'name' => $metric->sportTeam?->name ?? 'Unknown',
-            'completionRate' => $metric->completion_rate ?? 0,
-            'complianceScore' => $metric->compliance_score ?? 0,
-            'consistencyIndex' => $metric->consistency_index ?? 0,
-            'attendanceRate' => $metric->attendance_rate ?? 0,
-            'trend' => $metric->performance_trend ?? 0,
-            'totalMembers' => $metric->total_members ?? 0,
-        ])->toArray();
+        // Sort by compliance score descending
+        usort($metrics, fn($a, $b) => $b['complianceScore'] <=> $a['complianceScore']);
+
+        return $metrics;
     }
 
     private function getKpiTrends($studentId, $days)
@@ -642,13 +691,9 @@ class KpiDashboardController extends Controller
 
     private function getKpiComparison($studentId)
     {
-        $current = KpiCache::where('student_id', $studentId)
-            ->where('date', now()->toDateString())
-            ->first();
-
-        if (!$current) {
-            $current = $this->calculateKpis($studentId);
-        }
+        // Calculate directly from source data - NO CACHE
+        $completionRate = $this->calculateCompletionRate($studentId);
+        $complianceScore = $this->calculateComplianceScore($studentId);
 
         $target = [
             'trainingCompletionRate' => 90.0,
@@ -656,14 +701,14 @@ class KpiDashboardController extends Controller
         ];
 
         $variance = [
-            'trainingCompletionRate' => ($current->completion_rate ?? 0) - $target['trainingCompletionRate'],
-            'complianceScore' => ($current->compliance_score ?? 0) - $target['complianceScore'],
+            'trainingCompletionRate' => $completionRate - $target['trainingCompletionRate'],
+            'complianceScore' => $complianceScore - $target['complianceScore'],
         ];
 
         return [
             'current' => [
-                'trainingCompletionRate' => $current->completion_rate ?? 0,
-                'complianceScore' => $current->compliance_score ?? 0,
+                'trainingCompletionRate' => $completionRate,
+                'complianceScore' => $complianceScore,
             ],
             'target' => $target,
             'variance' => $variance,

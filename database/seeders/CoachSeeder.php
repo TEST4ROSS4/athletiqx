@@ -14,6 +14,7 @@ class CoachSeeder extends Seeder
 
         // ✅ Grant team-member management permissions
         $permissions = [
+            'news.view',
             'student-sport-teams.view',
             'student-sport-teams.create',
             'student-sport-teams.edit',
@@ -22,9 +23,11 @@ class CoachSeeder extends Seeder
             'programs.view',
             'programs.create',
             'programs.edit',
+            'programs.delete',
             'programs.assignments.view',
             'programs.assignments.create',
             'programs.assignments.edit',
+            'exercise-logs.view',
         ];
 
         $role->syncPermissions($permissions);

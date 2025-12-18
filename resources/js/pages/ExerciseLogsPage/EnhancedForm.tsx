@@ -272,8 +272,8 @@ export default function EnhancedForm({ assignment }: Props) {
                               key={set.id}
                               className={`border-b border-[#eaeaea] dark:border-[#2a2a2a] transition ${
                                 set.marked_as_done
-                                  ? 'bg-green-50 dark:bg-green-900/10'
-                                  : 'hover:bg-[#f9f9f9] dark:hover:bg-[#2a2a2a]'
+                                  ? 'bg-emerald-50 ring-1 ring-emerald-200 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-50 dark:ring-emerald-500/60'
+                                  : 'hover:bg-[#f9f9f9] dark:hover:bg-[#1f1f1f]'
                               }`}
                             >
                               <td className="px-3 py-3 font-semibold text-[#102d4e] dark:text-[#4a7ba7]">

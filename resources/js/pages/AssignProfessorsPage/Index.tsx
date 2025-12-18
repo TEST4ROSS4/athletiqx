@@ -101,34 +101,34 @@ export default function Index({
                         /> */}
                     </div>
 
-                    <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-                        <table className="w-full font-sans text-sm text-gray-700">
-                            <thead className="bg-[#f5f7fa] font-heading text-xs text-[#102d4e] uppercase">
+                    <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <table className="w-full font-sans text-sm text-gray-700 dark:text-slate-100">
+                            <thead className="bg-[#f5f7fa] font-heading text-xs text-[#102d4e] uppercase dark:bg-slate-800 dark:text-slate-100">
                                 <tr>
-                                    <th className="px-6 py-4 text-left">ID</th>
-                                    <th className="px-6 py-4 text-left">
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">ID</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">
                                         <div className="flex items-center gap-1">
                                             <span>Professor</span>
                                             <button
                                                 onClick={handleSortToggle}
-                                                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                                                className="text-gray-500 hover:text-gray-700 focus:outline-none dark:text-slate-300 dark:hover:text-white"
                                                 title={`Sort by ${sort === 'alpha' ? 'Order' : 'Alphabetical'}`}
                                             >
                                                 <ArrowUpDown className="h-4 w-4" />
                                             </button>
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left">Course</th>
-                                    <th className="px-6 py-4 text-left">Section</th>
-                                    <th className="px-6 py-4 text-left">Term</th>
-                                    <th className="px-6 py-4 text-left">Status</th>
-                                    <th className="px-6 py-4 text-left">Actions</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">Course</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">Section</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">Term</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">Status</th>
+                                    <th className="px-6 py-4 text-left border-b border-gray-200 dark:border-slate-700">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
+                            <tbody className="divide-y divide-gray-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
                                 {assignments.map((a) => (
-                                    <tr key={a.id} className="transition hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-medium text-gray-900">{a.id}</td>
+                                    <tr key={a.id} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/70">
+                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-slate-50">{a.id}</td>
                                         <td className="px-6 py-4">{a.professor?.name}</td>
                                         <td className="px-6 py-4">{a.course_section?.course?.title}</td>
                                         <td className="px-6 py-4">{a.course_section?.section?.code}</td>
