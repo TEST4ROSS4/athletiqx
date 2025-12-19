@@ -34,17 +34,14 @@ class KpiDashboardController extends Controller
                 return Inertia::render('KpiDashboard/Index', [
                     'student' => null,
                     'kpis' => [
-                        'trainingCompletionRate' => 0,
-                        'complianceScore' => 0,
-                        'consistencyIndex' => 0,
-                        'performanceTrend' => 0,
-                        'attendanceRate' => 0,
-                        'averageSessionDuration' => 0,
-                        'personalRecords' => ['maxWeight' => 0, 'maxTime' => 0],
-                        'recoveryMetrics' => ['sleepQuality' => 0, 'soreness' => 0],
+                        'sleepQuality' => 0,
+                        'soreness' => 0,
+                        'energy' => 0,
+                        'mood' => 0,
+                        'readiness' => 0,
+                        'hydration' => 0,
                     ],
                     'trends' => ['labels' => [], 'datasets' => []],
-                    'comparison' => ['current' => [], 'target' => [], 'variance' => []],
                     'lastUpdated' => now()->toIso8601String(),
                     'message' => 'No students found',
                 ]);
@@ -65,37 +62,25 @@ class KpiDashboardController extends Controller
             abort(404, 'Student not found');
         }
 
-        // Calculate directly from source data - NO CACHE
-        $completionRate = $this->calculateCompletionRate($studentId);
-        $complianceScore = $this->calculateComplianceScore($studentId);
-        $consistencyIndex = $this->calculateConsistencyIndex($studentId);
-        $performanceTrend = $this->calculatePerformanceTrend($studentId);
-        $attendanceRate = $this->calculateAttendanceRate($studentId);
-        $avgDuration = $this->calculateAvgSessionDuration($studentId);
+        $wellnessMetrics = $this->calculateWellnessAverages([$studentId]);
+        $trends = $this->getWellnessTrends([$studentId], 7);
 
-        $trends = $this->getKpiTrends($studentId, 7);
-        $comparison = $this->getKpiComparison($studentId);
+        $wellnessLogsLast7d = WellnessLog::where('student_id', $studentId)
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->count();
+
+        $latestWellnessLog = WellnessLog::where('student_id', $studentId)
+            ->orderByDesc('logged_at')
+            ->first();
 
         return Inertia::render('KpiDashboard/Index', [
             'student' => $student,
-            'kpis' => [
-                'trainingCompletionRate' => $completionRate,
-                'complianceScore' => $complianceScore,
-                'consistencyIndex' => $consistencyIndex,
-                'performanceTrend' => $performanceTrend,
-                'attendanceRate' => $attendanceRate,
-                'averageSessionDuration' => $avgDuration,
-                'personalRecords' => [
-                    'maxWeight' => $this->getMaxWeight($studentId),
-                    'maxTime' => $this->getMaxDuration($studentId),
-                ],
-                'recoveryMetrics' => [
-                    'sleepQuality' => $this->getAvgSleepQuality($studentId),
-                    'soreness' => $this->getAvgSoreness($studentId),
-                ],
-            ],
+            'kpis' => $wellnessMetrics,
             'trends' => $trends,
-            'comparison' => $comparison,
+            'logSnapshot' => [
+                'wellnessLast7d' => $wellnessLogsLast7d,
+                'latestWellnessAt' => optional($latestWellnessLog?->logged_at ?? $latestWellnessLog?->created_at)?->toIso8601String(),
+            ],
             'lastUpdated' => now()->toIso8601String(),
         ]);
     }
@@ -142,34 +127,138 @@ class KpiDashboardController extends Controller
 
         $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
         
-        // Calculate directly from source data - NO CACHE
-        $completionRate = $this->calculateTeamCompletionRate($studentIds);
-        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
-        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
-        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
-        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
-        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
+        $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
+        $logSnapshot = $this->buildWellnessSnapshot($studentIds);
 
-        $trends = $this->getTeamKpiTrends($teamId, 7);
-        $studentMetrics = $this->getTeamStudentMetrics($teamId);
+        $trends = $this->getWellnessTrends($studentIds, 7);
+        $studentMetrics = $this->getTeamStudentWellnessMetrics($teamId);
 
         return Inertia::render('KpiDashboard/TeamKpi', [
             'team' => $team,
-            'kpis' => [
-                'completionRate' => $completionRate,
-                'complianceScore' => $complianceScore,
-                'consistencyIndex' => $consistencyIndex,
-                'performanceTrend' => $performanceTrend,
-                'attendanceRate' => $attendanceRate,
-                'averageSessionDuration' => $avgDuration,
+            'kpis' => $wellnessMetrics + [
                 'totalMembers' => count($studentIds),
             ],
             'trends' => $trends,
             'studentMetrics' => $studentMetrics,
+            'logSnapshot' => $logSnapshot,
             'lastUpdated' => now()->toIso8601String(),
         ]);
     }
 
+    private function calculateWellnessAverages(array $studentIds): array
+    {
+        if (empty($studentIds)) {
+            return [
+                'sleepQuality' => 0,
+                'soreness' => 0,
+                'energy' => 0,
+                'mood' => 0,
+                'readiness' => 0,
+                'hydration' => 0,
+            ];
+        }
+
+        $logs = WellnessLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->get();
+
+        return [
+            'sleepQuality' => round($logs->avg('sleep_quality') ?? 0, 2),
+            'soreness' => round($logs->avg('recovery_soreness') ?? 0, 2),
+            'energy' => round($logs->avg('energy_level') ?? 0, 2),
+            'mood' => round($logs->avg('mood') ?? 0, 2),
+            'readiness' => round($logs->avg('readiness_to_train') ?? 0, 2),
+            'hydration' => round($logs->avg('hydration_level') ?? 0, 2),
+        ];
+    }
+
+    private function buildWellnessSnapshot(array $studentIds): array
+    {
+        if (empty($studentIds)) {
+            return [
+                'wellnessLast7d' => 0,
+                'latestWellnessAt' => null,
+            ];
+        }
+
+        $wellnessLast7d = WellnessLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->count();
+
+        $latestWellnessLog = WellnessLog::whereIn('student_id', $studentIds)
+            ->orderByDesc('logged_at')
+            ->first();
+
+        return [
+            'wellnessLast7d' => $wellnessLast7d,
+            'latestWellnessAt' => optional($latestWellnessLog?->logged_at ?? $latestWellnessLog?->created_at)?->toIso8601String(),
+        ];
+    }
+
+    private function getWellnessTrends(array $studentIds, int $days = 7): array
+    {
+        if (empty($studentIds)) {
+            return ['labels' => [], 'datasets' => []];
+        }
+
+        $startDate = now()->subDays($days);
+        $logs = WellnessLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', $startDate)
+            ->orderBy('logged_at')
+            ->get()
+            ->groupBy(fn($log) => $log->logged_at->format('D'));
+
+        $labels = [];
+        $data = [];
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $labels[] = $date->format('D');
+
+            $dayLogs = $logs[$date->format('D')] ?? collect();
+            $avgSleep = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('sleep_quality');
+            $data[] = round($avgSleep, 2);
+        }
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'Sleep Quality',
+                    'data' => $data,
+                ],
+            ],
+        ];
+    }
+
+    private function getTeamStudentWellnessMetrics($teamId): array
+    {
+        $team = SportTeam::find($teamId);
+        if (!$team) {
+            return [];
+        }
+
+        $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
+        $metrics = [];
+
+        foreach ($studentIds as $studentId) {
+            $student = User::find($studentId);
+            $avg = $this->calculateWellnessAverages([$studentId]);
+            $metrics[] = [
+                'student_id' => $studentId,
+                'name' => $student?->name ?? 'Unknown',
+                'sleepQuality' => $avg['sleepQuality'],
+                'soreness' => $avg['soreness'],
+                'energy' => $avg['energy'],
+                'mood' => $avg['mood'],
+                'readiness' => $avg['readiness'],
+                'hydration' => $avg['hydration'],
+            ];
+        }
+
+        usort($metrics, fn($a, $b) => $b['sleepQuality'] <=> $a['sleepQuality']);
+        return $metrics;
+    }
     public function schoolKpi(Request $request)
     {
         // Authorization check
@@ -226,34 +315,21 @@ class KpiDashboardController extends Controller
             abort(404, 'School not found');
         }
 
-        // Calculate directly from source data - NO CACHE
         $studentIds = User::where('school_id', $schoolId)->pluck('id')->toArray();
         $teamCount = SportTeam::where('school_id', $schoolId)->count();
-        
-        $completionRate = $this->calculateTeamCompletionRate($studentIds);
-        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
-        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
-        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
-        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
-        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
 
-        $trends = $this->getSchoolKpiTrends($schoolId, 7);
-        $teamMetrics = $this->getSchoolTeamMetrics($schoolId);
+        $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
+        $logSnapshot = $this->buildWellnessSnapshot($studentIds);
 
         return Inertia::render('KpiDashboard/SchoolKpi', [
             'school' => $school,
-            'kpis' => [
-                'completionRate' => $completionRate,
-                'complianceScore' => $complianceScore,
-                'consistencyIndex' => $consistencyIndex,
-                'performanceTrend' => $performanceTrend,
-                'attendanceRate' => $attendanceRate,
-                'averageSessionDuration' => $avgDuration,
+            'kpis' => $wellnessMetrics + [
                 'totalStudents' => count($studentIds),
                 'totalTeams' => $teamCount,
             ],
-            'trends' => $trends,
-            'teamMetrics' => $teamMetrics,
+            'trends' => $this->getSchoolKpiTrends($schoolId, 7),
+            'teamMetrics' => $this->getSchoolTeamMetrics($schoolId),
+            'logSnapshot' => $logSnapshot,
             'lastUpdated' => now()->toIso8601String(),
         ]);
     }

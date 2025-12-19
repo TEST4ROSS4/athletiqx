@@ -5,20 +5,12 @@ import { Head } from '@inertiajs/react';
 import { TrendingUp, TrendingDown, Activity, Target, Clock, Award } from 'lucide-react';
 
 interface KpiData {
-    trainingCompletionRate: number;
-    complianceScore: number;
-    consistencyIndex: number;
-    performanceTrend: number;
-    attendanceRate: number;
-    averageSessionDuration: number;
-    personalRecords: {
-        maxWeight: number;
-        maxTime: number;
-    };
-    recoveryMetrics: {
-        sleepQuality: number;
-        soreness: number;
-    };
+    sleepQuality: number;
+    soreness: number;
+    energy: number;
+    mood: number;
+    readiness: number;
+    hydration: number;
 }
 
 interface TrendData {
@@ -29,19 +21,9 @@ interface TrendData {
     }>;
 }
 
-interface ComparisonData {
-    current: {
-        trainingCompletionRate: number;
-        complianceScore: number;
-    };
-    target: {
-        trainingCompletionRate: number;
-        complianceScore: number;
-    };
-    variance: {
-        trainingCompletionRate: number;
-        complianceScore: number;
-    };
+interface LogSnapshot {
+    wellnessLast7d: number;
+    latestWellnessAt: string | null;
 }
 
 interface Props {
@@ -51,7 +33,7 @@ interface Props {
     };
     kpis: KpiData;
     trends: TrendData;
-    comparison: ComparisonData;
+    logSnapshot: LogSnapshot;
     lastUpdated: string;
 }
 
@@ -106,7 +88,7 @@ const KpiMetricCard = ({
     );
 };
 
-export default function KpiDashboardIndex({ student, kpis, trends, comparison, lastUpdated }: Props) {
+export default function KpiDashboardIndex({ student, kpis, trends, logSnapshot, lastUpdated }: Props) {
     if (!student) {
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
@@ -127,100 +109,45 @@ export default function KpiDashboardIndex({ student, kpis, trends, comparison, l
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`KPI Dashboard - ${student.name}`} />
             <div className="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">{student.name}'s KPI Dashboard</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Last updated: {new Date(lastUpdated).toLocaleString()}
-                    </p>
+                {/* Header + live snapshot */}
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-3xl font-bold tracking-tight">{student.name}'s KPI Dashboard</h1>
+                        <p className="text-sm text-muted-foreground">
+                            Last updated: {new Date(lastUpdated).toLocaleString()}
+                        </p>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Wellness logs (7d)</CardTitle>
+                                <CardDescription>Daily check-ins</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                                <div className="text-2xl font-bold">{logSnapshot.wellnessLast7d}</div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Latest: {logSnapshot.latestWellnessAt ? new Date(logSnapshot.latestWellnessAt).toLocaleString() : 'No log yet'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
-                {/* Main KPI Metrics Grid */}
+                {/* Wellness Metrics */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <KpiMetricCard
-                        title="Training Completion Rate"
-                        value={kpis.trainingCompletionRate}
-                        icon={Target}
-                        trend={comparison.variance.trainingCompletionRate}
-                        description={`Target: ${comparison.target.trainingCompletionRate}%`}
-                    />
-                    <KpiMetricCard
-                        title="Compliance Score"
-                        value={kpis.complianceScore}
-                        icon={Award}
-                        trend={comparison.variance.complianceScore}
-                        description={`Target: ${comparison.target.complianceScore}%`}
-                    />
-                    <KpiMetricCard
-                        title="Consistency Index"
-                        value={kpis.consistencyIndex}
-                        icon={Activity}
-                        description="Weekly consistency"
-                    />
-                    <KpiMetricCard
-                        title="Attendance Rate"
-                        value={kpis.attendanceRate}
-                        icon={Activity}
-                        description="Schedule adherence"
-                    />
-                    <KpiMetricCard
-                        title="Avg Session Duration"
-                        value={kpis.averageSessionDuration}
-                        unit=" min"
-                        icon={Clock}
-                        description="Average per session"
-                    />
-                    <KpiMetricCard
-                        title="Performance Trend"
-                        value={kpis.performanceTrend}
-                        unit="%"
-                        icon={TrendingUp}
-                        description="Week-over-week change"
-                    />
+                    <KpiMetricCard title="Sleep Quality" value={kpis.sleepQuality} unit="/10" icon={Target} description="Avg last 7d" />
+                    <KpiMetricCard title="Soreness" value={kpis.soreness} unit="/10" icon={Activity} description="Avg last 7d" />
+                    <KpiMetricCard title="Energy" value={kpis.energy} unit="/10" icon={TrendingUp} description="Avg last 7d" />
+                    <KpiMetricCard title="Mood" value={kpis.mood} unit="/10" icon={TrendingDown} description="Avg last 7d" />
+                    <KpiMetricCard title="Readiness" value={kpis.readiness} unit="/10" icon={Clock} description="Avg last 7d" />
+                    <KpiMetricCard title="Hydration" value={kpis.hydration} unit="/10" icon={Award} description="Avg last 7d" />
                 </div>
 
-                {/* Personal Records & Recovery Metrics */}
-                <div className="grid gap-4 md:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Personal Records</CardTitle>
-                            <CardDescription>Best performance metrics</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Max Weight Lifted</span>
-                                <span className="text-2xl font-bold">{kpis.personalRecords.maxWeight} lbs</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Max Duration</span>
-                                <span className="text-2xl font-bold">{kpis.personalRecords.maxTime} min</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Recovery Metrics</CardTitle>
-                            <CardDescription>Wellness indicators</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Sleep Quality</span>
-                                <span className="text-2xl font-bold">{kpis.recoveryMetrics.sleepQuality.toFixed(1)}/10</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Soreness Level</span>
-                                <span className="text-2xl font-bold">{kpis.recoveryMetrics.soreness.toFixed(1)}/10</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Trends Section */}
+                {/* Wellness Trend */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>7-Day Trends</CardTitle>
-                        <CardDescription>Performance over the last week</CardDescription>
+                        <CardTitle>Sleep Quality Trend (7d)</CardTitle>
+                        <CardDescription>Average per day</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -230,7 +157,7 @@ export default function KpiDashboardIndex({ student, kpis, trends, comparison, l
                                     <div className="flex gap-2 items-end h-24">
                                         {dataset.data.map((value, i) => {
                                             const maxValue = Math.max(...dataset.data);
-                                            const height = (value / maxValue) * 100;
+                                            const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
                                             return (
                                                 <div
                                                     key={i}

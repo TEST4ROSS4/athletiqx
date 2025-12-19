@@ -69,7 +69,7 @@ export function AppSidebar() {
         // ------------------------------ TOP PRIORITY: KPI & WELLNESS ------------------------------
         isSuperAdmin && {
             title: 'KPI Dashboard',
-            href: '/kpi-dashboard',
+            href: '/kpi-dashboard/school',
             icon: BarChart3,
         },
 

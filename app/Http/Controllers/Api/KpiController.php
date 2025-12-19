@@ -11,6 +11,7 @@ use App\Models\TrainingLog;
 use App\Models\SportTeam;
 use App\Models\User;
 use App\Models\School;
+use App\Models\WellnessLog;
 use Illuminate\Http\Request;
 
 class KpiController extends Controller
@@ -26,33 +27,14 @@ class KpiController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Calculate directly from source data - NO CACHE
-        $completionRate = $this->calculateCompletionRate($studentId);
-        $complianceScore = $this->calculateComplianceScore($studentId);
-        $consistencyIndex = $this->calculateConsistencyIndex($studentId);
-        $performanceTrend = $this->calculatePerformanceTrend($studentId);
-        $attendanceRate = $this->calculateAttendanceRate($studentId);
-        $avgDuration = $this->calculateAvgSessionDuration($studentId);
+        $wellnessMetrics = $this->calculateWellnessAverages([$studentId]);
+        $logSnapshot = $this->buildLogSnapshot([$studentId]);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => [
-                    'trainingCompletionRate' => $completionRate,
-                    'complianceScore' => $complianceScore,
-                    'consistencyIndex' => $consistencyIndex,
-                    'performanceTrend' => $performanceTrend,
-                    'attendanceRate' => $attendanceRate,
-                    'averageSessionDuration' => $avgDuration,
-                    'personalRecords' => [
-                        'maxWeight' => $this->getMaxWeight($studentId),
-                        'maxTime' => $this->getMaxDuration($studentId),
-                    ],
-                    'recoveryMetrics' => [
-                        'sleepQuality' => $this->getAvgSleepQuality($studentId),
-                        'soreness' => $this->getAvgSoreness($studentId),
-                    ],
-                ],
+                'kpis' => $wellnessMetrics,
+                'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
         ]);
@@ -159,7 +141,7 @@ class KpiController extends Controller
         $days = $request->get('days', 7);
         $startDate = now()->subDays($days);
 
-        $logs = TrainingLog::where('student_id', $studentId)
+        $logs = WellnessLog::where('student_id', $studentId)
             ->where('logged_at', '>=', $startDate)
             ->orderBy('logged_at')
             ->get()
@@ -173,8 +155,8 @@ class KpiController extends Controller
             $labels[] = $date->format('D');
             
             $dayLogs = $logs[$date->format('D')] ?? collect();
-            $avgCompliance = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('compliance_score');
-            $data[] = round($avgCompliance, 2);
+            $avgSleep = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('sleep_quality');
+            $data[] = round($avgSleep, 2);
         }
 
         return response()->json([
@@ -183,7 +165,7 @@ class KpiController extends Controller
                 'labels' => $labels,
                 'datasets' => [
                     [
-                        'label' => 'Completion Rate',
+                        'label' => 'Sleep Quality',
                         'data' => $data,
                     ],
                 ],
@@ -201,29 +183,15 @@ class KpiController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Calculate directly from source data - NO CACHE
-        $completionRate = $this->calculateCompletionRate($studentId);
-        $complianceScore = $this->calculateComplianceScore($studentId);
-
-        $target = [
-            'trainingCompletionRate' => 90.0,
-            'complianceScore' => 95.0,
-        ];
-
-        $variance = [
-            'trainingCompletionRate' => $completionRate - $target['trainingCompletionRate'],
-            'complianceScore' => $complianceScore - $target['complianceScore'],
-        ];
+        $wellness = $this->calculateWellnessAverages([$studentId]);
+        $logSnapshot = $this->buildLogSnapshot([$studentId]);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'current' => [
-                    'trainingCompletionRate' => $completionRate,
-                    'complianceScore' => $complianceScore,
-                ],
-                'target' => $target,
-                'variance' => $variance,
+                'wellnessMetrics' => $wellness,
+                'logSnapshot' => $logSnapshot,
+                'lastUpdated' => now()->toIso8601String(),
             ],
         ]);
     }
@@ -248,50 +216,40 @@ class KpiController extends Controller
 
         $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
 
-        // Calculate directly from source data - NO CACHE
-        $completionRate = $this->calculateTeamCompletionRate($studentIds);
-        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
-        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
-        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
-        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
-        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
+        // Wellness-only KPIs
+        $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
+        $logSnapshot = $this->buildLogSnapshot($studentIds);
 
-        // Calculate student metrics in real-time
+        // Calculate student wellness metrics in real-time
         $studentMetrics = [];
         foreach ($studentIds as $studentId) {
             $student = User::find($studentId);
             $studentMetrics[] = [
                 'student_id' => $studentId,
                 'name' => $student?->name ?? 'Unknown',
-                'completionRate' => $this->calculateCompletionRate($studentId),
-                'complianceScore' => $this->calculateComplianceScore($studentId),
-                'consistencyIndex' => $this->calculateConsistencyIndex($studentId),
-                'attendanceRate' => $this->calculateAttendanceRate($studentId),
-                'trend' => $this->calculatePerformanceTrend($studentId),
+                'sleepQuality' => $this->calculateWellnessAverages([$studentId])['sleepQuality'],
+                'soreness' => $this->calculateWellnessAverages([$studentId])['soreness'],
+                'energy' => $this->calculateWellnessAverages([$studentId])['energy'],
+                'mood' => $this->calculateWellnessAverages([$studentId])['mood'],
+                'readiness' => $this->calculateWellnessAverages([$studentId])['readiness'],
+                'hydration' => $this->calculateWellnessAverages([$studentId])['hydration'],
             ];
         }
 
-        // Sort by compliance score
-        usort($studentMetrics, fn($a, $b) => $b['complianceScore'] <=> $a['complianceScore']);
+        // Sort by sleep quality
+        usort($studentMetrics, fn($a, $b) => $b['sleepQuality'] <=> $a['sleepQuality']);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => [
-                    'trainingCompletionRate' => $completionRate,
-                    'complianceScore' => $complianceScore,
-                    'consistencyIndex' => $consistencyIndex,
-                    'performanceTrend' => $performanceTrend,
-                    'attendanceRate' => $attendanceRate,
-                    'averageSessionDuration' => $avgDuration,
-                    'totalMembers' => count($studentIds),
-                ],
+                'kpis' => $wellnessMetrics,
                 'studentMetrics' => $studentMetrics,
                 'pagination' => [
                     'total' => count($studentMetrics),
                     'per_page' => count($studentMetrics),
                     'current_page' => 1,
                 ],
+                'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
         ]);
@@ -322,33 +280,46 @@ class KpiController extends Controller
             return response()->json(['success' => false, 'message' => 'School not found'], 404);
         }
 
-        // Calculate directly from source data - NO CACHE
         $studentIds = User::where('school_id', $schoolId)->pluck('id')->toArray();
         $teamCount = SportTeam::where('school_id', $schoolId)->count();
-        
-        $completionRate = $this->calculateTeamCompletionRate($studentIds);
-        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
-        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
-        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
-        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds);
-        $avgDuration = $this->calculateTeamAvgSessionDuration($studentIds);
+
+        $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
+        $logSnapshot = $this->buildLogSnapshot($studentIds);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => [
-                    'trainingCompletionRate' => $completionRate,
-                    'complianceScore' => $complianceScore,
-                    'consistencyIndex' => $consistencyIndex,
-                    'performanceTrend' => $performanceTrend,
-                    'attendanceRate' => $attendanceRate,
-                    'averageSessionDuration' => $avgDuration,
+                'kpis' => $wellnessMetrics + [
                     'totalStudents' => count($studentIds),
                     'totalTeams' => $teamCount,
                 ],
+                'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
         ]);
+    }
+
+    private function buildLogSnapshot(array $studentIds)
+    {
+        if (empty($studentIds)) {
+            return [
+                'wellnessLast7d' => 0,
+                'latestWellnessAt' => null,
+            ];
+        }
+
+        $wellnessLast7d = WellnessLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->count();
+
+        $latestWellnessLog = WellnessLog::whereIn('student_id', $studentIds)
+            ->orderByDesc('logged_at')
+            ->first();
+
+        return [
+            'wellnessLast7d' => $wellnessLast7d,
+            'latestWellnessAt' => optional($latestWellnessLog?->logged_at ?? $latestWellnessLog?->created_at)?->toIso8601String(),
+        ];
     }
 
     public function getSchoolKpiTrends(Request $request)
@@ -375,7 +346,7 @@ class KpiController extends Controller
         $startDate = now()->subDays($days);
 
         $studentIds = User::where('school_id', $schoolId)->pluck('id');
-        $logs = TrainingLog::whereIn('student_id', $studentIds)
+        $logs = WellnessLog::whereIn('student_id', $studentIds)
             ->where('logged_at', '>=', $startDate)
             ->orderBy('logged_at')
             ->get()
@@ -389,8 +360,8 @@ class KpiController extends Controller
             $labels[] = $date->format('D');
 
             $dayLogs = $logs[$date->format('D')] ?? collect();
-            $avgCompliance = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('compliance_score');
-            $data[] = round($avgCompliance, 2);
+            $avgSleep = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('sleep_quality');
+            $data[] = round($avgSleep, 2);
         }
 
         return response()->json([
@@ -399,7 +370,7 @@ class KpiController extends Controller
                 'labels' => $labels,
                 'datasets' => [
                     [
-                        'label' => 'School Compliance',
+                        'label' => 'Avg Sleep Quality',
                         'data' => $data,
                     ],
                 ],
@@ -407,27 +378,31 @@ class KpiController extends Controller
         ]);
     }
 
-    private function calculateKpis($studentId)
+    private function calculateWellnessAverages(array $studentIds): array
     {
-        $today = now()->toDateString();
-        $completionRate = $this->calculateCompletionRate($studentId);
-        $complianceScore = $this->calculateComplianceScore($studentId);
-        $consistencyIndex = $this->calculateConsistencyIndex($studentId);
-        $performanceTrend = $this->calculatePerformanceTrend($studentId);
-        $attendanceRate = $this->calculateAttendanceRate($studentId);
-        $avgDuration = $this->calculateAvgSessionDuration($studentId);
+        if (empty($studentIds)) {
+            return [
+                'sleepQuality' => 0,
+                'soreness' => 0,
+                'energy' => 0,
+                'mood' => 0,
+                'readiness' => 0,
+                'hydration' => 0,
+            ];
+        }
 
-        return KpiCache::updateOrCreate(
-            ['student_id' => $studentId, 'date' => $today],
-            [
-                'completion_rate' => $completionRate,
-                'compliance_score' => $complianceScore,
-                'consistency_index' => $consistencyIndex,
-                'performance_trend' => $performanceTrend,
-                'attendance_rate' => $attendanceRate,
-                'avg_session_duration' => $avgDuration,
-            ]
-        );
+        $logs = WellnessLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->get();
+
+        return [
+            'sleepQuality' => round($logs->avg('sleep_quality') ?? 0, 2),
+            'soreness' => round($logs->avg('recovery_soreness') ?? 0, 2),
+            'energy' => round($logs->avg('energy_level') ?? 0, 2),
+            'mood' => round($logs->avg('mood') ?? 0, 2),
+            'readiness' => round($logs->avg('readiness_to_train') ?? 0, 2),
+            'hydration' => round($logs->avg('hydration_level') ?? 0, 2),
+        ];
     }
 
     private function calculateCompletionRate($studentId)

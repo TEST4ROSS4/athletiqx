@@ -5,12 +5,12 @@ import { type BreadcrumbItem } from '@/types';
 import { Activity, Award, Clock, Target, Users, TrendingUp, TrendingDown } from 'lucide-react';
 
 type KPIs = {
-    completionRate: number;
-    complianceScore: number;
-    consistencyIndex: number;
-    performanceTrend: number;
-    attendanceRate: number;
-    averageSessionDuration: number;
+    sleepQuality: number;
+    soreness: number;
+    energy: number;
+    mood: number;
+    readiness: number;
+    hydration: number;
     totalMembers: number;
 };
 
@@ -25,10 +25,17 @@ type TrendData = {
 type StudentMetric = {
     student_id: number;
     name: string;
-    completionRate: number;
-    complianceScore: number;
-    consistencyIndex: number;
-    attendanceRate: number;
+    sleepQuality: number;
+    soreness: number;
+    energy: number;
+    mood: number;
+    readiness: number;
+    hydration: number;
+};
+
+type LogSnapshot = {
+    wellnessLast7d: number;
+    latestWellnessAt: string | null;
 };
 
 type Props = {
@@ -36,6 +43,7 @@ type Props = {
     kpis: Partial<KPIs>;
     trends: TrendData;
     studentMetrics: StudentMetric[];
+    logSnapshot?: LogSnapshot;
     lastUpdated: string;
     message?: string;
 };
@@ -92,7 +100,7 @@ const KpiMetricCard = ({
     );
 };
 
-export default function TeamKpi({ team, kpis, trends, studentMetrics, lastUpdated, message }: Props) {
+export default function TeamKpi({ team, kpis, trends, studentMetrics, logSnapshot, lastUpdated, message }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={team ? `Team KPI - ${team.name}` : 'Team KPI'} />
@@ -107,33 +115,30 @@ export default function TeamKpi({ team, kpis, trends, studentMetrics, lastUpdate
                     {message && <p className="text-sm text-muted-foreground">{message}</p>}
                 </div>
 
-                {/* Main KPI Metrics */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <KpiMetricCard
-                        title="Completion Rate"
-                        value={kpis.completionRate ?? 0}
-                        icon={Target}
-                        trend={kpis.performanceTrend}
-                        description="Overall completion"
-                    />
-                    <KpiMetricCard
-                        title="Compliance Score"
-                        value={kpis.complianceScore ?? 0}
-                        icon={Award}
-                        description="Team average"
-                    />
-                    <KpiMetricCard
-                        title="Consistency Index"
-                        value={kpis.consistencyIndex ?? 0}
-                        icon={Activity}
-                        description="Weekly consistency"
-                    />
-                    <KpiMetricCard
-                        title="Attendance Rate"
-                        value={kpis.attendanceRate ?? 0}
-                        icon={Activity}
-                        description="Schedule adherence"
-                    />
+                {logSnapshot && (
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                        <Card className="md:col-span-2 lg:col-span-3">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Wellness logs (7d)</CardTitle>
+                                <CardDescription>From wellness check-ins</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                                <div className="text-2xl font-bold">{logSnapshot.wellnessLast7d}</div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Latest: {logSnapshot.latestWellnessAt ? new Date(logSnapshot.latestWellnessAt).toLocaleString() : 'No log yet'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+                {/* Wellness Metrics */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <KpiMetricCard title="Sleep Quality" value={kpis.sleepQuality ?? 0} unit="/10" icon={Target} description="Avg last 7d" />
+                    <KpiMetricCard title="Soreness" value={kpis.soreness ?? 0} unit="/10" icon={Activity} description="Avg last 7d" />
+                    <KpiMetricCard title="Energy" value={kpis.energy ?? 0} unit="/10" icon={TrendingUp} description="Avg last 7d" />
+                    <KpiMetricCard title="Mood" value={kpis.mood ?? 0} unit="/10" icon={TrendingDown} description="Avg last 7d" />
+                    <KpiMetricCard title="Readiness" value={kpis.readiness ?? 0} unit="/10" icon={Clock} description="Avg last 7d" />
+                    <KpiMetricCard title="Hydration" value={kpis.hydration ?? 0} unit="/10" icon={Award} description="Avg last 7d" />
                 </div>
 
                 {/* Team Stats */}
@@ -148,23 +153,13 @@ export default function TeamKpi({ team, kpis, trends, studentMetrics, lastUpdate
                             <p className="text-xs text-muted-foreground mt-1">Athletes in this team</p>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Avg Session Duration</CardTitle>
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{kpis.averageSessionDuration ?? 0} min</div>
-                            <p className="text-xs text-muted-foreground mt-1">Per session</p>
-                        </CardContent>
-                    </Card>
                 </div>
 
-                {/* Trends */}
+                {/* Wellness Trend */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>7-Day Trends</CardTitle>
-                        <CardDescription>Team performance over the last week</CardDescription>
+                        <CardTitle>Sleep Quality Trend (7d)</CardTitle>
+                        <CardDescription>Average per day</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -196,12 +191,12 @@ export default function TeamKpi({ team, kpis, trends, studentMetrics, lastUpdate
                     </CardContent>
                 </Card>
 
-                {/* Student Metrics */}
+                {/* Student Wellness Metrics */}
                 {studentMetrics.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Team Members</CardTitle>
-                            <CardDescription>Performance per athlete</CardDescription>
+                            <CardDescription>Wellness per athlete (avg last 7d)</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
@@ -209,20 +204,24 @@ export default function TeamKpi({ team, kpis, trends, studentMetrics, lastUpdate
                                     <thead>
                                         <tr className="border-b">
                                             <th className="text-left py-2 px-4 font-medium">Name</th>
-                                            <th className="text-center py-2 px-4 font-medium">Completion</th>
-                                            <th className="text-center py-2 px-4 font-medium">Compliance</th>
-                                            <th className="text-center py-2 px-4 font-medium">Consistency</th>
-                                            <th className="text-center py-2 px-4 font-medium">Attendance</th>
+                                            <th className="text-center py-2 px-4 font-medium">Sleep</th>
+                                            <th className="text-center py-2 px-4 font-medium">Soreness</th>
+                                            <th className="text-center py-2 px-4 font-medium">Energy</th>
+                                            <th className="text-center py-2 px-4 font-medium">Mood</th>
+                                            <th className="text-center py-2 px-4 font-medium">Readiness</th>
+                                            <th className="text-center py-2 px-4 font-medium">Hydration</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {studentMetrics.map((student) => (
                                             <tr key={student.student_id} className="border-b hover:bg-muted/50">
                                                 <td className="py-2 px-4 font-medium">{student.name}</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.completionRate)}%</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.complianceScore)}%</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.consistencyIndex)}%</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.attendanceRate)}%</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.sleepQuality, 2)}/10</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.soreness, 2)}/10</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.energy, 2)}/10</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.mood, 2)}/10</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.readiness, 2)}/10</td>
+                                                <td className="text-center py-2 px-4">{formatPercent(student.hydration, 2)}/10</td>
                                             </tr>
                                         ))}
                                     </tbody>
