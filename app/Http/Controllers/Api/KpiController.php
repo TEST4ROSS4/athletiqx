@@ -8,6 +8,8 @@ use App\Models\KpiCache;
 use App\Models\TeamKpiCache;
 use App\Models\SchoolKpiCache;
 use App\Models\TrainingLog;
+use App\Models\ExerciseLog;
+use App\Models\ProgramAssignment;
 use App\Models\SportTeam;
 use App\Models\User;
 use App\Models\School;
@@ -28,12 +30,13 @@ class KpiController extends Controller
         }
 
         $wellnessMetrics = $this->calculateWellnessAverages([$studentId]);
+        $exerciseMetrics = $this->calculateExerciseMetrics([$studentId], 7);
         $logSnapshot = $this->buildLogSnapshot([$studentId]);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => $wellnessMetrics,
+                'kpis' => $wellnessMetrics + $exerciseMetrics,
                 'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
@@ -145,18 +148,30 @@ class KpiController extends Controller
             ->where('logged_at', '>=', $startDate)
             ->orderBy('logged_at')
             ->get()
-            ->groupBy(fn($log) => $log->logged_at->format('D'));
+            ->groupBy(fn($log) => $log->logged_at->toDateString());
+
+        $assignments = ProgramAssignment::where('student_id', $studentId)
+            ->where('assigned_at', '>=', $startDate)
+            ->get()
+            ->groupBy(fn($assignment) => $assignment->assigned_at->toDateString());
 
         $labels = [];
-        $data = [];
+        $readinessData = [];
+        $completionData = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $labels[] = $date->format('D');
-            
-            $dayLogs = $logs[$date->format('D')] ?? collect();
-            $avgSleep = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('sleep_quality');
-            $data[] = round($avgSleep, 2);
+            $date = now()->subDays($i)->toDateString();
+            $labels[] = \Carbon\Carbon::parse($date)->format('D');
+
+            $dayLogs = $logs[$date] ?? collect();
+            $avgReadiness = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('readiness_to_train');
+            $readinessData[] = round($avgReadiness, 2);
+
+            $dayAssignments = $assignments[$date] ?? collect();
+            $assignedCount = $dayAssignments->count();
+            $completedCount = $dayAssignments->where('status', 'Completed')->count();
+            $completionRate = $assignedCount > 0 ? round(($completedCount / $assignedCount) * 100, 1) : 0;
+            $completionData[] = $completionRate;
         }
 
         return response()->json([
@@ -165,8 +180,12 @@ class KpiController extends Controller
                 'labels' => $labels,
                 'datasets' => [
                     [
-                        'label' => 'Sleep Quality',
-                        'data' => $data,
+                        'label' => 'Readiness',
+                        'data' => $readinessData,
+                    ],
+                    [
+                        'label' => 'Exercise Completion %',
+                        'data' => $completionData,
                     ],
                 ],
             ],
@@ -285,14 +304,17 @@ class KpiController extends Controller
 
         $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
         $logSnapshot = $this->buildLogSnapshot($studentIds);
+        $exerciseMetrics = $this->calculateExerciseMetrics($studentIds, 7);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => $wellnessMetrics + [
-                    'totalStudents' => count($studentIds),
-                    'totalTeams' => $teamCount,
-                ],
+                'kpis' => $wellnessMetrics
+                    + $exerciseMetrics
+                    + [
+                        'totalStudents' => count($studentIds),
+                        'totalTeams' => $teamCount,
+                    ],
                 'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
@@ -350,18 +372,29 @@ class KpiController extends Controller
             ->where('logged_at', '>=', $startDate)
             ->orderBy('logged_at')
             ->get()
-            ->groupBy(fn($log) => $log->logged_at->format('D'));
+            ->groupBy(fn($log) => $log->logged_at->toDateString());
+
+        $assignments = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->where('assigned_at', '>=', $startDate)
+            ->get()
+            ->groupBy(fn($assignment) => $assignment->assigned_at->toDateString());
 
         $labels = [];
-        $data = [];
+        $sleepData = [];
+        $exerciseCompletionData = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $labels[] = $date->format('D');
+            $dateStr = now()->subDays($i)->toDateString();
+            $labels[] = \Carbon\Carbon::parse($dateStr)->format('D');
 
-            $dayLogs = $logs[$date->format('D')] ?? collect();
+            $dayLogs = $logs[$dateStr] ?? collect();
             $avgSleep = $dayLogs->isEmpty() ? 0 : $dayLogs->avg('sleep_quality');
-            $data[] = round($avgSleep, 2);
+            $sleepData[] = round($avgSleep, 2);
+
+            $dayAssignments = $assignments[$dateStr] ?? collect();
+            $assignedCount = $dayAssignments->count();
+            $completedCount = $dayAssignments->where('status', 'Completed')->count();
+            $exerciseCompletionData[] = $assignedCount > 0 ? round(($completedCount / $assignedCount) * 100, 1) : 0;
         }
 
         return response()->json([
@@ -371,7 +404,11 @@ class KpiController extends Controller
                 'datasets' => [
                     [
                         'label' => 'Avg Sleep Quality',
-                        'data' => $data,
+                        'data' => $sleepData,
+                    ],
+                    [
+                        'label' => 'Exercise Completion %',
+                        'data' => $exerciseCompletionData,
                     ],
                 ],
             ],
@@ -407,12 +444,101 @@ class KpiController extends Controller
 
     private function calculateCompletionRate($studentId)
     {
-        $assigned = TrainingLog::where('student_id', $studentId)->count();
-        $completed = TrainingLog::where('student_id', $studentId)
-            ->where('sets_completed', '>', 0)
+        $assigned = ProgramAssignment::where('student_id', $studentId)->count();
+        $completed = ProgramAssignment::where('student_id', $studentId)
+            ->where(function ($q) {
+                $q->where('status', 'Completed')
+                  ->orWhereNotNull('marked_done_at');
+            })
+            ->count();
+        return $assigned > 0 ? round(($completed / $assigned) * 100, 2) : 0;
+    }
+
+    private function calculateExerciseMetrics(array $studentIds, int $days = 7): array
+    {
+        if (empty($studentIds)) {
+            return [
+                'exerciseCompletion' => 0,
+                'proofCoverage' => 0,
+                'totalLogs' => 0,
+                'recency' => [
+                    'lastLogAt' => null,
+                    'logsLast7d' => 0,
+                    'activeDays' => 0,
+                ],
+                'exerciseVolume' => [
+                    'weight' => 0,
+                    'reps' => 0,
+                    'duration' => 0,
+                ],
+            ];
+        }
+
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+
+        $assignedWindow = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->whereNotNull('assigned_at')
+            ->where('assigned_at', '>=', $windowStart)
+            ->count();
+        $completedWindow = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->where(function ($q) use ($windowStart) {
+                $q->where(function ($qq) use ($windowStart) {
+                    $qq->where('status', 'Completed')
+                       ->whereNotNull('assigned_at')
+                       ->where('assigned_at', '>=', $windowStart);
+                })->orWhere(function ($qq) use ($windowStart) {
+                    $qq->whereNotNull('marked_done_at')
+                       ->where('marked_done_at', '>=', $windowStart);
+                });
+            })
+            ->count();
+        $exerciseCompletion = $assignedWindow > 0 ? round(($completedWindow / $assignedWindow) * 100, 2) : 0;
+
+        $exerciseLogsBase = ExerciseLog::whereHas('assignment', function ($q) use ($studentIds) {
+            $q->whereIn('student_id', $studentIds);
+        });
+
+        $exerciseLogsWindow = (clone $exerciseLogsBase)
+            ->where('created_at', '>=', $windowStart);
+
+        $logsLast7d = $exerciseLogsWindow->count();
+        $completedWithProof = (clone $exerciseLogsWindow)
+            ->where('marked_as_done', true)
+            ->whereNotNull('proof_url')
+            ->count();
+        $completedLogs = (clone $exerciseLogsWindow)
+            ->where('marked_as_done', true)
             ->count();
 
-        return $assigned > 0 ? round(($completed / $assigned) * 100, 2) : 0;
+        $proofCoverage = $completedLogs > 0 ? round(($completedWithProof / max($completedLogs, 1)) * 100, 2) : 0;
+
+        $activeDays = (clone $exerciseLogsWindow)
+            ->selectRaw('DATE(created_at) as day')
+            ->pluck('day')
+            ->unique()
+            ->count();
+
+        $lastLog = (clone $exerciseLogsBase)
+            ->latest('created_at')
+            ->first();
+
+        $exerciseVolume = [
+            'weight' => 0,
+            'reps' => 0,
+            'duration' => 0,
+        ];
+
+        return [
+            'exerciseCompletion' => $exerciseCompletion,
+            'proofCoverage' => $proofCoverage,
+            'totalLogs' => $logsLast7d,
+            'recency' => [
+                'lastLogAt' => optional($lastLog?->created_at ?? $lastLog?->updated_at)?->toIso8601String(),
+                'logsLast7d' => $logsLast7d,
+                'activeDays' => $activeDays,
+            ],
+            'exerciseVolume' => $exerciseVolume,
+        ];
     }
 
     private function calculateComplianceScore($studentId)
@@ -589,11 +715,13 @@ class KpiController extends Controller
     {
         if (empty($studentIds)) return 0;
 
-        $assigned = TrainingLog::whereIn('student_id', $studentIds)->count();
-        $completed = TrainingLog::whereIn('student_id', $studentIds)
-            ->where('sets_completed', '>', 0)
+        $assigned = ProgramAssignment::whereIn('student_id', $studentIds)->count();
+        $completed = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->where(function ($q) {
+                $q->where('status', 'Completed')
+                  ->orWhereNotNull('marked_done_at');
+            })
             ->count();
-
         return $assigned > 0 ? round(($completed / $assigned) * 100, 2) : 0;
     }
 

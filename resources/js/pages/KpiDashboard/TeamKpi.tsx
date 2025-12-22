@@ -1,235 +1,414 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { type BreadcrumbItem } from '@/types';
-import { Activity, Award, Clock, Target, Users, TrendingUp, TrendingDown } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+} from 'chart.js';
+import { Activity, Clock, CheckSquare, Dumbbell, TrendingUp, TrendingDown, Users, Trophy } from 'lucide-react';
 
-type KPIs = {
-    sleepQuality: number;
-    soreness: number;
-    energy: number;
-    mood: number;
-    readiness: number;
-    hydration: number;
-    totalMembers: number;
-};
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
-type TrendData = {
-    labels: string[];
-    datasets: Array<{
-        label: string;
-        data: number[];
+interface TeamKpiProps {
+    team: {
+        id: number;
+        name: string;
+    };
+    kpi: {
+        exercise: {
+            week: {
+                total_logs: number;
+                completed_logs: number;
+                completion_rate: number;
+                proof_logs: number;
+                proof_rate: number;
+                active_athletes: number;
+                session_density: number;
+            };
+            previous: { completion_rate: number; proof_rate: number; session_density: number };
+            daily: { labels: string[]; completion_rate: number[] };
+        };
+        wellness: {
+            week: {
+                readiness_avg: number;
+                energy_avg: number;
+                mood_avg: number;
+                soreness_avg: number;
+                sleep_hours_avg: number;
+                sleep_quality_avg: number;
+                hydration_avg: number;
+                injury_flags: number;
+                active_athletes: number;
+            };
+            previous: { readiness_avg: number; energy_avg: number; soreness_avg: number };
+            daily: { labels: string[]; readiness: number[]; energy: number[]; soreness: number[] };
+        };
+        recency: { last_log_at?: string | null; days_since_last: number | null };
+        window: { current_start: string; current_end: string };
+    };
+    studentMetrics: Array<{
+        student_id: number;
+        name: string;
+        sleepQuality: number;
+        soreness: number;
+        energy: number;
+        mood: number;
+        readiness: number;
+        hydration: number;
     }>;
-};
-
-type StudentMetric = {
-    student_id: number;
-    name: string;
-    sleepQuality: number;
-    soreness: number;
-    energy: number;
-    mood: number;
-    readiness: number;
-    hydration: number;
-};
-
-type LogSnapshot = {
-    wellnessLast7d: number;
-    latestWellnessAt: string | null;
-};
-
-type Props = {
-    team: { id: number; name: string } | null;
-    kpis: Partial<KPIs>;
-    trends: TrendData;
-    studentMetrics: StudentMetric[];
-    logSnapshot?: LogSnapshot;
     lastUpdated: string;
-    message?: string;
-};
+}
 
-const formatPercent = (value: number | string | null | undefined, digits = 1) =>
-    Number.parseFloat(String(value ?? 0)).toFixed(digits);
+export default function TeamKpi({
+    team,
+    kpi,
+    studentMetrics,
+    lastUpdated,
+}: TeamKpiProps) {
+    // Calculate deltas
+    const delta = (current: number, prev: number) =>
+        prev === 0 ? (current === 0 ? 0 : 100) : Math.round(((current - prev) / prev) * 100);
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'KPI Dashboard', href: '/kpi-dashboard' },
-    { title: 'Team KPI', href: '#' },
-];
+    const performanceCards = [
+        {
+            label: 'Completion Rate',
+            value: `${kpi.exercise.week.completion_rate}%`,
+            delta: delta(kpi.exercise.week.completion_rate, kpi.exercise.previous.completion_rate),
+        },
+        {
+            label: 'Proof Coverage',
+            value: `${kpi.exercise.week.proof_rate}%`,
+            delta: delta(kpi.exercise.week.proof_rate, kpi.exercise.previous.proof_rate),
+        },
+        {
+            label: 'Session Density',
+            value: `${kpi.exercise.week.session_density} sets/athlete`,
+            delta: delta(kpi.exercise.week.session_density, kpi.exercise.previous.session_density),
+        },
+    ];
 
-const KpiMetricCard = ({
-    title,
-    value,
-    unit = '%',
-    icon: Icon,
-    trend = 0,
-    description,
-}: {
-    title: string;
-    value: number | string;
-    unit?: string;
-    icon: React.ComponentType<any>;
-    trend?: number | string;
-    description?: string;
-}) => {
-    const numValue = Number(value) || 0;
-    const numTrend = Number(trend) || 0;
-    const isTrendingUp = numTrend > 0;
-    const TrendIcon = isTrendingUp ? TrendingUp : TrendingDown;
+    const wellnessCards = [
+        {
+            label: 'Readiness',
+            value: kpi.wellness.week.readiness_avg.toFixed(1),
+            delta: delta(kpi.wellness.week.readiness_avg, kpi.wellness.previous.readiness_avg),
+        },
+        {
+            label: 'Energy',
+            value: kpi.wellness.week.energy_avg.toFixed(1),
+            delta: delta(kpi.wellness.week.energy_avg, kpi.wellness.previous.energy_avg),
+        },
+        {
+            label: 'Soreness',
+            value: kpi.wellness.week.soreness_avg.toFixed(1),
+            delta: delta(kpi.wellness.week.soreness_avg, kpi.wellness.previous.soreness_avg),
+        },
+    ];
+
+    const exerciseTrendData = {
+        labels: kpi.exercise.daily.labels,
+        datasets: [
+            {
+                label: 'Completion Rate %',
+                data: kpi.exercise.daily.completion_rate,
+                borderColor: '#3b82f6', // blue-500
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+            },
+        ],
+    };
+
+    const wellnessTrendData = {
+        labels: kpi.wellness.daily.labels,
+        datasets: [
+            {
+                label: 'Readiness',
+                data: kpi.wellness.daily.readiness,
+                borderColor: '#3b82f6', // blue-500
+                backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                tension: 0.35,
+                fill: false,
+                pointRadius: 2,
+            },
+            {
+                label: 'Energy',
+                data: kpi.wellness.daily.energy,
+                borderColor: '#10b981', // green-500
+                backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                tension: 0.35,
+                fill: false,
+                pointRadius: 2,
+            },
+            {
+                label: 'Soreness',
+                data: kpi.wellness.daily.soreness,
+                borderColor: '#ef4444', // red-500
+                backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                tension: 0.35,
+                fill: false,
+                pointRadius: 2,
+            },
+        ],
+    };
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                titleColor: '#f3f4f6',
+                bodyColor: '#f3f4f6',
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: true,
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(156, 163, 175, 0.1)',
+                },
+                ticks: {
+                    color: '#6b7280',
+                    font: { size: 10 },
+                },
+            },
+            x: {
+                grid: {
+                    display: false,
+                },
+                ticks: {
+                    color: '#6b7280',
+                    font: { size: 10 },
+                },
+            },
+        },
+        interaction: {
+            mode: 'index' as const,
+            intersect: false,
+        },
+    };
 
     return (
-        <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex-1">
-                <div className="text-2xl font-bold">
-                    {numValue.toFixed(2)}{unit}
-                </div>
-                {description && (
-                    <p className="text-xs text-muted-foreground mt-1">{description}</p>
-                )}
-                {numTrend !== 0 && (
-                    <div className={`flex items-center gap-1 mt-2 text-xs ${isTrendingUp ? 'text-green-600' : 'text-red-600'}`}>
-                        <TrendIcon className="h-3 w-3" />
-                        <span>{Math.abs(numTrend).toFixed(2)}% vs last week</span>
+        <AppLayout>
+            <Head title={`Team KPI - ${team.name}`} />
+
+            <div className="min-h-screen bg-background text-foreground">
+                <div className="w-full space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+                    {/* Header */}
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
+                            <p className="text-sm text-muted-foreground">
+                                KPI Dashboard • Last updated {new Date(lastUpdated).toLocaleTimeString()}
+                            </p>
+                        </div>
                     </div>
-                )}
-            </CardContent>
-        </Card>
-    );
-};
 
-export default function TeamKpi({ team, kpis, trends, studentMetrics, logSnapshot, lastUpdated, message }: Props) {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={team ? `Team KPI - ${team.name}` : 'Team KPI'} />
-            <div className="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        {team ? `${team.name} - Team KPI Dashboard` : 'Team KPI Dashboard'}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {lastUpdated ? `Last updated: ${new Date(lastUpdated).toLocaleString()}` : 'No data available'}
-                    </p>
-                    {message && <p className="text-sm text-muted-foreground">{message}</p>}
-                </div>
-
-                {logSnapshot && (
-                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                        <Card className="md:col-span-2 lg:col-span-3">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Wellness logs (7d)</CardTitle>
-                                <CardDescription>From wellness check-ins</CardDescription>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                                <div className="text-2xl font-bold">{logSnapshot.wellnessLast7d}</div>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    Latest: {logSnapshot.latestWellnessAt ? new Date(logSnapshot.latestWellnessAt).toLocaleString() : 'No log yet'}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-                {/* Wellness Metrics */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <KpiMetricCard title="Sleep Quality" value={kpis.sleepQuality ?? 0} unit="/10" icon={Target} description="Avg last 7d" />
-                    <KpiMetricCard title="Soreness" value={kpis.soreness ?? 0} unit="/10" icon={Activity} description="Avg last 7d" />
-                    <KpiMetricCard title="Energy" value={kpis.energy ?? 0} unit="/10" icon={TrendingUp} description="Avg last 7d" />
-                    <KpiMetricCard title="Mood" value={kpis.mood ?? 0} unit="/10" icon={TrendingDown} description="Avg last 7d" />
-                    <KpiMetricCard title="Readiness" value={kpis.readiness ?? 0} unit="/10" icon={Clock} description="Avg last 7d" />
-                    <KpiMetricCard title="Hydration" value={kpis.hydration ?? 0} unit="/10" icon={Award} description="Avg last 7d" />
-                </div>
-
-                {/* Team Stats */}
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{kpis.totalMembers ?? 0}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Athletes in this team</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Wellness Trend */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Sleep Quality Trend (7d)</CardTitle>
-                        <CardDescription>Average per day</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {trends.datasets.map((dataset, idx) => (
-                                <div key={idx} className="space-y-2">
-                                    <h4 className="text-sm font-medium">{dataset.label}</h4>
-                                    <div className="flex gap-2 items-end h-24">
-                                        {dataset.data.map((value, i) => {
-                                            const maxValue = Math.max(...dataset.data);
-                                            const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                                            return (
-                                                <div
-                                                    key={i}
-                                                    className="flex-1 bg-primary rounded-t"
-                                                    style={{ height: `${height}%`, minHeight: '4px' }}
-                                                    title={`${trends.labels[i]}: ${value}`}
-                                                />
-                                            );
-                                        })}
+                    {/* Performance Section */}
+                    <div className="grid gap-6 lg:grid-cols-3">
+                        {/* Metrics Column */}
+                        <div className="flex flex-col gap-4 lg:col-span-1">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Trophy className="h-5 w-5 text-primary" />
+                                <h2 className="text-xl font-semibold">Performance</h2>
+                            </div>
+                            
+                            {performanceCards.map((card, i) => (
+                                <div key={i} className="flex flex-col justify-between rounded-xl border border-border/60 bg-card p-5 shadow-sm transition-all hover:shadow-md">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-muted-foreground">{card.label}</span>
+                                        {card.delta !== 0 && (
+                                            <div className={`flex items-center gap-1 text-xs font-medium ${card.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {card.delta > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                                {Math.abs(card.delta)}%
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex justify-between text-xs text-muted-foreground">
-                                        {trends.labels.map((label, i) => (
-                                            <span key={i}>{label}</span>
-                                        ))}
-                                    </div>
+                                    <div className="mt-3 text-2xl font-bold tracking-tight">{card.value}</div>
                                 </div>
                             ))}
                         </div>
-                    </CardContent>
-                </Card>
 
-                {/* Student Wellness Metrics */}
-                {studentMetrics.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Team Members</CardTitle>
-                            <CardDescription>Wellness per athlete (avg last 7d)</CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                        {/* Chart Column */}
+                        <div className="rounded-xl border border-border/60 bg-card p-6 shadow-sm lg:col-span-2">
+                            <div className="mb-6 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold">Exercise Trends</h3>
+                                    <p className="text-sm text-muted-foreground">Daily completion rate (last 7d)</p>
+                                </div>
+                            </div>
+                            <div className="h-[280px] w-full">
+                                <Line data={exerciseTrendData} options={commonOptions} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Wellness Section */}
+                    <div className="grid gap-6 lg:grid-cols-3">
+                        {/* Metrics Column */}
+                        <div className="flex flex-col gap-4 lg:col-span-1">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Activity className="h-5 w-5 text-primary" />
+                                <h2 className="text-xl font-semibold">Wellness</h2>
+                            </div>
+                            
+                            {wellnessCards.map((card, i) => (
+                                <div key={i} className="flex flex-col justify-between rounded-xl border border-border/60 bg-card p-5 shadow-sm transition-all hover:shadow-md">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-muted-foreground">{card.label}</span>
+                                        {card.delta !== 0 && (
+                                            <div className={`flex items-center gap-1 text-xs font-medium ${card.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {card.delta > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                                {Math.abs(card.delta)}%
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-3 text-2xl font-bold tracking-tight">{card.value}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Chart Column */}
+                        <div className="rounded-xl border border-border/60 bg-card p-6 shadow-sm lg:col-span-2">
+                            <div className="mb-6 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold">Wellness Trends</h3>
+                                    <p className="text-sm text-muted-foreground">Daily averages (last 7d)</p>
+                                </div>
+                                <div className="flex gap-4 text-xs">
+                                    <div className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-blue-500"></div> Readiness
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-green-500"></div> Energy
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-red-500"></div> Soreness
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-[280px] w-full">
+                                <Line data={wellnessTrendData} options={commonOptions} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Additional Metrics Grid */}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500">
+                                    <Clock className="w-5 h-5" />
+                                </div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Sleep Quality
+                                </p>
+                            </div>
+                            <div className="text-lg font-bold text-foreground">
+                                {kpi.wellness.week.sleep_quality_avg.toFixed(1)}/10
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
+                                    <Activity className="w-5 h-5" />
+                                </div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Mood
+                                </p>
+                            </div>
+                            <div className="text-lg font-bold text-foreground">
+                                {kpi.wellness.week.mood_avg.toFixed(1)}/10
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-500">
+                                    <Activity className="w-5 h-5" />
+                                </div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Hydration
+                                </p>
+                            </div>
+                            <div className="text-lg font-bold text-foreground">
+                                {kpi.wellness.week.hydration_avg.toFixed(1)}/10
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
+                                    <Activity className="w-5 h-5" />
+                                </div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Injury Flags
+                                </p>
+                            </div>
+                            <div className="text-lg font-bold text-foreground">{kpi.wellness.week.injury_flags}</div>
+                        </div>
+                    </div>
+
+                    {/* Student Breakdown Table */}
+                    {studentMetrics.length > 0 && (
+                        <div className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
+                            <div className="border-b border-border/60 px-6 py-4">
+                                <h3 className="text-lg font-semibold">Student Wellness Breakdown</h3>
+                                <p className="text-sm text-muted-foreground">Average metrics per student (last 7d)</p>
+                            </div>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b">
-                                            <th className="text-left py-2 px-4 font-medium">Name</th>
-                                            <th className="text-center py-2 px-4 font-medium">Sleep</th>
-                                            <th className="text-center py-2 px-4 font-medium">Soreness</th>
-                                            <th className="text-center py-2 px-4 font-medium">Energy</th>
-                                            <th className="text-center py-2 px-4 font-medium">Mood</th>
-                                            <th className="text-center py-2 px-4 font-medium">Readiness</th>
-                                            <th className="text-center py-2 px-4 font-medium">Hydration</th>
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/50 text-muted-foreground font-medium">
+                                        <tr>
+                                            <th className="px-6 py-3">Student Name</th>
+                                            <th className="px-6 py-3 text-center">Sleep</th>
+                                            <th className="px-6 py-3 text-center">Soreness</th>
+                                            <th className="px-6 py-3 text-center">Energy</th>
+                                            <th className="px-6 py-3 text-center">Mood</th>
+                                            <th className="px-6 py-3 text-center">Readiness</th>
+                                            <th className="px-6 py-3 text-center">Hydration</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody className="divide-y divide-border/60">
                                         {studentMetrics.map((student) => (
-                                            <tr key={student.student_id} className="border-b hover:bg-muted/50">
-                                                <td className="py-2 px-4 font-medium">{student.name}</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.sleepQuality, 2)}/10</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.soreness, 2)}/10</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.energy, 2)}/10</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.mood, 2)}/10</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.readiness, 2)}/10</td>
-                                                <td className="text-center py-2 px-4">{formatPercent(student.hydration, 2)}/10</td>
+                                            <tr key={student.student_id} className="hover:bg-muted/30 transition-colors">
+                                                <td className="px-6 py-3 font-medium text-foreground">{student.name}</td>
+                                                <td className="px-6 py-3 text-center">{(student.sleepQuality || 0).toFixed(1)}</td>
+                                                <td className="px-6 py-3 text-center">{(student.soreness || 0).toFixed(1)}</td>
+                                                <td className="px-6 py-3 text-center">{(student.energy || 0).toFixed(1)}</td>
+                                                <td className="px-6 py-3 text-center">{(student.mood || 0).toFixed(1)}</td>
+                                                <td className="px-6 py-3 text-center">{(student.readiness || 0).toFixed(1)}</td>
+                                                <td className="px-6 py-3 text-center">{(student.hydration || 0).toFixed(1)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
+                        </div>
+                    )}
+                </div>
             </div>
         </AppLayout>
     );

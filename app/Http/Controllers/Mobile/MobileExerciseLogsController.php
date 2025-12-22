@@ -57,16 +57,21 @@ class MobileExerciseLogsController extends Controller
                 }
             }
 
-            ExerciseLog::updateOrCreate(
-                ['assignment_id' => $assignment->id, 'set_id' => $set->id],
-                [
-                    'inputs' => $finalInputs,
-                    'marked_as_done' => $logData['marked_as_done'] ?? false,
-                    'proof_url' => $logData['proof_url'] ?? null,
-                    'proof_name' => $logData['proof_name'] ?? null,
-                    'proof_size' => $logData['proof_size'] ?? null,
-                ]
-            );
+            $log = ExerciseLog::firstOrNew([
+                'assignment_id' => $assignment->id,
+                'set_id' => $set->id,
+            ]);
+
+            $log->inputs = $finalInputs;
+            $log->marked_as_done = $logData['marked_as_done'] ?? ($log->marked_as_done ?? false);
+
+            if (array_key_exists('proof_url', $logData) && $logData['proof_url']) {
+                $log->proof_url = $logData['proof_url'];
+                $log->proof_name = $logData['proof_name'] ?? $log->proof_name;
+                $log->proof_size = $logData['proof_size'] ?? $log->proof_size;
+            }
+
+            $log->save();
         }
 
         // Reload logs and compute status
@@ -158,6 +163,7 @@ class MobileExerciseLogsController extends Controller
                         'marked_as_done' => $log->marked_as_done ?? false,
                         'proof_url' => $log->proof_url ?? null,
                         'proof_name' => $log->proof_name ?? null,
+                        'proof_size' => $log->proof_size ?? null,
                     ];
                 }),
             ];

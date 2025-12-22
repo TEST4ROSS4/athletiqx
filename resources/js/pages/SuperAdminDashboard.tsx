@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Line } from 'react-chartjs-2';
 import {
   ArcElement,
   BarElement,
@@ -8,11 +8,13 @@ import {
   Chart as ChartJS,
   Legend,
   LinearScale,
+  LineElement,
+  PointElement,
   Tooltip,
 } from 'chart.js';
 import { Activity, Building2, Clock3, Users } from 'lucide-react';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement);
 
 export default function SuperAdminDashboard({
   totalSchools,
@@ -21,6 +23,7 @@ export default function SuperAdminDashboard({
   activeUsersToday,
   activeUsersWeek,
   topActiveSchools,
+  kpi,
 }: {
   totalSchools: number;
   recentSchools: { name: string; code: string; created_at: string }[];
@@ -28,6 +31,38 @@ export default function SuperAdminDashboard({
   activeUsersToday: number;
   activeUsersWeek: number;
   topActiveSchools: { name: string; logins: number }[];
+  kpi: {
+    exercise: {
+      week: {
+        total_logs: number;
+        completed_logs: number;
+        completion_rate: number;
+        proof_logs: number;
+        proof_rate: number;
+        active_athletes: number;
+        session_density: number;
+      };
+      previous: { completion_rate: number; proof_rate: number; session_density: number };
+      daily: { labels: string[]; completion_rate: number[] };
+    };
+    wellness: {
+      week: {
+        readiness_avg: number;
+        energy_avg: number;
+        mood_avg: number;
+        soreness_avg: number;
+        sleep_hours_avg: number;
+        sleep_quality_avg: number;
+        hydration_avg: number;
+        injury_flags: number;
+        active_athletes: number;
+      };
+      previous: { readiness_avg: number; energy_avg: number; soreness_avg: number };
+      daily: { labels: string[]; readiness: number[]; energy: number[]; soreness: number[] };
+    };
+    recency: { last_log_at?: string | null; days_since_last: number | null };
+    window: { current_start: string; current_end: string };
+  };
 }) {
   const roleLabels = Object.keys(roleDistribution);
   const roleValues = Object.values(roleDistribution);
@@ -81,6 +116,90 @@ export default function SuperAdminDashboard({
     },
   ];
 
+  const delta = (current: number, prev: number) =>
+    prev === 0 ? (current === 0 ? 0 : 100) : Math.round(((current - prev) / prev) * 100);
+
+  const performanceCards = [
+    {
+      label: 'Completion Rate',
+      value: `${kpi.exercise.week.completion_rate}%`,
+      delta: delta(kpi.exercise.week.completion_rate, kpi.exercise.previous.completion_rate),
+    },
+    {
+      label: 'Proof Coverage',
+      value: `${kpi.exercise.week.proof_rate}%`,
+      delta: delta(kpi.exercise.week.proof_rate, kpi.exercise.previous.proof_rate),
+    },
+    {
+      label: 'Session Density',
+      value: `${kpi.exercise.week.session_density} sets/athlete`,
+      delta: delta(kpi.exercise.week.session_density, kpi.exercise.previous.session_density),
+    },
+    {
+      label: 'Readiness',
+      value: kpi.wellness.week.readiness_avg.toFixed(1),
+      delta: delta(kpi.wellness.week.readiness_avg, kpi.wellness.previous.readiness_avg),
+    },
+    {
+      label: 'Energy',
+      value: kpi.wellness.week.energy_avg.toFixed(1),
+      delta: delta(kpi.wellness.week.energy_avg, kpi.wellness.previous.energy_avg),
+    },
+    {
+      label: 'Soreness',
+      value: kpi.wellness.week.soreness_avg.toFixed(1),
+      delta: delta(kpi.wellness.week.soreness_avg, kpi.wellness.previous.soreness_avg),
+    },
+  ];
+
+  const exerciseTrendData = {
+    labels: kpi.exercise.daily.labels,
+    datasets: [
+      {
+        label: 'Completion Rate %',
+        data: kpi.exercise.daily.completion_rate,
+        borderColor: '#0f1c3f',
+        backgroundColor: 'rgba(15, 28, 63, 0.08)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 3,
+      },
+    ],
+  };
+
+  const wellnessTrendData = {
+    labels: kpi.wellness.daily.labels,
+    datasets: [
+      {
+        label: 'Readiness',
+        data: kpi.wellness.daily.readiness,
+        borderColor: '#0f1c3f',
+        backgroundColor: 'rgba(15, 28, 63, 0.06)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 2,
+      },
+      {
+        label: 'Energy',
+        data: kpi.wellness.daily.energy,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.06)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 2,
+      },
+      {
+        label: 'Soreness',
+        data: kpi.wellness.daily.soreness,
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.06)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 2,
+      },
+    ],
+  };
+
   return (
     <AppLayout>
       <Head title="Super Admin Dashboard" />
@@ -117,6 +236,118 @@ export default function SuperAdminDashboard({
               </div>
             ))}
           </div>
+
+          {/* Platform Performance & Wellness
+          <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Weekly Platform KPIs
+                </p>
+                <h2 className="text-2xl font-bold">Performance & Wellness</h2>
+                <p className="text-sm text-muted-foreground">
+                  Based on exercise logs and wellness logs, week of {kpi.window.current_start} to {kpi.window.current_end}
+                </p>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Last wellness log: {kpi.recency.last_log_at ? new Date(kpi.recency.last_log_at).toLocaleDateString() : '—'} (
+                {kpi.recency.days_since_last ?? '—'} days ago)
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {performanceCards.map((card) => (
+                <div key={card.label} className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{card.label}</p>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-foreground">{card.value}</span>
+                    <span
+                      className={`text-xs font-semibold ${
+                        card.delta > 0
+                          ? 'text-green-600'
+                          : card.delta < 0
+                            ? 'text-red-600'
+                            : 'text-muted-foreground'
+                      }`}
+                    >
+                      {card.delta > 0 ? '+' : ''}
+                      {card.delta}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground">Exercise Completion Trend</h3>
+                    <p className="text-sm text-muted-foreground">Daily completion rate (%) over the last 7 days</p>
+                  </div>
+                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                    {kpi.exercise.week.completed_logs} done / {kpi.exercise.week.total_logs} logs
+                  </span>
+                </div>
+                <div className="h-64">
+                  <Line
+                    data={exerciseTrendData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, max: 100, grid: { color: '#e5e7eb33' } },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground">Wellness Trend</h3>
+                    <p className="text-sm text-muted-foreground">Readiness, Energy, Soreness (daily averages)</p>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    Active Athletes: {kpi.wellness.week.active_athletes}
+                  </span>
+                </div>
+                <div className="h-64">
+                  <Line
+                    data={wellnessTrendData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, suggestedMax: 10, grid: { color: '#e5e7eb33' } },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sleep</p>
+                <div className="mt-1 text-lg font-bold text-foreground">
+                  {kpi.wellness.week.sleep_hours_avg.toFixed(1)} hrs · Quality {kpi.wellness.week.sleep_quality_avg.toFixed(1)}/10
+                </div>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hydration</p>
+                <div className="mt-1 text-lg font-bold text-foreground">{kpi.wellness.week.hydration_avg.toFixed(1)}/10</div>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Injury Flags</p>
+                <div className="mt-1 text-lg font-bold text-foreground">{kpi.wellness.week.injury_flags}</div>
+              </div>
+            </div>
+          </div> */}
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-border/60 bg-card p-6 shadow-sm">
