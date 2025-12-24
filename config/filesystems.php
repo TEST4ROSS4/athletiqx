@@ -41,7 +41,8 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            // Custom public URL (user-requested) to include the full storage path segment
+            'url' => rtrim(env('APP_URL'), '/').'/storage/app/public',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

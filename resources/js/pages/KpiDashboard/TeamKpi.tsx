@@ -1,6 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Line } from 'react-chartjs-2';
+import { useState } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -81,6 +83,17 @@ export default function TeamKpi({
     studentMetrics,
     lastUpdated,
 }: TeamKpiProps) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        router.reload({
+            only: ['kpi', 'studentMetrics', 'lastUpdated'],
+            preserveScroll: true,
+            onFinish: () => setIsRefreshing(false),
+        });
+    };
+
     // Calculate deltas
     const delta = (current: number, prev: number) =>
         prev === 0 ? (current === 0 ? 0 : 100) : Math.round(((current - prev) / prev) * 100);
@@ -226,6 +239,14 @@ export default function TeamKpi({
                                 KPI Dashboard • Last updated {new Date(lastUpdated).toLocaleTimeString()}
                             </p>
                         </div>
+                        <button
+                            type="button"
+                            onClick={handleRefresh}
+                            className="inline-flex items-center justify-center rounded-lg border border-border/60 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:shadow-md disabled:opacity-60"
+                            disabled={isRefreshing}
+                        >
+                            {isRefreshing ? 'Refreshing…' : 'Refresh data'}
+                        </button>
                     </div>
 
                     {/* Performance Section */}
