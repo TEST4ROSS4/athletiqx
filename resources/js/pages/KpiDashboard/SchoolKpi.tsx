@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { Line } from 'react-chartjs-2';
+import { useState } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -85,6 +86,13 @@ export default function SchoolKpi({
     selectedSchoolId,
     lastUpdated,
 }: SchoolKpiProps) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        window.location.reload();
+    };
+
     const hasSchoolPicker = schools.length > 0;
     const allOption = { id: 'all', name: 'All Schools' };
     const options = hasSchoolPicker ? [allOption, ...schools.map((s) => ({ ...s, id: String(s.id) }))] : [];
@@ -193,25 +201,35 @@ export default function SchoolKpi({
                                 KPI Dashboard • Last updated {new Date(lastUpdated).toLocaleTimeString()}
                             </p>
                         </div>
-                        {hasSchoolPicker && (
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium text-muted-foreground" htmlFor="school-picker">
-                                    School:
-                                </label>
-                                <select
-                                    id="school-picker"
-                                    className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
-                                    onChange={handleSchoolChange}
-                                    value={selectedSchoolId === null ? 'all' : String(selectedSchoolId ?? 'all')}
-                                >
-                                    {options.map((opt) => (
-                                        <option key={opt.id} value={opt.id}>
-                                            {opt.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                        <div className="flex items-center gap-3">
+                            {hasSchoolPicker && (
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm font-medium text-muted-foreground" htmlFor="school-picker">
+                                        School:
+                                    </label>
+                                    <select
+                                        id="school-picker"
+                                        className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+                                        onChange={handleSchoolChange}
+                                        value={selectedSchoolId === null ? 'all' : String(selectedSchoolId ?? 'all')}
+                                    >
+                                        {options.map((opt) => (
+                                            <option key={opt.id} value={opt.id}>
+                                                {opt.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleRefresh}
+                                className="inline-flex items-center justify-center rounded-lg border border-border/60 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:shadow-md disabled:opacity-60"
+                                disabled={isRefreshing}
+                            >
+                                {isRefreshing ? 'Refreshing…' : 'Refresh data'}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Main Dashboard Card */}

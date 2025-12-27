@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->get('/school/kpis/trends', [KpiController::cl
 Route::middleware('auth:sanctum')->get('/kpi/schools', [KpiController::class, 'listSchools']);
 Route::middleware('auth:sanctum')->get('/kpi/teams', [KpiController::class, 'listTeams']);
 Route::middleware('auth:sanctum')->get('/teams/{teamId}/students', [KpiController::class, 'listTeamStudents']);
+Route::get('/test/kpi/{count?}/{schoolId?}', [KpiController::class, 'seedTestKpi']);
 
 //WELLNESS TRACKING (Phase 2)
 Route::middleware('auth:sanctum')->post('/wellness/log', [WellnessController::class, 'logWellness']);
