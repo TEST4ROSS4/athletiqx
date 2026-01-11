@@ -38,11 +38,34 @@ class KpiController extends Controller
         $wellnessMetrics = $this->calculateWellnessAverages([$studentId]);
         $exerciseMetrics = $this->calculateExerciseMetrics([$studentId], 7);
         $logSnapshot = $this->buildLogSnapshot([$studentId]);
+        $trainingCompletionRate = $this->calculateCompletionRate($studentId);
+        $complianceScore = $this->calculateComplianceScore($studentId);
+        $consistencyIndex = $this->calculateConsistencyIndex($studentId);
+        $performanceTrend = $this->calculatePerformanceTrend($studentId);
+        $attendanceRate = $this->calculateAttendanceRate($studentId, 7);
+        $averageSessionDuration = $this->calculateAvgSessionDuration($studentId);
+        $personalRecords = [
+            'maxWeight' => $this->getMaxWeight($studentId),
+            'maxTime' => $this->getMaxDuration($studentId),
+        ];
+        $recoveryMetrics = [
+            'sleepQuality' => $this->getAvgSleepQuality($studentId),
+            'soreness' => $this->getAvgSoreness($studentId),
+        ];
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => $wellnessMetrics + $exerciseMetrics,
+                'kpis' => ($wellnessMetrics + $exerciseMetrics + [
+                    'trainingCompletionRate' => $trainingCompletionRate,
+                    'complianceScore' => $complianceScore,
+                    'consistencyIndex' => $consistencyIndex,
+                    'performanceTrend' => $performanceTrend,
+                    'attendanceRate' => $attendanceRate,
+                    'averageSessionDuration' => $averageSessionDuration,
+                    'personalRecords' => $personalRecords,
+                    'recoveryMetrics' => $recoveryMetrics,
+                ]),
                 'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
@@ -139,10 +162,12 @@ class KpiController extends Controller
      * Test helper: seed randomized wellness and exercise data to make KPI dashboards non-empty.
      * WARNING: restricted to super_admin.
      */
-    public function seedTestKpi(Request $request, $count = null, $schoolIdParam = null)
+    public function seedTestKpi(Request $request, $count = null, $schoolIdParam = null, $studentIdParam = null)
     {
         $count = (int)($count ?? $request->get('count') ?? 10);
+        $sessions = max(1, $count);
         $schoolId = $schoolIdParam ?? $request->get('school_id');
+        $studentId = $studentIdParam ?? $request->get('student_id');
 
         $schoolId = $schoolId ?? School::first()?->id;
         if (!$schoolId) {
@@ -150,10 +175,19 @@ class KpiController extends Controller
             $schoolId = $school->id;
         }
 
-        $students = User::whereHas('roles', fn($q) => $q->where('name', 'Student'))
-            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
-            ->take($count)
-            ->get();
+        if ($studentId) {
+            $student = User::find($studentId);
+            if (!$student || !$student->hasRole('Student')) {
+                return response()->json(['success' => false, 'message' => 'Student not found or invalid'], 404);
+            }
+            $students = collect([$student]);
+            $schoolId = $schoolId ?? $student->school_id;
+        } else {
+            $students = User::whereHas('roles', fn($q) => $q->where('name', 'Student'))
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->take($count)
+                ->get();
+        }
 
         if ($students->isEmpty()) {
             // create students if none exist
@@ -203,14 +237,14 @@ class KpiController extends Controller
             ['fields' => ['weight', 'reps'], 'suggested_values' => ['weight' => 40, 'reps' => 12]]
         );
 
-        $startDate = Carbon::now()->subDays(6)->startOfDay();
+        $startDate = Carbon::now()->subDays($sessions - 1)->startOfDay();
 
         $createdWellness = 0;
         $createdAssignments = 0;
         $createdLogs = 0;
 
         foreach ($students as $student) {
-            for ($i = 0; $i < 7; $i++) {
+            for ($i = 0; $i < $sessions; $i++) {
                 $day = $startDate->copy()->addDays($i)->setTime(rand(6, 22), rand(0, 59));
                 WellnessLog::create([
                     'student_id' => $student->id,
@@ -241,7 +275,9 @@ class KpiController extends Controller
             ]);
             $createdAssignments++;
 
-            foreach ([$set1, $set2] as $set) {
+            for ($i = 0; $i < $sessions; $i++) {
+                $set = rand(0, 1) === 0 ? $set1 : $set2;
+                $logDay = $startDate->copy()->addDays($i)->setTime(rand(6, 22), rand(0, 59));
                 ExerciseLog::create([
                     'assignment_id' => $assignment->id,
                     'set_id' => $set->id,
@@ -251,6 +287,8 @@ class KpiController extends Controller
                     ],
                     'notes' => 'Seeded log',
                     'marked_as_done' => true,
+                    'created_at' => $logDay,
+                    'updated_at' => $logDay,
                 ]);
                 $createdLogs++;
             }
@@ -372,9 +410,17 @@ class KpiController extends Controller
 
         $studentIds = $team->studentAssignments()->pluck('student_id')->toArray();
 
-        // Wellness-only KPIs
+        // KPI aggregates
         $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
+        $exerciseMetrics = $this->calculateExerciseMetrics($studentIds, 7);
         $logSnapshot = $this->buildLogSnapshot($studentIds);
+        $trainingCompletionRate = $this->calculateTeamCompletionRate($studentIds);
+        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
+        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
+        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
+        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds, 7);
+        $averageSessionDuration = $this->calculateTeamAvgSessionDuration($studentIds);
+        $totalMembers = count($studentIds);
 
         // Calculate student wellness metrics in real-time
         $studentMetrics = [];
@@ -398,7 +444,15 @@ class KpiController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => $wellnessMetrics,
+                'kpis' => ($wellnessMetrics + $exerciseMetrics + [
+                    'trainingCompletionRate' => $trainingCompletionRate,
+                    'complianceScore' => $complianceScore,
+                    'consistencyIndex' => $consistencyIndex,
+                    'performanceTrend' => $performanceTrend,
+                    'attendanceRate' => $attendanceRate,
+                    'averageSessionDuration' => $averageSessionDuration,
+                    'totalMembers' => $totalMembers,
+                ]),
                 'studentMetrics' => $studentMetrics,
                 'pagination' => [
                     'total' => count($studentMetrics),
@@ -442,16 +496,26 @@ class KpiController extends Controller
         $wellnessMetrics = $this->calculateWellnessAverages($studentIds);
         $logSnapshot = $this->buildLogSnapshot($studentIds);
         $exerciseMetrics = $this->calculateExerciseMetrics($studentIds, 7);
+        $trainingCompletionRate = $this->calculateTeamCompletionRate($studentIds);
+        $complianceScore = $this->calculateTeamComplianceScore($studentIds);
+        $consistencyIndex = $this->calculateTeamConsistencyIndex($studentIds);
+        $performanceTrend = $this->calculateTeamPerformanceTrend($studentIds);
+        $attendanceRate = $this->calculateTeamAttendanceRate($studentIds, 7);
+        $averageSessionDuration = $this->calculateTeamAvgSessionDuration($studentIds);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'kpis' => $wellnessMetrics
-                    + $exerciseMetrics
-                    + [
-                        'totalStudents' => count($studentIds),
-                        'totalTeams' => $teamCount,
-                    ],
+                'kpis' => ($wellnessMetrics + $exerciseMetrics + [
+                    'trainingCompletionRate' => $trainingCompletionRate,
+                    'complianceScore' => $complianceScore,
+                    'consistencyIndex' => $consistencyIndex,
+                    'performanceTrend' => $performanceTrend,
+                    'attendanceRate' => $attendanceRate,
+                    'averageSessionDuration' => $averageSessionDuration,
+                    'totalStudents' => count($studentIds),
+                    'totalTeams' => $teamCount,
+                ]),
                 'logSnapshot' => $logSnapshot,
                 'lastUpdated' => now()->toIso8601String(),
             ],
@@ -678,16 +742,56 @@ class KpiController extends Controller
         ];
     }
 
-    private function calculateComplianceScore($studentId)
+    private function calculateComplianceScore($studentId, $days = 7)
     {
-        $logs = TrainingLog::where('student_id', $studentId)->get();
-        return $logs->isEmpty() ? 0 : round($logs->avg('compliance_score'), 2);
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+
+        // Prefer recent training logs (logged_at or created_at) within the window
+        $logs = TrainingLog::where('student_id', $studentId)
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
+            ->get();
+
+        if (!$logs->isEmpty()) {
+            return round($logs->avg('compliance_score') ?? 0, 2);
+        }
+
+        // Fallback: derive a compliance-like value from program assignments in the same window
+        $assigned = ProgramAssignment::where('student_id', $studentId)
+            ->whereNotNull('assigned_at')
+            ->where('assigned_at', '>=', $windowStart)
+            ->count();
+
+        $completed = ProgramAssignment::where('student_id', $studentId)
+            ->where(function ($q) use ($windowStart) {
+                $q->where(function ($qq) use ($windowStart) {
+                    $qq->where('status', 'Completed')
+                        ->whereNotNull('assigned_at')
+                        ->where('assigned_at', '>=', $windowStart);
+                })->orWhere(function ($qq) use ($windowStart) {
+                    $qq->whereNotNull('marked_done_at')
+                        ->where('marked_done_at', '>=', $windowStart);
+                });
+            })
+            ->count();
+
+        return $assigned > 0 ? round(($completed / $assigned) * 100, 2) : 0;
     }
 
     private function calculateConsistencyIndex($studentId)
     {
+        $windowStart = now()->startOfWeek();
         $sessionsThisWeek = TrainingLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', now()->startOfWeek())
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
             ->distinct('training_id')
             ->count();
 
@@ -697,13 +801,30 @@ class KpiController extends Controller
 
     private function calculatePerformanceTrend($studentId)
     {
+        $thisWeekStart = now()->subWeek();
+        $lastWeekStart = now()->subWeeks(2);
         $thisWeekAvg = TrainingLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', now()->subWeek())
+            ->where(function ($q) use ($thisWeekStart) {
+                $q->where('logged_at', '>=', $thisWeekStart)
+                    ->orWhere(function ($qq) use ($thisWeekStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $thisWeekStart);
+                    });
+            })
             ->avg('compliance_score') ?? 0;
 
         $lastWeekAvg = TrainingLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', now()->subWeeks(2))
-            ->where('logged_at', '<', now()->subWeek())
+            ->where(function ($q) use ($lastWeekStart) {
+                $q->where('logged_at', '>=', $lastWeekStart)
+                    ->orWhere(function ($qq) use ($lastWeekStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $lastWeekStart);
+                    });
+            })
+            ->where(function ($q) {
+                $q->where('logged_at', '<', now()->subWeek())
+                    ->orWhere(function ($qq) {
+                        $qq->whereNull('logged_at')->where('created_at', '<', now()->subWeek());
+                    });
+            })
             ->avg('compliance_score') ?? 0;
 
         if ($lastWeekAvg == 0) return 0;
@@ -712,47 +833,83 @@ class KpiController extends Controller
 
     private function calculateAttendanceRate($studentId, $days = 7, $baselineStudentIds = null)
     {
-        $windowStart = now()->subDays($days - 1)->startOfDay();
+        $logs = \App\Models\WellnessLog::where('student_id', $studentId)
+            ->orderBy('logged_at')
+            ->orderBy('created_at')
+            ->get();
 
-        $uniqueDays = \App\Models\WellnessLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', $windowStart)
-            ->get()
+        if ($logs->isEmpty()) {
+            return 0;
+        }
+
+        if ($logs->count() === 1) {
+            return 100;
+        }
+
+        $firstTimestamp = $logs->first()->logged_at ?? $logs->first()->created_at;
+        if (!$firstTimestamp) {
+            return 0;
+        }
+
+        $startDate = $firstTimestamp->copy()->startOfDay();
+        $today = now()->startOfDay();
+        $totalDays = $startDate->diffInDays($today) + 1;
+
+        $uniqueDays = $logs
             ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
             ->filter()
             ->unique()
             ->count();
 
-        $maxAttendanceDays = $this->getMaxAttendanceDays($days, $baselineStudentIds);
-
-        return $maxAttendanceDays > 0 ? round(($uniqueDays / $maxAttendanceDays) * 100, 2) : 0;
+        return $totalDays > 0 ? round(($uniqueDays / $totalDays) * 100, 2) : 0;
     }
 
-    private function getMaxAttendanceDays($days = 7, $studentIds = null)
+    private function calculateAvgSessionDuration($studentId, $days = 7)
     {
         $windowStart = now()->subDays($days - 1)->startOfDay();
 
-        $query = \App\Models\WellnessLog::query()->where('logged_at', '>=', $windowStart);
+        // Prefer recent training logs (logged_at or created_at) within the window
+        $logs = TrainingLog::where('student_id', $studentId)
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
+            ->get();
 
-        if (is_array($studentIds) && !empty($studentIds)) {
-            $query->whereIn('student_id', $studentIds);
+        $validDurations = $logs
+            ->map(fn ($log) => $log->duration_actual)
+            ->filter(fn ($d) => is_numeric($d) && $d > 0);
+
+        if ($validDurations->isNotEmpty()) {
+            return round($validDurations->avg() ?? 0, 0);
         }
 
-        $attendanceCounts = $query->get()
-            ->groupBy('student_id')
-            ->map(fn ($logs) => $logs
-                ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
-                ->filter()
-                ->unique()
-                ->count()
-            );
+        // Fallback: approximate session duration using assignment start/end times
+        $assignments = ProgramAssignment::where('student_id', $studentId)
+            ->where(function ($q) use ($windowStart) {
+                $q->whereNotNull('marked_done_at')
+                    ->where('marked_done_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->where('status', 'Completed')
+                            ->whereNotNull('assigned_at')
+                            ->where('assigned_at', '>=', $windowStart);
+                    });
+            })
+            ->get();
 
-        return $attendanceCounts->max() ?? 0;
-    }
+        $avgDurationFromAssignments = $assignments
+            ->map(function ($a) {
+                if ($a->assigned_at && $a->marked_done_at) {
+                    return max(0, $a->marked_done_at->diffInMinutes($a->assigned_at));
+                }
+                return null;
+            })
+            ->filter()
+            ->avg();
 
-    private function calculateAvgSessionDuration($studentId)
-    {
-        $logs = TrainingLog::where('student_id', $studentId)->get();
-        return $logs->isEmpty() ? 0 : round($logs->avg('duration_actual'), 0);
+        return $avgDurationFromAssignments ? round($avgDurationFromAssignments, 0) : 0;
     }
 
     private function getMaxWeight($studentId)
@@ -848,34 +1005,60 @@ class KpiController extends Controller
         );
     }
 
-    private function calculateTeamCompletionRate($studentIds)
+    private function calculateTeamCompletionRate($studentIds, $days = 7)
     {
         if (empty($studentIds)) return 0;
 
-        $assigned = ProgramAssignment::whereIn('student_id', $studentIds)->count();
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+
+        $assigned = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->whereNotNull('assigned_at')
+            ->where('assigned_at', '>=', $windowStart)
+            ->count();
+
         $completed = ProgramAssignment::whereIn('student_id', $studentIds)
-            ->where(function ($q) {
-                $q->where('status', 'Completed')
-                  ->orWhereNotNull('marked_done_at');
+            ->where(function ($q) use ($windowStart) {
+                $q->where(function ($qq) use ($windowStart) {
+                    $qq->where('status', 'Completed')
+                      ->whereNotNull('assigned_at')
+                      ->where('assigned_at', '>=', $windowStart);
+                })->orWhere(function ($qq) use ($windowStart) {
+                    $qq->whereNotNull('marked_done_at')
+                      ->where('marked_done_at', '>=', $windowStart);
+                });
             })
             ->count();
         return $assigned > 0 ? round(($completed / $assigned) * 100, 2) : 0;
     }
 
-    private function calculateTeamComplianceScore($studentIds)
+    private function calculateTeamComplianceScore($studentIds, $days = 7)
     {
         if (empty($studentIds)) return 0;
 
-        $logs = TrainingLog::whereIn('student_id', $studentIds)->get();
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+        $logs = TrainingLog::whereIn('student_id', $studentIds)
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
+            ->get();
         return $logs->isEmpty() ? 0 : round($logs->avg('compliance_score'), 2);
     }
 
-    private function calculateTeamConsistencyIndex($studentIds)
+    private function calculateTeamConsistencyIndex($studentIds, $days = 7)
     {
         if (empty($studentIds)) return 0;
 
+        $windowStart = now()->subDays($days - 1)->startOfDay();
         $sessionsThisWeek = TrainingLog::whereIn('student_id', $studentIds)
-            ->where('logged_at', '>=', now()->startOfWeek())
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
             ->distinct('training_id')
             ->count();
 
@@ -914,11 +1097,19 @@ class KpiController extends Controller
         return round(array_sum($rates) / count($rates), 2);
     }
 
-    private function calculateTeamAvgSessionDuration($studentIds)
+    private function calculateTeamAvgSessionDuration($studentIds, $days = 7)
     {
         if (empty($studentIds)) return 0;
 
-        $logs = TrainingLog::whereIn('student_id', $studentIds)->get();
+        $windowStart = now()->subDays($days - 1)->startOfDay();
+        $logs = TrainingLog::whereIn('student_id', $studentIds)
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
+            ->get();
         return $logs->isEmpty() ? 0 : round($logs->avg('duration_actual'), 0);
     }
 }

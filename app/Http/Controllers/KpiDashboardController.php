@@ -460,14 +460,19 @@ class KpiDashboardController extends Controller
         }
 
         // --- EXERCISE ---
-        // Completion Rate: ProgramAssignment status='Completed'
+        // Completion Rate: ProgramAssignment status='Completed' OR marked_done_at within window
         $assignments = ProgramAssignment::whereIn('student_id', $studentIds)
+            ->whereNotNull('assigned_at')
             ->where('assigned_at', '>=', $prevStart)
             ->get();
 
         $calcCompletion = function($logs) {
             $assigned = $logs->count();
-            $completed = $logs->where('status', 'Completed')->count();
+            $completed = $logs->filter(function ($a) {
+                $done = $a->status === 'Completed';
+                $marked = !empty($a->marked_done_at);
+                return $done || $marked;
+            })->count();
             return $assigned > 0 ? round(($completed / $assigned) * 100, 1) : 0;
         };
 
@@ -523,6 +528,27 @@ class KpiDashboardController extends Controller
             $dailyCompletion[] = $calcCompletion($dayAssignments);
         }
 
+        // Training KPIs (compliance, consistency, duration) over current window
+        $trainingLogsCurrent = TrainingLog::whereIn('student_id', $studentIds)
+            ->where('logged_at', '>=', $currentStart)
+            ->get();
+
+        $trainingLogsPrev = TrainingLog::whereIn('student_id', $studentIds)
+            ->whereBetween('logged_at', [$prevStart, $prevEnd])
+            ->get();
+
+        $complianceWeek = $trainingLogsCurrent->isEmpty() ? 0 : round($trainingLogsCurrent->avg('compliance_score'), 1);
+        $compliancePrev = $trainingLogsPrev->isEmpty() ? 0 : round($trainingLogsPrev->avg('compliance_score'), 1);
+
+        $sessionsThisWeek = $trainingLogsCurrent->unique('training_id')->count();
+        $sessionsPrev = $trainingLogsPrev->unique('training_id')->count();
+        $targetSessions = count($studentIds) * 4;
+        $consistencyWeek = $targetSessions > 0 ? round(($sessionsThisWeek / $targetSessions) * 100, 1) : 0;
+        $consistencyPrev = $targetSessions > 0 ? round(($sessionsPrev / $targetSessions) * 100, 1) : 0;
+
+        $avgDurationWeek = $trainingLogsCurrent->isEmpty() ? 0 : round($trainingLogsCurrent->avg('duration_actual'), 0);
+        $avgDurationPrev = $trainingLogsPrev->isEmpty() ? 0 : round($trainingLogsPrev->avg('duration_actual'), 0);
+
         // Recency
         $lastLog = $currentWellness->sortByDesc('logged_at')->first();
 
@@ -533,6 +559,20 @@ class KpiDashboardController extends Controller
                 'daily' => [
                     'labels' => $dailyLabels,
                     'completion_rate' => $dailyCompletion,
+                ],
+            ],
+            'training' => [
+                'week' => [
+                    'completion_rate' => $completionRateWeek,
+                    'compliance_score' => $complianceWeek,
+                    'consistency_index' => $consistencyWeek,
+                    'avg_session_duration' => $avgDurationWeek,
+                ],
+                'previous' => [
+                    'completion_rate' => $completionRatePrev,
+                    'compliance_score' => $compliancePrev,
+                    'consistency_index' => $consistencyPrev,
+                    'avg_session_duration' => $avgDurationPrev,
                 ],
             ],
             'wellness' => [
@@ -601,8 +641,14 @@ class KpiDashboardController extends Controller
 
     private function calculateConsistencyIndex($studentId)
     {
+        $windowStart = now()->startOfWeek();
         $sessionsThisWeek = TrainingLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', now()->startOfWeek())
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
             ->distinct('training_id')
             ->count();
 
@@ -627,41 +673,35 @@ class KpiDashboardController extends Controller
 
     private function calculateAttendanceRate($studentId, $days = 7, $baselineStudentIds = null)
     {
-        $windowStart = now()->subDays($days - 1)->startOfDay();
+        $logs = WellnessLog::where('student_id', $studentId)
+            ->orderBy('logged_at')
+            ->orderBy('created_at')
+            ->get();
 
-        $uniqueDays = WellnessLog::where('student_id', $studentId)
-            ->where('logged_at', '>=', $windowStart)
-            ->get()
+        if ($logs->isEmpty()) {
+            return 0;
+        }
+
+        if ($logs->count() === 1) {
+            return 100;
+        }
+
+        $firstTimestamp = $logs->first()->logged_at ?? $logs->first()->created_at;
+        if (!$firstTimestamp) {
+            return 0;
+        }
+
+        $startDate = $firstTimestamp->copy()->startOfDay();
+        $today = now()->startOfDay();
+        $totalDays = $startDate->diffInDays($today) + 1;
+
+        $uniqueDays = $logs
             ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
             ->filter()
             ->unique()
             ->count();
 
-        $maxAttendanceDays = $this->getMaxAttendanceDays($days, $baselineStudentIds);
-
-        return $maxAttendanceDays > 0 ? round(($uniqueDays / $maxAttendanceDays) * 100, 2) : 0;
-    }
-
-    private function getMaxAttendanceDays($days = 7, $studentIds = null)
-    {
-        $windowStart = now()->subDays($days - 1)->startOfDay();
-
-        $query = WellnessLog::query()->where('logged_at', '>=', $windowStart);
-
-        if (is_array($studentIds) && !empty($studentIds)) {
-            $query->whereIn('student_id', $studentIds);
-        }
-
-        $attendanceCounts = $query->get()
-            ->groupBy('student_id')
-            ->map(fn ($logs) => $logs
-                ->map(fn ($log) => optional($log->logged_at ?? $log->created_at)?->toDateString())
-                ->filter()
-                ->unique()
-                ->count()
-            );
-
-        return $attendanceCounts->max() ?? 0;
+        return $totalDays > 0 ? round(($uniqueDays / $totalDays) * 100, 2) : 0;
     }
 
     private function calculateAvgSessionDuration($studentId)
@@ -878,8 +918,14 @@ class KpiDashboardController extends Controller
     {
         if (empty($studentIds)) return 0;
         
+        $windowStart = now()->startOfWeek();
         $sessionsThisWeek = TrainingLog::whereIn('student_id', $studentIds)
-            ->where('logged_at', '>=', now()->startOfWeek())
+            ->where(function ($q) use ($windowStart) {
+                $q->where('logged_at', '>=', $windowStart)
+                    ->orWhere(function ($qq) use ($windowStart) {
+                        $qq->whereNull('logged_at')->where('created_at', '>=', $windowStart);
+                    });
+            })
             ->distinct('training_id')
             ->count();
 

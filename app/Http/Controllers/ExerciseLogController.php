@@ -68,6 +68,7 @@ class ExerciseLogController extends Controller
                 $totalSets === 0 || $loggedSets === 0 => 'Assigned',
                 $completedSets < $totalSets => 'In-Progress',
                 $completedSets === $totalSets => 'Completed',
+                default => 'Assigned',
             };
 
             return [
@@ -110,6 +111,7 @@ class ExerciseLogController extends Controller
             $totalSets === 0 || $loggedSets === 0 => 'Assigned',
             $completedSets < $totalSets => 'In-Progress',
             $completedSets === $totalSets => 'Completed',
+            default => 'Assigned',
         };
 
         return Inertia::render('ExerciseLogsPage/Form', [
